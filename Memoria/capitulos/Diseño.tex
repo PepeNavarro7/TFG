@@ -1,0 +1,41 @@
+\creaCapitulo{Diseño}
+\creaSeccion{Runge Kutta}
+
+Los métodos de Runge-Kutta se utilizan para resolver ecuaciones diferenciales no lineales, cuando encontrar una solución exacta es muy difícil o imposible. En el método de Runge-Kutta de orden 4 resolveremos diversos pasos que nos servirán para estimar de forma muy aproximada el resultado. Partiendo de un valor inicial $dy/dt = f(t,y)$, $y(t_0)=y_0$, y de un valor de salto $h>0$, calcularemos iterativamente los valores tal que:
+\begin{equation}
+	\label{eq:RungeKutta}
+	\begin{split}
+		y_{n+1} &= y_n + \frac{h}{6} \cdot (k_1 +2k_2 + 2k_3 + k_4)\\
+		k_1 &= f(t_n, y_n)\\
+		k_2 &= f \left( t_n + \frac{h}{2}, y_n + h \cdot \frac{k_1}{2} \right) \\
+		k_3 &= f \left( t_n + \frac{h}{2}, y_n + h \cdot \frac{k_2}{2} \right) \\
+		k_4 &= f(t_n + h, y_n + h \cdot k_3)
+	\end{split}
+\end{equation}
+
+Aplicado en un contexto de programación, tendremos una clase $RungeKutta$ con una función principal que aplicará el cálculo y algunas auxiliares que se explicarán más adelante. Dicha función tendrá el siguiente diseño, en el que se harán diversas llamadas a la evaluación de la derivada de cadsa problema en cuestión (aquí lo llamaremos $feval$): 
+
+\begin{algorithm}[H] %Le ponemos la H para que se coloque entre los dos párrafos, y no se mueva libremente
+	\label{alg:RungeKutta}
+	\caption{RungeKutta Orden 4}
+	\begin{algorithmic}
+		\State $t_n \gets t_0$
+		\While{$  t_n \leq t_f $}
+		\State $K1 \gets feval(t_n, Y_n)$
+		\State $K2 \gets feval(t_n+h/2, Y_n + K1\cdot h/2)$
+		\State $K3 \gets feval(t_n+h/2, Y_n + K2\cdot h/2)$
+		\State $K4 \gets feval(t_n+h, Y_n + K3\cdot h)$
+		\State $Y_{n+1} \gets Y_n + K1 \cdot h/6 + K2 \cdot h/3 + K3 \cdot h/3 + K4 \cdot h/6$
+		\State $t_n += h$
+		\EndWhile
+	\end{algorithmic}
+\end{algorithm}
+
+Como podemos ver, la aplicación del algoritmo es relativamente simple, se trabaja con 4 vectores auxiliares en los que hacemos los cálculos intermedios, que luego se suman. Es en estas operaciones, las evaluaciones de cada miembro, y las sumas y multiplicaciones de cada vector, en las que podremos entrar a trabajar el paralelismo para mejorar la eficiencia de nuestro  código.
+
+\creaSeccion{Adams-Bashford}
+
+\creaSeccion{Adams-Moulton}
+
+\creaSeccion{SimpleAdvDiff}
+En primero de los programas con los que trabajaremos será este SimpleAdvDiff, que representa un modelo simple de Advección-Difusión en 1D. En este problema trabajaremos con un vector que estará compuesto de dos partes, una parte rígida y una no rígida, que se sumarán para dar los valores de cada una de las celdas del vector.

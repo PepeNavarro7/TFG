@@ -1,0 +1,76 @@
+\documentclass[oneside,a4paper,11pt]{book}
+
+% Packages que usamos
+\usepackage[utf8]{inputenc} %idioima
+\usepackage[spanish]{babel} %idioma
+\usepackage{amsmath} % funciones matemáticas
+\usepackage{graphicx} % la portada
+\usepackage{fancyhdr} %headers y footers
+\usepackage{cite} %bibliografía
+\usepackage{emptypage} %páginas en blanco
+\usepackage{afterpage} %páginas en blanco
+\usepackage{algorithm} %incluir pseudocodigo
+\usepackage{algpseudocode} %incluir pseudocodigo
+\usepackage{float} % para que los algorithm se coloquen bien
+
+% Comando para añadir una página en blanco
+\newcommand\blankpage{ \null
+%    \thispagestyle{empty} %descomentar para quitar el numero de la página en blanco
+%    \addtocounter{page}{-1} % descomentar para que no cuente el numero de la página en blanco
+    \newpage}
+
+%comandos para crear capitulos y secciones sin numero pero que aparezcan en el índice
+\newcommand{\creaCapitulo}[1]{ 
+	\chapter*{#1} 
+	\addcontentsline{toc}{chapter}{#1} 
+}
+\newcommand{\creaSeccion}[1]{ 
+	\section*{#1} 
+	\addcontentsline{toc}{section}{#1} 
+}
+\decimalpoint %usar . en lugar de , para decimales
+
+
+% Re-usable information
+\newcommand{\myTitle}{Estudio e implementación paralela de métodos semiimplícitos multipaso}
+\newcommand{\mySubTitle}{Resolución de Ecuaciones de Advección-Reacción-Difusión}
+\newcommand{\myDegree}{Grado en Ingeniería Informática}
+\newcommand{\myName}{José Manuel Navarro Cuartero}
+\newcommand{\myProf}{José Miguel Mantas Ruiz}
+\newcommand{\myFaculty}{Escuela Técnica Superior de Ingenierías Informática y de Telecomunicación}
+\newcommand{\myFacultyShort}{E.T.S. de Ingenierías Informática y de Telecomunicación}
+\newcommand{\myDepartment}{Departamento de Lenguajes y Sistemas Informáticos}
+\newcommand{\myUni}{Universidad de Granada}
+
+\addto\captionsspanish{ \renewcommand{\contentsname}{Índice} }
+\addto\captionsspanish{ \renewcommand{\listtablename}{Glosario de Tablas} }
+\addto\captionsspanish{ \renewcommand{\listfigurename}{Glosario de Imágenes} }
+
+\begin{document}
+
+
+
+\frontmatter
+\input{prefacios/portada}
+\input{prefacios/prefacio}	
+%\newpage
+\tableofcontents %tabla de contenidos
+\thispagestyle{empty}
+
+\mainmatter
+\pagestyle{fancy}
+\fancyhf{} % clear existing header/footer entries
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[C]{\thepage}% Numero en el centro del pie de pagina
+
+\input{capitulos/Introduccion}
+\input{capitulos/Diseño}
+
+\afterpage{\blankpage} %Página en blanco
+
+\bibliography{library/library}{}
+\bibliographystyle{apalike}
+\listoftables
+\listoffigures  
+
+\end{document}
