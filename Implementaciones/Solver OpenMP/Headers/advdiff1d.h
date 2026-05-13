@@ -1,0 +1,37 @@
+#ifndef ADVDIFF1D_H
+#define ADVDIFF1D_H
+
+#include "Problema.h"
+
+using namespace std;
+
+// PROBLEMA 2
+// Class for the IVP-ODE representing a 1D Advection-Diffusion model 
+class advdiff1d: public Problema {
+
+private:
+    int nx; // number of grid points at each dimension
+    double dtx, // Spatial step
+        dtx_squared, // Spatial step squared
+        dtx_quad; // Spatial step times 4
+    const double a=10.0,    //constant scalar representing the strength of advection 
+        d=1.0;              //constant scalar representing the strength of diffusion
+            
+public:
+    // Constructor of the class IVP_ODE_advdiff1d    
+    advdiff1d(const int nx_points);
+    
+    // Initialize stage vector Y0 with neqn components
+    void init(double *Y0) override; 
+
+    // Exportar los datos a un archivo txt
+    inline void archivo (const string &n, const double *Y) override { archivo1(n,Y); }; 
+
+    //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
+    void feval (const double &t, const double *Y, double *DY) override; 
+
+private:
+    double f(const double &x, const double &t) const;
+};
+
+#endif

@@ -13,30 +13,18 @@ RungeKutta::RungeKutta (const int &n){
     neqn = n;
 }
 
-void RungeKutta::aplicarRK(Problema* problema, const double &t0, const double &tf, const double &h0, const double *Y0, double *Yf){
+void RungeKutta::aplicarRK(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf){
     double *Yn = new double [neqn], // vector con la Y en cada iteracion
         *K1 = new double[neqn], *K2 = new double[neqn], *K3 = new double[neqn], *K4 = new double[neqn], // Vectores de cada paso
         *Yaux = new double[neqn];
-
+    const int loops = (tf-t0)/h;
     
     vectorCopia(Y0, Yn); // Y0 -> Yn, para primera iteración
-    int num_it = 0; // contador
-    double tn=t0, h=h0; // tn ira aumentando en cada iteración, h solo cambiaría en la última
-    bool end=false; // condición de finalización
-
-    #pragma omp parallel shared (num_it, tn, h, end)
+    
+    #pragma omp parallel
     {   
-        while(!end){
-            #pragma omp single
-            {
-                if ((tf - tn) <= h) { // Ultima iteracion
-                    h = tf - tn;
-                    end=true; 
-                    string texto = "ultima iteracion ->" + to_string(num_it) + " t->" + to_string(omp_get_thread_num()) +  "\n";
-                    cout << texto;
-                }
-            } // Barrera implicita
-            
+        double tn=t0; // tn ira aumentando en cada iteración
+        for(int i=0; i<loops; ++i){
             // Todas las llamadas han de hacerse de forma secuencial, ya que cada una necesita de la anterior
             // K1 = feval(tn, Yn)
             problema->feval(tn,Yn,K1);
@@ -62,14 +50,12 @@ void RungeKutta::aplicarRK(Problema* problema, const double &t0, const double &t
             escalarPorVector(h/3.0, K3, Yn);     // Yn += K3*h/3
             escalarPorVector(h/6.0, K4, Yn);     // Yn += K4*h/6
             
-            #pragma omp single
-            {
-                tn+=h; num_it++; // Yn ahora es Yn+1
-            } // Barrera implicita para que no se salgan unas hebras si y otras no
+            tn+=h; // Yn ahora es Yn+1 
+            #pragma omp barrier
         }
     }
     // Y0_tmp es el valor que arrastramos de la ultima iteracion
-    vectorCopia(Yn, Yf); // Y1 = Yn
+    vectorCopia(Yn, Yf); // Yn -> Yf
     delete[] K1;
     delete[] K2;
     delete[] K3;

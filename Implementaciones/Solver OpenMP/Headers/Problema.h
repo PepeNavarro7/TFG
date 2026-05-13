@@ -11,15 +11,15 @@ protected:
     int neqn; // numero de ecuaciones
     string name; // nombre del problema
         
-//    void archivo1(const string &filename, const double *Y, const double &t); // Sacar el vector por archivo
-//    void archivo2(const string &filename, const double *Y, const double &t);
+    void archivo1(const string &filename, const double *Y); // Sacar el vector por archivo
+    void archivo2(const string &filename, const double *Y);
 
 public:
     inline int get_num_ODEs() const { return neqn; };
     inline string get_name() const { return name; };
     virtual void init(double *Y0) = 0;
     virtual void feval (const double &t, const double *Y, double *DY) = 0; // Evaluacion de la exprexion, G+F
-//    virtual void archivo (const string &filename, const double *Y, const double &t) = 0;
+    virtual void archivo (const string &filename, const double *Y) = 0;
 };
 
 
