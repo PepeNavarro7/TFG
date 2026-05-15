@@ -1,0 +1,13 @@
+#Ejecutable
+solverCUDA
+Datos/*.txt
+Datos/*.png
+Obj/*.o
+
+#Plantilla
+*.i
+*.ii
+*.gpu
+*.ptx
+*.cubin
+*.fatbin

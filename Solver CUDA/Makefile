@@ -1,0 +1,69 @@
+METOD := Metodo
+RUNGE := RungeKutta
+BASHF := AdamsBashford
+MOULT := AdamsMoulton
+
+PROBP := Problema
+PROB1 := simpleadvdiff1d
+PROB2 := advdiff1d
+PROB3 := brusselator1d
+PROB0 := prueba
+
+DIR_H := Headers
+DIR_O := Obj
+DIR_S := Source
+DIR_D := Datos
+
+ALL_HEADERS := $(DIR_H)/$(METOD).h   $(DIR_H)/$(RUNGE).h   $(DIR_H)/$(PROBP).h   $(DIR_H)/$(PROB0).h
+#$(DIR_H)/$(BASHF).h   $(DIR_H)/$(MOULT).h \
+                  #$(DIR_H)/$(PROB1).h   $(DIR_H)/$(PROB2).h   $(DIR_H)/$(PROB3).h
+
+ALL_OBJ     := $(DIR_O)/$(METOD).o   $(DIR_O)/$(RUNGE).o   $(DIR_O)/$(PROBP).o   $(DIR_O)/$(PROB0).o
+#$(DIR_O)/$(BASHF).o   $(DIR_O)/$(MOULT).o \
+                  $(DIR_O)/$(PROB1).o   $(DIR_O)/$(PROB2).o   $(DIR_O)/$(PROB3).o
+
+ALL_SRC     := $(DIR_S)/$(METOD).cu $(DIR_S)/$(RUNGE).cu $(DIR_S)/$(PROBP).cu $(DIR_S)/$(PROB0).cu
+#$(DIR_S)/$(BASHF).cpp $(DIR_S)/$(MOULT).cpp \
+	            $(DIR_S)/$(PROB1).cpp $(DIR_S)/$(PROB2).cpp $(DIR_S)/$(PROB3).cpp
+			   
+ALL_DATA    := $(DIR_D)/datos0.txt   $(DIR_D)/datos1.txt 
+
+CC := nvcc
+LIBS := -L/usr/local/cuda/lib64 -lcuda -lcudart
+
+NUM_PROBS := 1 2 3
+NUM_HEBRAS := 1 2 4 8 16
+TAMS := 100 200 500 1000 2000 5000 10000
+
+# Creacion del ejecutable
+create: solverCUDA
+
+solverCUDA: $(DIR_O)/main.o $(ALL_OBJ)
+	$(CC) -I$(DIR_H) $^ -O3 -o $@
+
+$(DIR_O)/main.o: $(DIR_S)/main.cu
+	$(CC) -I$(DIR_H) -c $< -O3 -o $@
+
+$(ALL_OBJ): $(DIR_O)/%.o: $(DIR_S)/%.cu $(DIR_H)/%.h 
+	$(CC) -I$(DIR_H) -c $< -O3 -o $@
+
+# Ejecucion de problema con las variables introducidas
+run:
+	./solverCUDA $(metodo) $(problema) $(hebras) $(tamblock) $(salto) 
+
+#exportar con un método u otro
+exporta:
+	cd ./Datos/; python3 visualiza12.py datos0.txt
+	cd ./Datos/; python3 visualiza12.py datos1.txt
+
+
+# create + run + exportacion de datos
+completo: create run exporta
+
+clean:
+	rm $(DIR_O)/*.o
+	rm ./solverCUDA
+
+mrproper: clean
+	rm $(DIR_D)/*.txt
+	rm $(DIR_D)/*.png
