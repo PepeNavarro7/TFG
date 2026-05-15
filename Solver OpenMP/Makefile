@@ -58,7 +58,7 @@ completo: create run exporta
 
 clean:
 	rm $(DIR_O)/*.o
-	rm ./solver
+	rm ./solverOMP
 
 mrproper: clean
 	rm $(DIR_D)/*.txt

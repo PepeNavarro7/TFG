@@ -41,9 +41,9 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	omp_set_num_threads(num_hebras); // Marcamos numero de hebras en regiones paralelas
 
     // Objetos y puntero de los diferentes problemas
-	simpleadvdiff1d simpleadvdiff1d(num_points); // 1D_Simple Advection-Diffusion
-	advdiff1d advdiff1d(num_points); // 1D Advection-Diffusion model 
-	brusselator1d brusselator1d(num_points); // 1D Brusselator model 
+	simpleadvdiff1d simpleadvdiff1d(num_points); 	// 1D_Simple Advection-Diffusion
+	advdiff1d advdiff1d(num_points); 				// 1D Advection-Diffusion model 
+	brusselator1d brusselator1d(num_points); 		// 1D Brusselator model 
 	prueba prueba(num_points);
 	Problema *ptr_problema; // Puntero al problema seleccionado
 	switch(num_problema){
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	
 	cout << "Problema " << num_problema << " -> " << ptr_problema->get_name() << endl;
 	cout << "Metodo de resolucion -> " << ptr_metodo->get_name() << endl;
-	cout << "Tamanio del vector -> " << num_points << endl;
+	cout << "Tamaño del vector -> " << num_points << endl;
 	cout << "Numero de ecuaciones -> " << neqn << endl;
 	cout << "Numero de iteraciones -> " << num_iter << endl;
 	cout << "Numero de hebras -> " << num_hebras << endl;
