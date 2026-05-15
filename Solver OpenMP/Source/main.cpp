@@ -5,9 +5,10 @@
 #include <iomanip> // cambiar precision de los double
 #include <cmath> 
 
+#include "Metodo.h"
 #include "RungeKutta.h"
 #include "AdamsBashford.h"
-#include "Metodo.h"
+#include "AdamsMoulton.h"
 
 #include "Problema.h"
 #include "simpleadvdiff1d.h"
@@ -51,11 +52,12 @@ int main(int argc, char *argv[]){ // solver problema hebras tamanio
 	const int neqn = ptr_problema->get_num_ODEs(); // Obtenemos el numero de ODEs del problema
 	RungeKutta RungeKutta(neqn); // objeto para aplicar Runge-Kutta y sus operaciones asociadas
 	AdamsBashford AdamsBashford(neqn, &RungeKutta); // objeto para aplicar Adams-Bashford y sus operaciones asociadas
+	AdamsMoulton AdamsMoulton(neqn, &RungeKutta, &AdamsBashford); // objeto para aplicar Adams-Moulton y sus operaciones asociadas
 	Metodo *ptr_metodo; // Puntero al metodo seleccionado
 	switch(num_metodo){
 		case 1: ptr_metodo=&RungeKutta; break;
 		case 2: ptr_metodo=&AdamsBashford; break;
-		case 3: ptr_metodo=NULL; break;
+		case 3: ptr_metodo=&AdamsMoulton; break;
 		default: ptr_metodo=NULL; break;
 	}
 
@@ -77,7 +79,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamanio
 	cout << "Numero de ecuaciones -> " << neqn << endl;
 	cout << "Numero de iteraciones -> " << num_iter << endl;
 	cout << "Numero de hebras -> " << num_hebras << endl;
-	cout << "Tiempo tardado = "<< tiempo << " milisegundos" <<endl;
+	cout << "Tiempo -> "<< tiempo << " milisegundos, " << tiempo/1000.0 << " segundos." << endl;
 	
 	delete [] Y0, Y1;
 	return 0;
