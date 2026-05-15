@@ -79,7 +79,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamanio
 	cout << "Numero de ecuaciones -> " << neqn << endl;
 	cout << "Numero de iteraciones -> " << num_iter << endl;
 	cout << "Numero de hebras -> " << num_hebras << endl;
-	cout << "Tiempo -> "<< tiempo << " milisegundos, " << tiempo/1000.0 << " segundos." << endl;
+	cout << "Tiempo -> "<< tiempo << " milisegundos, " << tiempo/1000.0 << " segundos, " << tiempo/1000000 << "minutos." << endl;
 	
 	delete [] Y0, Y1;
 	return 0;

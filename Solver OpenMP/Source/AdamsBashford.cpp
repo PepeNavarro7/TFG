@@ -181,10 +181,6 @@ void AdamsBashford::aplicarUnidadSinRK(Problema* problema, const double &t0, con
     problema->feval(t0, Yn0, Yaux);                 // f(tn0,Yn0) -> Yaux
     escalarPorVector(h_aux*(-9.0), Yaux, Yn4);      // Yn4 += Yaux*(h*-9/24)        
     
-    delete[] Yn0;
-    delete[] Yn1;
-    delete[] Yn2;
-    delete[] Yn3;
     delete[] Yaux;
 }
 #endif
