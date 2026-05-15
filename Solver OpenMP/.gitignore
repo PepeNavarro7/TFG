@@ -1,5 +1,5 @@
 # Ejecutable
-solver
+solverOMP
 Datos/*.txt
 Datos/*.png
 

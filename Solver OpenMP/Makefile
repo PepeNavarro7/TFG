@@ -32,9 +32,9 @@ NUM_HEBRAS := 1 2 4 8 16
 TAMS := 100 200 500 1000 2000 5000 10000
 
 # Creacion del ejecutable
-create: solver
+create: solverOMP
 
-solver: $(DIR_O)/main.o $(ALL_OBJ)
+solverOMP: $(DIR_O)/main.o $(ALL_OBJ)
 	$(CC) -I$(DIR_H) -fopenmp $^ -O3 -o $@
 
 $(DIR_O)/main.o: $(DIR_S)/main.cpp
@@ -45,7 +45,7 @@ $(ALL_OBJ): $(DIR_O)/%.o: $(DIR_S)/%.cpp $(DIR_H)/%.h
 
 # Ejecucion de problema con las variables introducidas
 run:
-	./solver $(metodo) $(problema) $(hebras) $(tamanio)
+	./solverOMP $(metodo) $(problema) $(hebras) $(tamvector) $(salto) 
 
 #exportar con un método u otro
 exporta:

@@ -3,7 +3,7 @@
 #include <omp.h> // OpenMP
 #include <string> // strings
 #include <iomanip> // cambiar precision de los double
-#include <cmath> 
+#include <cmath> // floor
 
 #include "Metodo.h"
 #include "RungeKutta.h"
@@ -18,18 +18,24 @@
 
 using namespace std;
 
-int main(int argc, char *argv[]){ // solver problema hebras tamanio
-	if (argc != 5)
+int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
+	if (argc != 6){
+		string texto = "solverOMP metodo= problema= hebras= tamvector= salto=\n\tMetodos: 1=Runge-Kutta 2=Adams-Bashford 3=Adams-Moulton\n";
+		texto += "\tProblemas: 1=simpleavdiff 2=advdiff1d 3=brusselator1d\n\tNumero de hebras en OMP[1,16]\n\tTamaño del vector[100,10000]\n\tSalto en la forma 10^-X\n";
+		cout << texto;
 		return 0;
+	}
+		
 
     // Variables que usaremos en el solver
-	const int num_metodo = atoi(argv[1]), // Metodo a utilizar
-		num_problema = atoi(argv[2]), // Problema a ejecutar
-		num_hebras = atoi(argv[3]),// numero de hebras
-        num_points = atoi(argv[4]);  // tamanio del vector
+	const int num_metodo = atoi(argv[1]), 	// Metodo a utilizar
+		num_problema = atoi(argv[2]), 		// Problema a ejecutar
+		num_hebras = atoi(argv[3]),			// numero de hebras
+        num_points = atoi(argv[4]),			// tamanio del vector
+		salto = atoi(argv[5]); 				// salto en la forma 10^-X
 	const double t0 = 0.0, // valor de tiempo inicial
 		tf = 1.0,  // valor de tiempo final
-		h = 0.000001;	// valor de salto
+		h = pow(10,(-1*salto));	// valor de salto
 	const int num_iter = (tf-t0)/h; // numero total de iteraciones
 	double timeIni, timeFin, tiempo_ms, tiempo_m; // Medidores para calcular el tiempo de procesamiento
 	omp_set_num_threads(num_hebras); // Marcamos numero de hebras en regiones paralelas
