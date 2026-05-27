@@ -6,8 +6,7 @@
 
 using namespace std;
 
-// PROBLEMA 1
-// Class for the IVP-ODE representing a 1D Advection-Diffusion model 
+
 
 prueba::prueba(const int &nx_points){ 
     nx = nx_points;
@@ -25,12 +24,15 @@ void prueba::init(double *Y0) {
     }
 }
 
+__global__ void d_feval(const double &t, const double* Y, double* DY, const int &nx){
+    const int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if(i<nx){
+        DY[i] = 2.0 * Y[i] * t;
+    }
+}
+
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
 void prueba::feval(const double &t, const double* Y, double* DY){
-
-    #pragma omp single
-    {
-        DY[0] = 2.0 * Y[0] * t;
-    } // Barrera implicita    
+    d_feval<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t,Y,DY,nx);
 }
 #endif

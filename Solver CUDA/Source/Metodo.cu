@@ -5,16 +5,15 @@
 
 using namespace std;
 
-void Metodo::escalarPorVector(const double &esc, const double *X, double *Y){
-    for(int i=0; i<neqn; ++i){
+__global__ void d_escalarPorVector(const double &esc, const double *X, double *Y, const int &neqn){
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if(i<neqn){
         Y[i]+=X[i]*esc;
     }
 }
 
-void Metodo::vectorCopia(const double *X, double *Y){
-    for (int i=0; i<neqn; ++i){
-        Y[i]=X[i];
-    }
+void Metodo::escalarPorVector(const double &esc, const double *X, double *Y){
+    d_escalarPorVector<<<NUM_BLOCKS,THREADSPERBLOCK>>>(esc, X, Y, neqn);
 }
 
 #endif

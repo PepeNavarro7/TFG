@@ -14,29 +14,36 @@ RungeKutta::RungeKutta (const int &n){
 }
 
 void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf){
-    double *Yn = new double [neqn], // vector con la Y en cada iteracion
-        *K1 = new double[neqn], *K2 = new double[neqn], *K3 = new double[neqn], *K4 = new double[neqn], // Vectores de cada paso
-        *Yaux = new double[neqn]; // Vector auxiliar
+    // creamos y alojamos memoria para los arrays en el device
+    double *Yn, // vector con la Y en cada iteracion
+        *K1, *K2, *K3, *K4, // Vectores de cada paso
+        *Yaux; // Vector auxiliar
+    cudaMalloc((void**)&Yn,NUM_BYTES);
+    cudaMalloc((void**)&K1,NUM_BYTES);
+    cudaMalloc((void**)&K2,NUM_BYTES);
+    cudaMalloc((void**)&K3,NUM_BYTES);
+    cudaMalloc((void**)&K4,NUM_BYTES);
+    cudaMalloc((void**)&Yaux,NUM_BYTES);
     
-    vectorCopia(Y0, Yn); // Y0 -> Yn, para primera iteración
+    cudaMemcpy(Yn, Y0, NUM_BYTES, cudaMemcpyHostToDevice); // Y0 -> Yn, para primera iteración
     
-       
-    for(double tn=t0; tn<tf; tn+=h){ // Todas las llamadas han de hacerse de forma secuencial, ya que cada una necesita de la anterior
+    int it=0;
+    for(double tn=t0; tn<tf; tn+=h, ++it){ // Todas las llamadas han de hacerse de forma secuencial, ya que cada una necesita de la anterior
         // K1 = feval(tn, Yn)
         problema->feval(tn,Yn,K1);              // Definimos K1
 
         // K2 = feval(tn + h/2, Yn + K1*h/2)
-        vectorCopia(Yn, Yaux);                  // Yn -> Yaux
+        cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
         escalarPorVector(0.5*h, K1, Yaux);      // Yaux += K1*h/2
         problema->feval(tn + 0.5*h, Yaux, K2);  // Definimos K2
 
         // K3 = feval(tn + h/2, Yn + K2*h/2)
-        vectorCopia(Yn, Yaux);                  // Yn -> Yaux
+        cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
         escalarPorVector(0.5*h, K2, Yaux);      // Y1 += K2*h/2
         problema->feval(tn + 0.5*h, Yaux, K3);  // Definimos K3
 
         // K4 = feval(tn + h, Y0 + h*K3)
-        vectorCopia(Yn, Yaux);                  // Yn -> Yaux
+        cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
         escalarPorVector(h, K3, Yaux);          // Y1 += h*K3
         problema->feval(tn+h, Yaux, K4);        // Definimos K4
 
@@ -45,20 +52,23 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
         escalarPorVector(h/3.0, K2, Yn);     // Yn += K2*h/3
         escalarPorVector(h/3.0, K3, Yn);     // Yn += K3*h/3
         escalarPorVector(h/6.0, K4, Yn);     // Yn += K4*h/6
-        //#pragma omp barrier
-        // Tras las sumas, el vector Yn ahora contiene Yn+1
+        // Tras las sumas, el vector Yn ahora es Yn+1
+        if(it%25000==0){
+            cudaMemcpy(Yf, Yn, NUM_BYTES, cudaMemcpyDeviceToHost);
+            cout << "it=" << it << ", tn=" << tn << ", Y[300]=" << Yf[300] << endl; 
+        }
     }
     
     // Yn es el valor que arrastramos de la ultima iteracion
-    vectorCopia(Yn, Yf); // Yn -> Yf
-    delete[] K1;
-    delete[] K2;
-    delete[] K3;
-    delete[] K4;
-    delete[] Yn;
-    delete[] Yaux;
+    cudaMemcpy(Yf, Yn, NUM_BYTES, cudaMemcpyDeviceToHost); // Yn -> Yf
+    cudaFree(Yn);
+    cudaFree(K1);
+    cudaFree(K2);
+    cudaFree(K3);
+    cudaFree(K4);
+    cudaFree(Yaux);
 }
-
+/*
 void RungeKutta::aplicarUnidad(Problema* problema, const double &t0, const double &h, const double *Y0, double *Yf){
     double *K1 = new double[neqn], *K2 = new double[neqn], *K3 = new double[neqn], *K4 = new double[neqn], // Vectores de cada paso
         *Yaux = new double[neqn]; // Vector auxiliar
@@ -94,6 +104,6 @@ void RungeKutta::aplicarUnidad(Problema* problema, const double &t0, const doubl
     delete[] K4;
     delete[] Yaux;
 }
-
+*/
 
 #endif

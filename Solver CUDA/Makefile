@@ -14,17 +14,17 @@ DIR_O := Obj
 DIR_S := Source
 DIR_D := Datos
 
-ALL_HEADERS := $(DIR_H)/$(METOD).h   $(DIR_H)/$(RUNGE).h   $(DIR_H)/$(PROBP).h   $(DIR_H)/$(PROB0).h
-#$(DIR_H)/$(BASHF).h   $(DIR_H)/$(MOULT).h \
-                  #$(DIR_H)/$(PROB1).h   $(DIR_H)/$(PROB2).h   $(DIR_H)/$(PROB3).h
+ALL_HEADERS := $(DIR_H)/$(METOD).h   $(DIR_H)/$(RUNGE).h   \
+			   $(DIR_H)/$(PROBP).h   $(DIR_H)/$(PROB0).h $(DIR_H)/$(PROB1).h $(DIR_H)/$(PROB2).h $(DIR_H)/$(PROB3).h
+#$(DIR_H)/$(BASHF).h   $(DIR_H)/$(MOULT).h    
 
-ALL_OBJ     := $(DIR_O)/$(METOD).o   $(DIR_O)/$(RUNGE).o   $(DIR_O)/$(PROBP).o   $(DIR_O)/$(PROB0).o
-#$(DIR_O)/$(BASHF).o   $(DIR_O)/$(MOULT).o \
-                  $(DIR_O)/$(PROB1).o   $(DIR_O)/$(PROB2).o   $(DIR_O)/$(PROB3).o
+ALL_OBJ     := $(DIR_O)/$(METOD).o   $(DIR_O)/$(RUNGE).o   \
+			   $(DIR_O)/$(PROBP).o   $(DIR_O)/$(PROB0).o $(DIR_O)/$(PROB1).o $(DIR_O)/$(PROB2).o $(DIR_O)/$(PROB3).o
+#$(DIR_O)/$(BASHF).o   $(DIR_O)/$(MOULT).o   
 
-ALL_SRC     := $(DIR_S)/$(METOD).cu $(DIR_S)/$(RUNGE).cu $(DIR_S)/$(PROBP).cu $(DIR_S)/$(PROB0).cu
-#$(DIR_S)/$(BASHF).cpp $(DIR_S)/$(MOULT).cpp \
-	            $(DIR_S)/$(PROB1).cpp $(DIR_S)/$(PROB2).cpp $(DIR_S)/$(PROB3).cpp
+ALL_SRC     := $(DIR_S)/$(METOD).cu $(DIR_S)/$(RUNGE).cu \
+			   $(DIR_S)/$(PROBP).cu $(DIR_S)/$(PROB0).cu $(DIR_S)/$(PROB1).cu $(DIR_S)/$(PROB2).cu $(DIR_S)/$(PROB3).cpp
+#$(DIR_S)/$(BASHF).cpp $(DIR_S)/$(MOULT).cpp  
 			   
 ALL_DATA    := $(DIR_D)/datos0.txt   $(DIR_D)/datos1.txt 
 
@@ -49,7 +49,7 @@ $(ALL_OBJ): $(DIR_O)/%.o: $(DIR_S)/%.cu $(DIR_H)/%.h
 
 # Ejecucion de problema con las variables introducidas
 run:
-	./solverCUDA $(metodo) $(problema) $(hebras) $(tamblock) $(salto) 
+	./solverCUDA $(metodo) $(problema) $(hebras) $(tamvector) $(salto) 
 
 #exportar con un método u otro
 exporta:
