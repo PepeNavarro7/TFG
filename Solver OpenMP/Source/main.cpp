@@ -41,16 +41,16 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	omp_set_num_threads(num_hebras); // Marcamos numero de hebras en regiones paralelas
 
     // Objetos y puntero de los diferentes problemas
+	prueba prueba(num_points);
 	simpleadvdiff1d simpleadvdiff1d(num_points); 	// 1D_Simple Advection-Diffusion
 	advdiff1d advdiff1d(num_points); 				// 1D Advection-Diffusion model 
 	brusselator1d brusselator1d(num_points); 		// 1D Brusselator model 
-	prueba prueba(num_points);
 	Problema *ptr_problema; // Puntero al problema seleccionado
 	switch(num_problema){
+		case 0: ptr_problema=&prueba; break;
 		case 1: ptr_problema=&simpleadvdiff1d; break;
 		case 2: ptr_problema=&advdiff1d; break;
 		case 3: ptr_problema=&brusselator1d; break;
-		case 0: ptr_problema=&prueba; break;
 		default: ptr_problema=NULL; break;
 	}
 
@@ -86,6 +86,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	cout << "Numero de ecuaciones -> " << neqn << endl;
 	cout << "Numero de iteraciones -> " << num_iter << endl;
 	cout << "Numero de hebras -> " << num_hebras << endl;
+	cout << "Tamaño de salto -> 10^-" << salto << endl;
 	cout << "Tiempo -> "<< tiempo_ms << " milisegundos, es decir, " << floor(tiempo_m) << " minuto";
 	if(floor(tiempo_m)!=1)
 		cout << "s";
