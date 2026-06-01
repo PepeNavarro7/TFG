@@ -19,12 +19,15 @@ protected:
     void escalarPorVector(const double &esc, const double *X, double *Y);
 
     // Copia de X en Y
-    void vectorCopia(const double *X, double *Y);
+    //void vectorCopia(const double *X, double *Y);
 
 public:
     virtual void aplicar(Problema* problema, const double &t0, const double &tf, const double &h0, const double *Y0, double *Y1) = 0;
     inline string get_name() const { return nombre; };
-    inline void set_threads(const int t){ THREADSPERBLOCK=t; NUM_BLOCKS = ceil((double)neqn/THREADSPERBLOCK); NUM_BYTES = sizeof(double) * neqn;};
+    inline int get_threads_per_block() const { return THREADSPERBLOCK; };
+    inline int get_num_blocks() const { return NUM_BLOCKS; };
+    inline int get_num_bytes() const { return NUM_BYTES; };
+    virtual void set_threads(const int &t) = 0;
 };
 
 

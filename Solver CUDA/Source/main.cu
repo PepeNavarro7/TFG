@@ -7,8 +7,8 @@
 
 #include "Metodo.h"
 #include "RungeKutta.h"
-/*#include "AdamsBashford.h"
-#include "AdamsMoulton.h"*/
+#include "AdamsBashford.h"
+#include "AdamsMoulton.h"
 
 #include "Problema.h"
 #include "simpleadvdiff1d.h"
@@ -21,7 +21,7 @@ using namespace std;
 int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	if (argc != 6){
 		string texto = "solverOMP metodo= problema= hebras= tamvector= salto=\n\tMetodos: 1=Runge-Kutta 2=Adams-Bashford 3=Adams-Moulton\n";
-		texto += "\tProblemas: 1=simpleavdiff 2=advdiff1d 3=brusselator1d\n\tNumero de hebras en OMP[1,16]\n\tTamaño del bloque CUDA[256]\n\tSalto en la forma 10^-X\n";
+		texto += "\tProblemas: 1=simpleavdiff 2=advdiff1d 3=brusselator1d\n\tNumero de hebras en CUDA[256]\n\tTamaño del vector CUDA[1000, 10000]\n\tSalto en la forma 10^-X\n";
 		cout << texto;
 		return 0;
 	}
@@ -56,26 +56,25 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	// Objetos y puntero de los metodos de resolucion
 	const int neqn = ptr_problema->get_num_ODEs(); 					// Obtenemos el numero de ODEs del problema
 	RungeKutta RungeKutta(neqn); 									// Objeto para aplicar Runge-Kutta y sus operaciones asociadas
-	/*AdamsBashford AdamsBashford(neqn, &RungeKutta); 				// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
-	AdamsMoulton AdamsMoulton(neqn, &RungeKutta, &AdamsBashford);*/ 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
+	AdamsBashford AdamsBashford(neqn, &RungeKutta); 				// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
+	AdamsMoulton AdamsMoulton(neqn, &RungeKutta, &AdamsBashford); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
 	Metodo *ptr_metodo; 											// Puntero al metodo seleccionado
 	switch(num_metodo){
 		case 1: ptr_metodo=&RungeKutta; break;
-		/*case 2: ptr_metodo=&AdamsBashford; break;
-		case 3: ptr_metodo=&AdamsMoulton; break;*/
+		case 2: ptr_metodo=&AdamsBashford; break;
+		case 3: ptr_metodo=&AdamsMoulton; break;
 		default: ptr_metodo=NULL; break;
 	}
 	ptr_metodo->set_threads(num_hebras);
 
-
-	double *Y0 = new double[neqn], *Y1 = new double[neqn]; // Vectores de entrada y salida
+	double *Y0 = new double[neqn], *Yf = new double[neqn]; // Vectores de entrada y salida
 	cout.precision(6);
 	ptr_problema->init(Y0); // inicializamos el vector
 	ptr_problema->archivo("datos0.txt",Y0);
 	auto timeIni = std::chrono::high_resolution_clock::now();
-	ptr_metodo->aplicar(ptr_problema,t0,tf,h,Y0,Y1);
+	ptr_metodo->aplicar(ptr_problema,t0,tf,h,Y0,Yf);
 	auto timeFin = std::chrono::high_resolution_clock::now();
-	ptr_problema->archivo("datos1.txt", Y1);
+	ptr_problema->archivo("datos1.txt", Yf);
 	double tiempo_ms = std::chrono::duration<double, std::milli>(timeFin-timeIni).count();
 	double tiempo_m = (tiempo_ms / 1000.0)/60.0;
 	
@@ -92,6 +91,6 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		cout << "s";
 	cout << " y " << (tiempo_m-floor(tiempo_m))*60 << " segundos." << endl;
 	
-	delete [] Y0, Y1;
+	delete [] Y0, Yf;
 	return 0;
 }
