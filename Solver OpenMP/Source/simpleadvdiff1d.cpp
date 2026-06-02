@@ -9,7 +9,6 @@ using namespace std;
 
 // PROBLEMA 1
 // Class for the IVP-ODE representing a 1D Advection-Diffusion model 
-
 simpleadvdiff1d::simpleadvdiff1d(const int &nx_points){ 
     nx = nx_points;
     neqn = nx;
@@ -20,7 +19,7 @@ simpleadvdiff1d::simpleadvdiff1d(const int &nx_points){
 }
 
 // Initialize stage vector Y0 with neqn components
-void simpleadvdiff1d::init(double *Y0) {
+void simpleadvdiff1d::init(double *Y0) const {
     for (int i=0;i<neqn;i++) { 
         double x_i=(double)(i+1)*dtx;
         Y0[i]=sin(2.0*PI*x_i);
@@ -28,7 +27,7 @@ void simpleadvdiff1d::init(double *Y0) {
 }
 
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY){
+void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY) const {
     // Compute partially DY in inner points
     #pragma omp for nowait
     for (int i = 1; i < nx - 1; i++){
@@ -36,8 +35,7 @@ void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY){
               - a * (Y[i + 1]            - Y[i - 1]) / dtx_doubled;
     } // Nos saltamos la barrera
     #pragma omp single nowait
-    {
-        // Compute partially DY in boundary points (i=0 and i=nx-1)
+    {   // Compute partially DY in boundary points (i=0 and i=nx-1)
         DY[0] = d * (Y[1] - 2 * Y[0] + Y[nx-1]) / dtx_squared
               - a * (Y[1]            - Y[nx-1]) / dtx_doubled;
     } // Nos saltamos esta barrera tambien

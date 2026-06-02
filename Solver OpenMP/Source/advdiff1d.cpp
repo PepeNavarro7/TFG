@@ -18,14 +18,14 @@ advdiff1d::advdiff1d(const int nx_points){
 }
 
 // Initialize stage vector Y0 with neqn components
-void advdiff1d::init(double *Y0) {
+void advdiff1d::init(double *Y0) const {
     for (int i=0; i<neqn; ++i) { 
         double x_i = (double)(i+1)*dtx;
         Y0[i] = sin(2.0*PI*x_i);
     }
 }
 
-void advdiff1d::feval (const double &t, const double *Y, double *DY){
+void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
     
     // Compute partially DY in inner points
     #pragma omp for nowait

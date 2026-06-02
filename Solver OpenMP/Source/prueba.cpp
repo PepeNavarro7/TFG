@@ -20,14 +20,14 @@ prueba::prueba(const int &nx_points){
 }
 
 // Initialize stage vector Y0 with neqn components
-void prueba::init(double *Y0) {
+void prueba::init(double *Y0) const {
     for (int i=0;i<neqn;i++) { 
         Y0[i]=1.0;
     }
 }
 
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-void prueba::feval(const double &t, const double* Y, double* DY){
+void prueba::feval(const double &t, const double* Y, double* DY) const {
 
     #pragma omp single
     {

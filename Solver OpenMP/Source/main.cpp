@@ -14,6 +14,7 @@
 #include "simpleadvdiff1d.h"
 #include "advdiff1d.h"
 #include "brusselator1d.h"
+#include "brusselator2d.h"
 #include "prueba.h"
 
 using namespace std;
@@ -45,12 +46,14 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	simpleadvdiff1d simpleadvdiff1d(num_points); 	// 1D_Simple Advection-Diffusion
 	advdiff1d advdiff1d(num_points); 				// 1D Advection-Diffusion model 
 	brusselator1d brusselator1d(num_points); 		// 1D Brusselator model 
+	brusselator2d brusselator2d(num_points); 		// 1D Brusselator model 
 	Problema *ptr_problema; // Puntero al problema seleccionado
 	switch(num_problema){
 		case 0: ptr_problema=&prueba; break;
 		case 1: ptr_problema=&simpleadvdiff1d; break;
 		case 2: ptr_problema=&advdiff1d; break;
 		case 3: ptr_problema=&brusselator1d; break;
+		case 4: ptr_problema=&brusselator2d; break;
 		default: ptr_problema=NULL; break;
 	}
 

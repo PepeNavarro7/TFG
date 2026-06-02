@@ -11,8 +11,7 @@ class brusselator1d:public Problema{
 
 private:
     int nx; // number of grid points at each dimension
-    double dtx, // Spatial step
-        dtx_squared; // Spatial step squared
+    double dtx_squared; // Spatial step squared
     double DD;
     const double alpha=1.0/50.0, A=1.0, B=3.0; // variables para el calculo de los valores
 
@@ -21,12 +20,13 @@ public:
     brusselator1d (const int &nx_points);
 
     // Initialize stage vector Y0 with neqn components
-    void init(double *Y0) override; 
-  
-    inline void archivo(const string &filename, const double *Y) override { archivo2(filename,Y); };
-  
+    void init(double *Y0) const override; 
+    
     //vector system function for the nonstiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-    void feval (const double &t, const double *Y, double *DY) override; 
+    void feval (const double &t, const double *Y, double *DY) const override; 
+
+    // Exportar los datos a un archivo txt
+    inline void archivo(const string &filename, const double *Y) const override { archivo2(filename,Y); };
 
 private:
     inline double f(const double &y) const { return( ((y-0.7)*(y-1.3)) / ((y-0.7)*(y-1.3)+0.1) ); };

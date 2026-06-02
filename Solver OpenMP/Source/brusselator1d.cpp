@@ -20,7 +20,7 @@ brusselator1d::brusselator1d(const int &nx_points){
  }
 
 
-void brusselator1d::init(double *Y0) { 
+void brusselator1d::init(double *Y0) const { 
     for (int i=0;i<nx;i++){  
         double x_i=(double)(i+1)*dtx;
         Y0[idx(i,0)]=A+sin(2*PI*x_i);
@@ -29,34 +29,42 @@ void brusselator1d::init(double *Y0) {
 }
 
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-void brusselator1d::feval (const double &t, const double *Y, double *DY){
+void brusselator1d::feval (const double &t, const double *Y, double *DY) const {
     const double C[2]={A,B};
-    #pragma omp for nowait
+
+    // Hacemos uso del nowait y collapse ya que no hay dependencia de datos
+    #pragma omp for collapse(2) nowait
     for (int i = 1; i < nx-1; i++) {
         for (int j = 0; j < 2; j++) {
             const int ij = idx(i,j); 
-            DY[ij] = DD * (Y[ij+2] - 2.0 * Y[ij] + Y[ij-2]);
+            DY[ij] = DD * (Y[ij+2] - 2.0*Y[ij] + Y[ij-2]);
         }
     } // Nos saltamos la barrera
-
-    #pragma omp for 
-    for (int j = 0; j < 2; j++) {
-        const int first = idx(0,j), last=idx(nx-1,j); 
-        DY[first] = DD * (Y[first+2] - 2.0 * Y[first] + C[j]);
-        DY[last]  = DD * ( C[j]- 2.0 * Y[last] + Y[last-2] );
-    } 
+    #pragma omp single nowait 
+    {
+        for (int j = 0; j < 2; j++) {
+            const int first = idx(0,j); 
+            DY[first] = DD * (Y[first+2] - 2.0*Y[first] + C[j]);
+        } 
+    } // Nos saltamos la barrera
+    #pragma omp single
+    {
+        for (int j = 0; j < 2; j++) {
+            const int last=idx(nx-1,j); 
+            DY[last]  = DD * (C[j]- 2.0*Y[last] + Y[last-2]);
+        } // Barrera implicita
+    }
 
     #pragma omp for
     for (int i = 0; i < nx; i++) {
         const int i0=idx(i,0), i1=idx(i,1);
-        const double ui = Y[i0];
-        const double vi = Y[i1];
+        const double ui = Y[i0], vi = Y[i1];
         const double u2v=ui*ui*vi;
         DY[i0] += A+u2v-(B+1)*ui;
         DY[i1] += B*ui-u2v; 
         //DY[i0] = A+ ui*vi-(B+1)*ui;
         //DY[i1] = B*ui+vi; 
-    }
+    } // Barrera implicita
 }
   
 #endif   

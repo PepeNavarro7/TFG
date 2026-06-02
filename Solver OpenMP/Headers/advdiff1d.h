@@ -11,8 +11,7 @@ class advdiff1d: public Problema {
 
 private:
     int nx; // number of grid points at each dimension
-    double dtx, // Spatial step
-        dtx_squared, // Spatial step squared
+    double dtx_squared, // Spatial step squared
         dtx_quad; // Spatial step times 4
     const double a=10.0,    //constant scalar representing the strength of advection 
         d=1.0;              //constant scalar representing the strength of diffusion
@@ -22,13 +21,13 @@ public:
     advdiff1d(const int nx_points);
     
     // Initialize stage vector Y0 with neqn components
-    void init(double *Y0) override; 
-
-    // Exportar los datos a un archivo txt
-    inline void archivo (const string &n, const double *Y) override { archivo1(n,Y); }; 
+    void init(double *Y0) const override;  
 
     //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-    void feval (const double &t, const double *Y, double *DY) override; 
+    void feval (const double &t, const double *Y, double *DY) const override; 
+
+    // Exportar los datos a un archivo txt
+    inline void archivo (const string &n, const double *Y) const override { archivo1(n,Y); };
 
 private:
     double f(const double &x, const double &t) const;
