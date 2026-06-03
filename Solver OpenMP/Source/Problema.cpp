@@ -42,7 +42,7 @@ void Problema::archivo2(const string &filename, const double *Y) const{
     file.close();
 }
 
-// Exportamos al archivo los valores en 4 columnas, el valor dtx y los 3 valores correspondientes del vector
+// Exportamos al archivo los valores en 2N+1 columnas, el valor dtx y los N valores correspondientes de los 2 vectores
 void Problema::archivo3(const string &filename, const double *Y) const{
 	string str = "./Datos/"+filename;
 	ofstream file(str);

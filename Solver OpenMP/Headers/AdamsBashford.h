@@ -10,6 +10,7 @@ using namespace std;
 class AdamsBashford: public Metodo{
 private:
     RungeKutta *ptr_runge;
+    
 public:   
     // Constructor de la clase
     AdamsBashford (const int &n, RungeKutta* r);
