@@ -55,7 +55,7 @@ void Problema::archivo3(const string &filename, const double *Y) const{
         double x_i=(double)(i+1)*(1.0/n);
         file << x_i;
 		for(int j=0; j<n; j++){
-            file << '\t' << Y[i*2*n + j*2]; //<< '\t' << Y[i*2*n + j*2 + 1]; 
+            file << '\t' << Y[i*2*n + j*2] << '\t' << Y[i*2*n + j*2 + 1]; 
 		}
         file << endl;
 	}

@@ -29,7 +29,9 @@ public:
     inline void archivo(const string &filename, const double *Y) const override { archivo2(filename,Y); };
 
 private:
+    // Auxiliary function f
     inline double f(const double &y) const { return( ((y-0.7)*(y-1.3)) / ((y-0.7)*(y-1.3)+0.1) ); };
+    
     // Indexation function which maps 2D spatial coordinates (i,j) to a 1D position in a vector
     inline int idx(const int &i, const int &j) const { return i * 2 + j; };
 };

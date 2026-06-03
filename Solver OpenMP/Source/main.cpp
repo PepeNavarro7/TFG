@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	}
 
 	double *Y0 = new double[neqn], *Y1 = new double[neqn]; // Vectores de entrada y salida
-	cout.precision(6);
+	//cout.precision(6);
 	ptr_problema->init(Y0); // inicializamos el vector
 	ptr_problema->archivo("datos0.txt",Y0);
 	timeIni = omp_get_wtime();

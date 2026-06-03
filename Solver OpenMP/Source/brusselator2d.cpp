@@ -4,6 +4,7 @@
 #include "brusselator2d.h"
 #include <cmath>
 #include <omp.h>
+#include <iostream>
 
 using namespace std;
 

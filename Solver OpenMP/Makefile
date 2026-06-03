@@ -50,8 +50,9 @@ run:
 
 #exportar con un método u otro
 exporta:
-	cd ./Datos/; python3 visualiza123.py datos0.txt
-	cd ./Datos/; python3 visualiza123.py datos1.txt
+	rm $(DIR_D)/*.png 
+	cd ./Datos/; python3 visualiza1234.py datos0.txt
+	cd ./Datos/; python3 visualiza1234.py datos1.txt
 
 
 # create + run + exportacion de datos

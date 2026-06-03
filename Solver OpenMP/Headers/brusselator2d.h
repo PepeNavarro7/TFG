@@ -1,7 +1,6 @@
 #ifndef BRUSSELATOR2D_H
 #define BRUSSELATOR2D_H
 
-
 #include "Problema.h"
 
 using namespace std;
