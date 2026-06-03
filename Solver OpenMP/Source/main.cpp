@@ -70,7 +70,6 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		default: ptr_metodo=NULL; break;
 	}
 
-
 	double *Y0 = new double[neqn], *Y1 = new double[neqn]; // Vectores de entrada y salida
 	cout.precision(6);
 	ptr_problema->init(Y0); // inicializamos el vector
@@ -81,7 +80,6 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	ptr_problema->archivo("datos1.txt", Y1);
 	tiempo_ms = (timeFin - timeIni)*1000.0;
 	tiempo_m = (tiempo_ms / 1000.0)/60.0;
-	
 	
 	cout << "Problema " << num_problema << " -> " << ptr_problema->get_name() << endl;
 	cout << "Metodo de resolucion -> " << ptr_metodo->get_name() << endl;

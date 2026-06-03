@@ -35,23 +35,23 @@ void brusselator2d::feval(const double &t, const double* Y, double* DY) const {
     for (int i = 0; i < nx; i++) {
         for (int j = 0; j < ny; j++) {
             const double u_ij   = Y[idx(i, j, 0)],
-                            v_ij   = Y[idx(i, j, 1)];
+                         v_ij   = Y[idx(i, j, 1)];
             const double term = B * u_ij - u_ij * u_ij * v_ij;
 
             const double u_im1j = (i == 0)    ? Y[idx(nx-1, j, 0)] : Y[idx(i-1, j, 0)],
-                            u_ip1j = (i == nx-1) ? Y[idx(0,    j, 0)] : Y[idx(i+1, j, 0)],
-                            u_ijm1 = (j == 0)    ? Y[idx(i, ny-1, 0)] : Y[idx(i, j-1, 0)],
-                            u_ijp1 = (j == ny-1) ? Y[idx(i, 0   , 0)] : Y[idx(i, j+1, 0)];
+                         u_ip1j = (i == nx-1) ? Y[idx(0,    j, 0)] : Y[idx(i+1, j, 0)],
+                         u_ijm1 = (j == 0)    ? Y[idx(i, ny-1, 0)] : Y[idx(i, j-1, 0)],
+                         u_ijp1 = (j == ny-1) ? Y[idx(i, 0   , 0)] : Y[idx(i, j+1, 0)];
 
             const double v_im1j = (i == 0)    ? Y[idx(nx-1, j, 1)] : Y[idx(i-1, j, 1)],
-                            v_ip1j = (i == nx-1) ? Y[idx(0,    j, 1)] : Y[idx(i+1, j, 1)],
-                            v_ijm1 = (j == 0)    ? Y[idx(i, ny-1, 1)] : Y[idx(i, j-1, 1)],
-                            v_ijp1 = (j == ny-1) ? Y[idx(i, 0   , 1)] : Y[idx(i, j+1, 1)];
+                         v_ip1j = (i == nx-1) ? Y[idx(0,    j, 1)] : Y[idx(i+1, j, 1)],
+                         v_ijm1 = (j == 0)    ? Y[idx(i, ny-1, 1)] : Y[idx(i, j-1, 1)],
+                         v_ijp1 = (j == ny-1) ? Y[idx(i, 0   , 1)] : Y[idx(i, j+1, 1)];
 
             DY[idx(i, j, 0)] = DD * (u_im1j + u_ijm1 - 4.0 * u_ij + u_ip1j + u_ijp1) 
-                                + A - term - u_ij + f(i, j, t);
+                               + A - term - u_ij + f(i, j, t);
             DY[idx(i, j, 1)] = DD * (v_im1j + v_ijm1 - 4.0 * v_ij + v_ip1j + v_ijp1)
-                                + term;
+                               + term;
         }
     }
 }

@@ -18,9 +18,6 @@ private:
     double DD;
     const double alpha = 0.002, A = 1.0, B = 3.4; // variables para el calculo de los valores
 
-
-    
-
 public:
     brusselator2d(const int &nx_points);
 
