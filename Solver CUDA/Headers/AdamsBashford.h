@@ -10,11 +10,13 @@ using namespace std;
 class AdamsBashford: public Metodo{
 private:
     RungeKutta *ptr_runge;
+
 public:   
     // Constructor de la clase
     AdamsBashford (const int &n, RungeKutta* r);
 
-    void set_threads(const int &t) override;
+    // Definicion de las variables necesarias de CUDA
+    void set_threads(const int &t) override; 
 
     // Aplicar Adams-Bashford el numero necesario de veces
     void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) override;    

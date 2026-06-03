@@ -7,24 +7,27 @@ using namespace std;
 
 class Problema{
 protected:
-    const double PI = 3.14159265358979;
+    const double PI = 3.14159265358979; 
     int neqn; // numero de ecuaciones
     string name; // nombre del problema
+    double dtx; // Spacial step
     int THREADSPERBLOCK; // hebras cuda en cada bloque
     int NUM_BLOCKS; // numero de bloques
+    
         
-    void archivo1(const string &filename, const double *Y); // Sacar el vector por archivo
-    void archivo2(const string &filename, const double *Y); // Sacar el vector de 2 componentes por archivo
+    void archivo1(const string &filename, const double *Y) const; // Sacar vector de 1 componente por archivo
+    void archivo2(const string &filename, const double *Y) const; // Sacar vector de 2 componentes por archivo
+    void archivo3(const string &filename, const double *Y) const; // Sacar vector de 3 componentes por archivo
 
 public:
     inline int get_num_ODEs() const { return neqn; };
     inline string get_name() const { return name; };
-    inline void set_threads(const int t){ THREADSPERBLOCK=t; NUM_BLOCKS = ceil((double)neqn/THREADSPERBLOCK); };
+    inline void set_threads(const int &t){ THREADSPERBLOCK=t; NUM_BLOCKS = ceil((double)neqn/THREADSPERBLOCK); };
     //inline int get_threads_per_block() const{ return THREADSPERBLOCK; };
     //inline int get_num_blocks() const{ return NUM_BLOCKS; };
-    virtual void init(double *Y0) = 0;
-    virtual void feval (const double &t, const double *Y, double *DY) = 0; // Evaluacion de la exprexion, G+F
-    virtual void archivo (const string &filename, const double *Y) = 0;
+    virtual void init(double *Y0) const = 0;
+    virtual void feval (const double &t, const double *Y, double *DY) const = 0; // Evaluacion de la exprexion, G+F
+    virtual void archivo (const string &filename, const double *Y) const = 0;
 };
 
 

@@ -20,11 +20,11 @@ public:
     prueba(const int &nx_points); 
 
     // Initialize stage vector Y0 with neqn components
-    void init(double *Y0) override; 
+    void init(double *Y0) const override; 
 
     //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-    void feval (const double &t, const double *Y, double *DY) override;
+    void feval (const double &t, const double *Y, double *DY) const override;
 
-    inline void archivo (const string &filename, const double *Y) override { archivo1(filename,Y); };
+    inline void archivo (const string &filename, const double *Y) const override { archivo1(filename,Y); };
 };
 #endif

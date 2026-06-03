@@ -14,6 +14,7 @@
 #include "simpleadvdiff1d.h"
 #include "advdiff1d.h"
 #include "brusselator1d.h"
+#include "brusselator2d.h"
 #include "prueba.h"
 
 using namespace std;
@@ -40,15 +41,17 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 
     // Objetos y puntero de los diferentes problemas
 	prueba prueba(num_points);
-	simpleadvdiff1d simpleadvdiff1d(num_points); // 1D_Simple Advection-Diffusion
-	advdiff1d advdiff1d(num_points); // 1D Advection-Diffusion model 
-	brusselator1d brusselator1d(num_points); // 1D Brusselator model 
-	Problema *ptr_problema; // Puntero al problema seleccionado
+	simpleadvdiff1d simpleadvdiff1d(num_points);// 1D_Simple Advection-Diffusion
+	advdiff1d advdiff1d(num_points); 			// 1D Advection-Diffusion model 
+	brusselator1d brusselator1d(num_points); 	// 1D Brusselator model 
+	brusselator2d brusselator2d(num_points); 	// 2D Brusselator model 
+	Problema *ptr_problema; 					// Puntero al problema seleccionado
 	switch(num_problema){
 		case 0: ptr_problema=&prueba; break;
 		case 1: ptr_problema=&simpleadvdiff1d; break;
 		case 2: ptr_problema=&advdiff1d; break;
 		case 3: ptr_problema=&brusselator1d; break;
+		case 4: ptr_problema=&brusselator2d; break;
 		default: ptr_problema=NULL; break;
 	}
 	ptr_problema->set_threads(num_hebras);
@@ -68,7 +71,6 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	ptr_metodo->set_threads(num_hebras);
 
 	double *Y0 = new double[neqn], *Yf = new double[neqn]; // Vectores de entrada y salida
-	cout.precision(6);
 	ptr_problema->init(Y0); // inicializamos el vector
 	ptr_problema->archivo("datos0.txt",Y0);
 	auto timeIni = std::chrono::high_resolution_clock::now();
@@ -76,7 +78,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	auto timeFin = std::chrono::high_resolution_clock::now();
 	ptr_problema->archivo("datos1.txt", Yf);
 	double tiempo_ms = std::chrono::duration<double, std::milli>(timeFin-timeIni).count();
-	double tiempo_m = (tiempo_ms / 1000.0)/60.0;
+	double tiempo_m = (tiempo_ms/1000.0)/60.0;
 	
 	
 	cout << "Problema " << num_problema << " -> " << ptr_problema->get_name() << endl;
@@ -84,7 +86,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	cout << "Tamaño del vector-> " << num_points << endl;
 	cout << "Numero de ecuaciones -> " << neqn << endl;
 	cout << "Numero de iteraciones -> " << num_iter << endl;
-	cout << "Tamaño del bloque CUDA -> " << num_hebras << endl;
+	cout << ptr_metodo->get_num_blocks() << " bloques CUDA de " << ptr_metodo->get_threads_per_block() << " hebras"<< endl;
 	cout << "Tamaño de salto -> 10^-" << salto << endl;
 	cout << "Tiempo -> "<< tiempo_ms << " milisegundos, es decir, " << floor(tiempo_m) << " minuto";
 	if(floor(tiempo_m)!=1)

@@ -19,14 +19,14 @@ simpleadvdiff1d::simpleadvdiff1d(const int &nx_points){
 }
 
 // Initialize stage vector Y0 with neqn components
-void simpleadvdiff1d::init(double *Y0) {
+void simpleadvdiff1d::init(double *Y0) const {
     for (int i=0;i<neqn;i++) { 
         double x_i=(double)(i+1)*dtx;
         Y0[i]=sin(2.0*PI*x_i);
     }
 }
 
-__global__ void d_feval(const double &t, const double* Y, double* DY, const int &nx, const double &dtx_squared, const double &dtx_doubled){
+__global__ void feval_simpleadvdiff1d(const double &t, const double* Y, double* DY, const int &nx, const double &dtx_squared, const double &dtx_doubled){
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     const double a=10.0, d=10.0;
     // Compute partially DY in inner points
@@ -44,7 +44,7 @@ __global__ void d_feval(const double &t, const double* Y, double* DY, const int 
 }
 
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY){
-    d_feval<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t, Y, DY, nx, dtx_squared, dtx_doubled);
+void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY) const {
+    feval_simpleadvdiff1d<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t, Y, DY, nx, dtx_squared, dtx_doubled);
 }
 #endif
