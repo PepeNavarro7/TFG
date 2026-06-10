@@ -11,14 +11,14 @@ class advdiff1d: public Problema {
 
 private:
     int nx; // number of grid points at each dimension
-    double dtx_squared, // Spatial step squared
-        dtx_quad; // Spatial step times 4
-    const double a=10.0,    //constant scalar representing the strength of advection 
-        d=1.0;              //constant scalar representing the strength of diffusion
+    double dtx_squared,     // Spatial step squared
+           dtx_quad;        // Spatial step times 4
+    const double a=10.0,    // constant scalar representing the strength of advection 
+                 d=1.0;     // constant scalar representing the strength of diffusion
             
 public:
     // Constructor of the class IVP_ODE_advdiff1d    
-    advdiff1d(const int nx_points);
+    advdiff1d(const int &nx_points);
     
     // Initialize stage vector Y0 with neqn components
     void init(double *Y0) const override;  

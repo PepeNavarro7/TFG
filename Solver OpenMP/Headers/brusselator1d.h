@@ -13,7 +13,7 @@ private:
     int nx; // number of grid points at each dimension
     double dtx_squared; // Spatial step squared
     double DD;
-    const double alpha=1.0/50.0, A=1.0, B=3.0; // variables para el calculo de los valores
+    const double alpha=1.0/50.0, A=1.0, B=3.0; // variables auxiliares para el calculo
 
 public:
     // Constructor of the class 

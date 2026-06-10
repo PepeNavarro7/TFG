@@ -4,11 +4,13 @@
 #include "advdiff1d.h"
 #include <cmath>
 #include <omp.h>
+#include <iostream>
+#include <string>
 
 using namespace std;
 
 // Constructor of the class IVP_ODE_advdiff1d    
-advdiff1d::advdiff1d(const int nx_points){ 
+advdiff1d::advdiff1d(const int &nx_points){ 
     name = "1D_Advection-Diffusion";
     nx=nx_points;
     neqn = nx;
@@ -26,10 +28,9 @@ void advdiff1d::init(double *Y0) const {
 }
 
 void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
-    
     // Compute partially DY in inner points
     #pragma omp for nowait
-    for(int i=1; i<nx-1; i++){   
+    for(int i=1; i<nx-1; i++){
         DY[i] = d * (Y[i+1]    - 2*Y[i]   + Y[i-1]) / dtx_squared
               - a * (Y[i+1]*Y[i+1] - Y[i-1]*Y[i-1]) / dtx_quad;
     } // Nos saltamos la barrera

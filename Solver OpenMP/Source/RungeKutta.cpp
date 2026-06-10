@@ -9,7 +9,8 @@
 
 using namespace std;
 
-RungeKutta::RungeKutta (const int &n){
+RungeKutta::RungeKutta (const int &o, const int &n){
+    orden = o;
     neqn = n;
     nombre = "Runge-Kutta";
 }
@@ -19,10 +20,12 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
         *K1 = new double[neqn], *K2 = new double[neqn], *K3 = new double[neqn], *K4 = new double[neqn], // Vectores de cada paso
         *Yaux = new double[neqn]; // Vector auxiliar
     
-    vectorCopia(Y0, Yn); // Y0 -> Yn, para primera iteración
-    
+    vectorCopia(Y0, Yn); // Y0 -> Yn, para la primera iteración
+
     #pragma omp parallel
-    {   
+    {    
+        cout << "Dentro del parallel, soy " + to_string(omp_get_thread_num()) + " de " + to_string(omp_get_num_threads()) + '\n';
+        #pragma omp barrier
         for(double tn=t0; tn<tf; tn+=h){ // Todas las llamadas han de hacerse de forma secuencial, ya que cada una necesita de la anterior            
             // K1 = feval(tn, Yn)
             problema->feval(tn,Yn,K1);              // Definimos K1
@@ -43,21 +46,23 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
             problema->feval(tn+h, Yaux, K4);        // Definimos K4
 
             // Yn+1 = Yn + K1*h/6 + K2*h/3 + K3*h/3 + K4*h/6
-            escalarPorVector(h/6.0, K1, Yn);     // Yn += K1*h/6
-            escalarPorVector(h/3.0, K2, Yn);     // Yn += K2*h/3
-            escalarPorVector(h/3.0, K3, Yn);     // Yn += K3*h/3
-            escalarPorVector(h/6.0, K4, Yn);     // Yn += K4*h/6
-            //#pragma omp barrier
+            escalarPorVector(h/6.0, K1, Yn);        // Yn += K1*h/6
+            escalarPorVector(h/3.0, K2, Yn);        // Yn += K2*h/3
+            escalarPorVector(h/3.0, K3, Yn);        // Yn += K3*h/3
+            escalarPorVector(h/6.0, K4, Yn);        // Yn += K4*h/6 
+            #pragma omp barrier
             // Tras las sumas, el vector Yn ahora contiene Yn+1
         }
-    }
+    } // Se cierra el parallel
+    
+    
     // Yn es el valor que arrastramos de la ultima iteracion
     vectorCopia(Yn, Yf); // Yn -> Yf
+    delete[] Yn;
     delete[] K1;
     delete[] K2;
     delete[] K3;
     delete[] K4;
-    delete[] Yn;
     delete[] Yaux;
 }
 
@@ -83,7 +88,7 @@ void RungeKutta::aplicarUnidad(Problema* problema, const double &t0, const doubl
     escalarPorVector(h, K3, Yaux);          // Y1 += h*K3
     problema->feval(t0+h, Yaux, K4);        // Definimos K4
 
-    // Yn+1 = Yn + K1*h/6 + K2*h/3 + K3*h/3 + K4*h/6
+    // Y1 = Y0 + K1*h/6 + K2*h/3 + K3*h/3 + K4*h/6
     vectorCopia(Y0, Yf);                    // Y0->Yf
     escalarPorVector(h/6.0, K1, Yf);        // Yf += K1*h/6
     escalarPorVector(h/3.0, K2, Yf);        // Yf += K2*h/3

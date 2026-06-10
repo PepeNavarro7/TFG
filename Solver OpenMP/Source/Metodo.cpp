@@ -9,14 +9,16 @@ void Metodo::escalarPorVector(const double &esc, const double *X, double *Y){
     #pragma omp for
     for(int i=0; i<neqn; ++i){
         Y[i]+=X[i]*esc;
-    }
+    } // barrera implícita
 }
 
 void Metodo::vectorCopia(const double *X, double *Y){
     #pragma omp for
     for (int i=0; i<neqn; ++i){
         Y[i]=X[i];
-    }
+    } // barrera implícita
 }
+
+int Metodo::neqn = 0;
 
 #endif

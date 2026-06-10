@@ -4,6 +4,8 @@
 #include <omp.h>
 #include "simpleadvdiff1d.h"
 #include <cmath>
+#include <iostream>
+#include <string>
 
 using namespace std;
 

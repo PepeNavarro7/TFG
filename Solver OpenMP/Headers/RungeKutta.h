@@ -9,7 +9,7 @@ using namespace std;
 class RungeKutta: public Metodo{
 public:   
     // Constructor de la clase
-    RungeKutta (const int &n);
+    RungeKutta (const int &o, const int &n);
 
     // Aplicar Runge-Kutta el numero necesario de veces
     void aplicar(Problema* problema, const double &t0, const double &tf, const double &h0, const double *Y0, double *Yf) override;
