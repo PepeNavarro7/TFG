@@ -12,9 +12,7 @@ prueba::prueba(const int &nx_points){
     nx = nx_points;
     neqn = nx;
     dtx=1.0/nx;     // Compute Spatial step
-    dtx_doubled = 2.0 * dtx;
-    dtx_squared = dtx*dtx;
-    name = "1D_Simple Advection-Diffusion";
+    name = "Prueba manual";
 }
 
 // Initialize stage vector Y0 with neqn components
@@ -24,10 +22,10 @@ void prueba::init(double *Y0) const {
     }
 }
 
-__global__ void feval_prueba(const double &t, const double* Y, double* DY, const int &nx){
+__global__ void feval_prueba(const double t, const double* Y, double* DY, const int nx){
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     if(i<nx){
-        DY[i] = 2.0 * Y[i] * t;
+        DY[i] = 2.0 * Y[i] - 6.0;
     }
 }
 

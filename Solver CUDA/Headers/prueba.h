@@ -9,11 +9,7 @@ class prueba: public Problema {
 
 private:
     int nx; // number of grid points at each dimension
-    double dtx, // Spatial step, double & square
-        dtx_doubled, // Spatial step doubled
-        dtx_squared; // Spatial step squared
-    const double a=1.0, // Constant scalar representing the strength of advection
-        d=1.0;          // Constant scalar representing the strength of diffusion
+    double dtx; // Spatial step
             
 public:
     // Constructor of the class

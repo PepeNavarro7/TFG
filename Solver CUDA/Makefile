@@ -54,6 +54,7 @@ run:
 
 #exportar con un método u otro
 exporta:
+	-rm $(DIR_D)/*.png
 	cd ./Datos/; python3 visualiza1234.py datos0.txt
 	cd ./Datos/; python3 visualiza1234.py datos1.txt
 
@@ -62,9 +63,9 @@ exporta:
 completo: create run exporta
 
 clean:
-	rm $(DIR_O)/*.o
-	rm ./solverCUDA
+	-rm $(DIR_O)/*.o
+	-rm ./solverCUDA
 
 mrproper: clean
-	rm $(DIR_D)/*.txt
-	rm $(DIR_D)/*.png
+	-rm $(DIR_D)/*.txt
+	-rm $(DIR_D)/*.png

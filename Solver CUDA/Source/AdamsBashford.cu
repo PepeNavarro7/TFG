@@ -102,9 +102,8 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
     
     // Ahora aplicamos Adams-Bashford de Orden 4
     const double h_aux=h/24.0;
-    int it=0;
     cudaMemcpy(Yn4, Yn3, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn3 -> Yn4
-    for(double tn = t0+h*3; tn<tf; tn+=h, ++it){
+    for(double tn = t0+h*3; tn<tf; tn+=h){
         problema->feval(tn, Yn3, Yaux);                 // f(tn3,Yn3) -> Yaux
         escalarPorVector(h_aux*(55.0), Yaux,Yn4);       // Yn4 += Yaux*(h*55/24)
 
@@ -121,13 +120,7 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
         cudaMemcpy(Yn0, Yn1, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn1 -> Yn0
         cudaMemcpy(Yn1, Yn2, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn2 -> Yn1
         cudaMemcpy(Yn2, Yn3, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn3 -> Yn2
-        cudaMemcpy(Yn3, Yn4, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn4 -> Yn3
-
-        if(it%25000==0){
-            cudaMemcpy(Yf, Yn4, NUM_BYTES, cudaMemcpyDeviceToHost);
-            cout << "it="<< it << " tn=" << tn << " Yf[300]=" << Yf[300] << endl;
-        }
-        
+        cudaMemcpy(Yn3, Yn4, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn4 -> Yn3        
     }
      
 

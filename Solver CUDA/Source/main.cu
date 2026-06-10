@@ -30,8 +30,8 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 
     // Variables que usaremos en el solver
 	const int num_metodo = atoi(argv[1]), 	// Metodo a utilizar -> [1,3]
-		num_problema = atoi(argv[2]), 		// Problema a ejecutar -> [0,3]
-		num_hebras = atoi(argv[3]),			// numero de hebras -> 256
+		num_problema = atoi(argv[2]), 		// Problema a ejecutar -> [0,4]
+		num_hebras = atoi(argv[3]),			// numero de hebras -> {128, 256}
         num_points = atoi(argv[4]),			// tamanio del vector -> [100, 10000]
 		salto = atoi(argv[5]); 				// salto en la forma 10^-X -> [5,7]
 	const double t0 = 0.0, 					// valor de tiempo inicial

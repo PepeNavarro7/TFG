@@ -24,7 +24,7 @@ void advdiff1d::init(double *Y0) const {
     }
 }
 
-__global__ void feval_advdiff1d(const double &t, const double *Y, double *DY, const int &nx, const double &dtx, const double &a, const double &d){
+__global__ void feval_advdiff1d(const double t, const double *Y, double *DY, const int nx, const double dtx, const double a, const double d){
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     const double PI = 3.14159265358979,
         dtx_squared=dtx*dtx,

@@ -16,14 +16,12 @@ brusselator1d::brusselator1d(const int &nx_points){
     nx = nx_points;
     neqn = 2*nx; // Number of ODEs
     dtx = 1.0/(nx+1.0); // Compute Spatial step
-    cout << "dtx =" << dtx << endl;
     dtx_squared = dtx*dtx;
     DD = alpha/dtx_squared; 
  }
 
 
 void brusselator1d::init(double *Y0) const { 
-    cout << "dtx =" << dtx << endl;
     for (int i=0;i<nx;i++){  
         double x_i=(double)(i+1)*dtx;
         Y0[idx(i,0)]=A+sin(2*PI*x_i);
@@ -32,7 +30,7 @@ void brusselator1d::init(double *Y0) const {
 }
 
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-__global__ void feval_brusselator1d (const double &t, const double *Y, double *DY, const int &neqn, const double &dtx){
+__global__ void feval_brusselator1d (const double t, const double *Y, double *DY, const int neqn, const double dtx){
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     const double alpha=1.0/50.0, A=1.0, B=3.0;
     const double DD = alpha/(dtx*dtx);

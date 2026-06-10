@@ -46,8 +46,7 @@ void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &t
     ptr_runge->aplicarUnidad(problema,t0+h,  h,Yn1,Yn2);        //Obtenemos Yn2 con RK
     ptr_runge->aplicarUnidad(problema,t0+h*2,h,Yn2,Yn3);        //Obtenemos Yn3 con RK
 
-    int it=0;
-    for (double tn=t0+h*4; tn<tf; tn+=h, ++it){
+    for (double tn=t0+h*4; tn<tf; tn+=h){
         // Aplicamos Adams-Bashford para obtener una primera aproximación de Yn4 -> Yn4_AB
         ptr_bashford->aplicarUnidadSinRK(problema, tn-h*4, h, Yn0, Yn1, Yn2, Yn3, Yn4_AB);
         
@@ -92,11 +91,6 @@ void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &t
         cudaMemcpy(Yn1, Yn2, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn2 -> Yn1
         cudaMemcpy(Yn2, Yn3, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn3 -> Yn2
         cudaMemcpy(Yn3, Yn4, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn4 -> Yn3
-
-        if(it%25000==0){
-            cudaMemcpy(Yf, Yn4, NUM_BYTES, cudaMemcpyDeviceToHost);
-            cout << "it="<< it << " tn=" << tn << " Yf[300]=" << Yf[300] << endl;
-        }
     }
 
     cudaMemcpy(Yf, Yn4, NUM_BYTES, cudaMemcpyDeviceToHost); // Yn4 -> Yf

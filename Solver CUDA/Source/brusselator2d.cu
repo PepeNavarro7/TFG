@@ -28,7 +28,7 @@ void brusselator2d::init(double* Y0) const {
 }
 
 //vector system function DY=FG(t,Y)
-__global__ void feval_brusselator2d(const double &t, const double* Y, double* DY, const int &nx, const double &dtx) {
+__global__ void feval_brusselator2d(const double t, const double* Y, double* DY, const int nx, const double dtx) {
     const int thread = blockDim.x * blockIdx.x + threadIdx.x;
     // Aunque está almacenado todo un vector, podemos transformarlo en componentes x, y, z
     const int id_x = thread/(2*nx);
