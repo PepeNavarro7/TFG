@@ -47,7 +47,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	advdiff1d advdiff1d(num_points); 				// 1D Advection-Diffusion model 
 	brusselator1d brusselator1d(num_points); 		// 1D Brusselator model 
 	brusselator2d brusselator2d(num_points); 		// 1D Brusselator model 
-	Problema *ptr_problema; // Puntero al problema seleccionado
+	Problema *ptr_problema; 						// Puntero al problema seleccionado
 	switch(num_problema){
 		case 0: ptr_problema=&prueba; break;
 		case 1: ptr_problema=&simpleadvdiff1d; break;
