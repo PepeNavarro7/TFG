@@ -6,6 +6,7 @@
 #include <cmath>
 #include <omp.h>
 #include "RungeKutta.h"
+#include <string>
 
 using namespace std;
 
@@ -20,44 +21,67 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
         *K1 = new double[neqn], *K2 = new double[neqn], *K3 = new double[neqn], *K4 = new double[neqn], // Vectores de cada paso
         *Yaux = new double[neqn]; // Vector auxiliar
     
-    vectorCopia(Y0, Yn); // Y0 -> Yn, para la primera iteración
+    //vectorCopia(Y0, Yn); 
+    
 
     #pragma omp parallel
     {    
-        cout << "Dentro del parallel, soy " + to_string(omp_get_thread_num()) + " de " + to_string(omp_get_num_threads()) + '\n';
-        #pragma omp barrier
-        for(double tn=t0; tn<tf; tn+=h){ // Todas las llamadas han de hacerse de forma secuencial, ya que cada una necesita de la anterior            
+        #pragma omp for // Y0 -> Yn, para la primera iteración
+        for (int i = 0; i < neqn; ++i)
+            Yn[i] = Y0[i];
+        
+        for(double tn=t0; tn<tf; tn+=h){ // Todas las llamadas han de hacerse de forma secuencial, ya que cada una necesita de la anterior   
             // K1 = feval(tn, Yn)
-            problema->feval(tn,Yn,K1);              // Definimos K1
+            #pragma omp for
+            for (int i = 0; i < neqn; ++i) // Definimos K1
+                K1[i] = problema->feval_i(tn, Yn, i);    
 
-            // K2 = feval(tn + h/2, Yn + K1*h/2)
-            vectorCopia(Yn, Yaux);                  // Yn -> Yaux
-            escalarPorVector(0.5*h, K1, Yaux);      // Yaux += K1*h/2
-            problema->feval(tn + 0.5*h, Yaux, K2);  // Definimos K2
 
-            // K3 = feval(tn + h/2, Yn + K2*h/2)
-            vectorCopia(Yn, Yaux);                  // Yn -> Yaux
-            escalarPorVector(0.5*h, K2, Yaux);      // Yaux += K2*h/2
-            problema->feval(tn + 0.5*h, Yaux, K3);  // Definimos K3
+            // K2 = feval(tn + h/2, Yn + K1*h/2) 
+            #pragma omp for
+            for (int i = 0; i < neqn; ++i) // Yaux = Yn + K1*h/2
+                Yaux[i] = Yn[i] + 0.5 * h * K1[i];
 
-            // K4 = feval(tn + h, Y0 + h*K3)
-            vectorCopia(Yn, Yaux);                  // Yn -> Yaux
-            escalarPorVector(h, K3, Yaux);          // Yaux += h*K3
-            problema->feval(tn+h, Yaux, K4);        // Definimos K4
+            #pragma omp for
+            for (int i = 0; i < neqn; ++i) // Definimos K2
+                K2[i] = problema->feval_i(tn + 0.5*h, Yaux, i);
 
-            // Yn+1 = Yn + K1*h/6 + K2*h/3 + K3*h/3 + K4*h/6
-            escalarPorVector(h/6.0, K1, Yn);        // Yn += K1*h/6
-            escalarPorVector(h/3.0, K2, Yn);        // Yn += K2*h/3
-            escalarPorVector(h/3.0, K3, Yn);        // Yn += K3*h/3
-            escalarPorVector(h/6.0, K4, Yn);        // Yn += K4*h/6 
-            #pragma omp barrier
+            // K3 = feval(tn + h/2, Yn + K2*h/2)    
+            #pragma omp for
+            for (int i = 0; i < neqn; ++i) // Yaux = Yn + K2*h/2
+                Yaux[i] = Yn[i] + 0.5 * h * K2[i];
+
+            #pragma omp for
+            for (int i = 0; i < neqn; ++i) // Definimos K3
+                K3[i] = problema->feval_i(tn + 0.5*h, Yaux, i);
+
+            // K4 = feval(tn + h, Yn + h*K3)
+            #pragma omp for
+            for (int i = 0; i < neqn; ++i) // Yaux = Yn + h*K3
+                Yaux[i] = Yn[i] + h * K3[i];
+
+            #pragma omp for
+            for (int i = 0; i < neqn; ++i) // Definimos K4
+                K4[i] = problema->feval_i(tn + h, Yaux, i);
+
+
+            // Yn+1 = Yn + h/6 * (K1 + 2*K2 + 2*K3 + K4)
+            #pragma omp for
+            for (int i = 0; i < neqn; ++i)
+                Yn[i] = Yn[i] + (h/6.0) * ( K1[i] + 2*K2[i] + 2*K3[i] + K4[i] ) ;
             // Tras las sumas, el vector Yn ahora contiene Yn+1
         }
+        
+        // Yn es el valor que arrastramos de la ultima iteracion
+        #pragma omp for
+        for (int i = 0; i < neqn; ++i)
+            Yf[i] = Yn[i];
     } // Se cierra el parallel
     
     
-    // Yn es el valor que arrastramos de la ultima iteracion
-    vectorCopia(Yn, Yf); // Yn -> Yf
+    
+
+
     delete[] Yn;
     delete[] K1;
     delete[] K2;

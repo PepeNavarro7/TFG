@@ -66,5 +66,9 @@ void brusselator1d::feval (const double &t, const double *Y, double *DY) const {
         //DY[i1] = B*ui+vi; 
     } // Barrera implicita
 }
+double brusselator1d::feval_i (const double &t, const double *Y, const int &i) const {
+    double res=0;
+    return res;
+}
   
 #endif   

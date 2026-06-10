@@ -56,6 +56,10 @@ void brusselator2d::feval(const double &t, const double* Y, double* DY) const {
         }
     }
 }
+double brusselator2d::feval_i (const double &t, const double *Y, const int &i) const {
+    double res=0;
+    return res;
+}
 
 // Auxiliary function f
 double brusselator2d::f(const int &i, const int &j, const double &t) const {

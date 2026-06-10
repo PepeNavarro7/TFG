@@ -31,4 +31,9 @@ void prueba::feval(const double &t, const double* Y, double* DY) const {
         DY[0] = 2 * Y[0] - 6.0;
     } // Barrera implicita    
 }
+double prueba::feval_i (const double &t, const double *Y, const int &i) const {
+    double res=0;
+    // Compute partially DY in inner points
+    return res;
+}
 #endif

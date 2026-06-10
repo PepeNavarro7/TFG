@@ -22,6 +22,7 @@ public:
     inline string get_name() const { return name; };
     virtual void init(double *Y0) const = 0;
     virtual void feval (const double &t, const double *Y, double *DY) const = 0; // Evaluacion de la exprexion, G+F
+    virtual double feval_i (const double &t, const double *Y, const int &i) const = 0; // Evaluacion de la exprexion, G+F
     virtual void archivo (const string &filename, const double *Y) const = 0;
 };
 

@@ -47,4 +47,20 @@ void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY) const 
                    - a * (Y[0]               - Y[nx-2]) / dtx_doubled;
     } // Barrera implicita    
 }
+
+double simpleadvdiff1d::feval_i (const double &t, const double *Y, const int &i) const {
+    double res;
+    // Compute partially DY in inner points
+    if (i >= 1 && i <= nx-2){
+        res = d * (Y[i + 1] - 2 * Y[i] + Y[i - 1]) / dtx_squared
+            - a * (Y[i + 1]            - Y[i - 1]) / dtx_doubled;
+    } else if(i==0){
+        res = d * (Y[1] - 2 * Y[0] + Y[nx-1]) / dtx_squared
+            - a * (Y[1]            - Y[nx-1]) / dtx_doubled;
+    } else if(i== nx-1){
+        res = d * (Y[0] - 2 * Y[nx-1] + Y[nx-2]) / dtx_squared
+            - a * (Y[0]               - Y[nx-2]) / dtx_doubled;
+    } 
+    return res;
+}
 #endif

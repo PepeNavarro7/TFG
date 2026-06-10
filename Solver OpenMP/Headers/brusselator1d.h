@@ -25,6 +25,8 @@ public:
     //vector system function for the nonstiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
     void feval (const double &t, const double *Y, double *DY) const override; 
 
+    double feval_i (const double &t, const double *Y, const int &i) const override;
+
     // Exportar los datos a un archivo txt
     inline void archivo(const string &filename, const double *Y) const override { archivo2(filename,Y); };
 

@@ -51,6 +51,11 @@ void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
         DY[i] += Y[i] + f((i+1)*dtx,t);
     }
 }
+double advdiff1d::feval_i (const double &t, const double *Y, const int &i) const {
+    double res=0;
+    // Compute partially DY in inner points
+    return res;
+}
 
 double advdiff1d::f(const double &x, const double &t) const{ 
     const double pi2xpt=2.0*PI*x + t;
