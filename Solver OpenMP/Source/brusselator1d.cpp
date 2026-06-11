@@ -66,8 +66,34 @@ void brusselator1d::feval (const double &t, const double *Y, double *DY) const {
         //DY[i1] = B*ui+vi; 
     } // Barrera implicita
 }
+
 double brusselator1d::feval_i (const double &t, const double *Y, const int &i) const {
     double res=0;
+    const double C[2]={A,B};
+    const int id_x = i/2,
+              id_z = i%2;
+
+    if (id_x >= 1 && id_x <= nx-2) {
+        res = DD * (Y[i+2] - 2.0*Y[i] + Y[i-2]);
+    } else if(id_x == 0) { // Primera fila
+        res = DD * (Y[i+2] - 2.0*Y[i] + C[id_z]);
+    } else if(id_x == nx-1) { // Última fila
+        res = DD * (C[id_z]- 2.0*Y[i] + Y[i-2]);
+    }
+
+    double ui, vi;
+    if (id_z == 0){
+        ui = Y[i], vi = Y[i+1];
+    } else {
+        ui = Y[i-1], vi = Y[i];
+    }
+    const double u2v=ui*ui*vi;
+    if (id_z == 0){
+        res += A+u2v-(B+1)*ui;
+    } else {
+        res += B*ui-u2v; 
+    }
+
     return res;
 }
   

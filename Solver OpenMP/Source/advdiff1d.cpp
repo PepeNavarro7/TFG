@@ -27,6 +27,7 @@ void advdiff1d::init(double *Y0) const {
     }
 }
 
+// Vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
 void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
     // Compute partially DY in inner points
     #pragma omp for nowait
@@ -51,9 +52,24 @@ void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
         DY[i] += Y[i] + f((i+1)*dtx,t);
     }
 }
+
+// Adaptación de la función feval para aplicarse a un único término
 double advdiff1d::feval_i (const double &t, const double *Y, const int &i) const {
     double res=0;
-    // Compute partially DY in inner points
+    
+    if(i>=1 && i<=nx-2){
+        res = d * (Y[i+1]    - 2*Y[i]   + Y[i-1]) / dtx_squared
+            - a * (Y[i+1]*Y[i+1] - Y[i-1]*Y[i-1]) / dtx_quad;
+    } else if(i==0){
+        res = d * (Y[1]    - 2*Y[0]  + Y[nx-1]) / dtx_squared
+            - a * (Y[1]*Y[1] - Y[nx-1]*Y[nx-1]) / dtx_quad;
+    } else if(i==nx-1){
+        res = d * (Y[0] - 2*Y[nx-1]  + Y[nx-2]) / dtx_squared
+            - a * (Y[0]*Y[0] - Y[nx-2]*Y[nx-2]) / dtx_quad;
+    } 
+    
+    res += Y[i] + f((i+1)*dtx,t);
+    
     return res;
 }
 

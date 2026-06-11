@@ -28,7 +28,7 @@ void simpleadvdiff1d::init(double *Y0) const {
     }
 }
 
-//vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
+// Vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
 void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY) const {
     // Compute partially DY in inner points
     #pragma omp for nowait
@@ -40,14 +40,15 @@ void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY) const 
     {   // Compute partially DY in boundary points (i=0 and i=nx-1)
         DY[0] = d * (Y[1] - 2 * Y[0] + Y[nx-1]) / dtx_squared
               - a * (Y[1]            - Y[nx-1]) / dtx_doubled;
-    } // Nos saltamos esta barrera tambien
+    } // Nos saltamos esta barrera también
     #pragma omp single
     {
         DY[nx - 1] = d * (Y[0] - 2 * Y[nx-1] + Y[nx-2]) / dtx_squared
                    - a * (Y[0]               - Y[nx-2]) / dtx_doubled;
-    } // Barrera implicita    
+    } // Barrera implícita    
 }
 
+// Adaptación de la función feval para aplicarse a un único término
 double simpleadvdiff1d::feval_i (const double &t, const double *Y, const int &i) const {
     double res;
     // Compute partially DY in inner points

@@ -57,7 +57,34 @@ void brusselator2d::feval(const double &t, const double* Y, double* DY) const {
     }
 }
 double brusselator2d::feval_i (const double &t, const double *Y, const int &i) const {
-    double res=0;
+    double res;
+    const int id_x = i / (2*nx); // Hago uso de la división entre enteros
+    const int id_y = (i - id_x*2*nx) / 2 ;
+    const int id_z = i%2;
+
+    double u_ij, v_ij;
+    if(id_z==0){
+        u_ij = Y[i], v_ij = Y[i+1];
+    } else{
+        v_ij = Y[i], u_ij = Y[i-1];
+    }
+    const double term = B * u_ij - u_ij * u_ij * v_ij;
+
+    const double im1j = (id_x == 0)    ? Y[idx(nx-1, id_y, id_z)] : Y[idx(id_x-1, id_y, id_z)], // Primera fila
+                 ip1j = (id_x == nx-1) ? Y[idx(0,    id_y, id_z)] : Y[idx(id_x+1, id_y, id_z)], // Última fila
+                 ijm1 = (id_y == 0)    ? Y[idx(id_x, ny-1, id_z)] : Y[idx(id_x, id_y-1, id_z)], // Primera columna
+                 ijp1 = (id_y == ny-1) ? Y[idx(id_x, 0,    id_z)] : Y[idx(id_x, id_y+1, id_z)]; // Última columna
+
+
+    if(id_z==0){
+        res = DD * (im1j + ijm1 - 4.0 * u_ij + ip1j + ijp1) 
+            + A - term - u_ij + f(id_x, id_y, t);
+    } else{
+        res = DD * (im1j + ijm1 - 4.0 * v_ij + ip1j + ijp1)
+            + term;
+
+    }
+
     return res;
 }
 

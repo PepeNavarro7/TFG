@@ -13,7 +13,7 @@ private:
     int nx; // number of grid points at each dimension
     double dtx_squared; // Spatial step squared
     double DD;
-    const double alpha=1.0/50.0, A=1.0, B=3.0; // variables auxiliares para el calculo
+    const double alpha=1.0/50.0, A=1.0, B=3.0; // Variables auxiliares para el cálculo
 
 public:
     // Constructor of the class 
@@ -22,9 +22,10 @@ public:
     // Initialize stage vector Y0 with neqn components
     void init(double *Y0) const override; 
     
-    //vector system function for the nonstiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
+    // Vector system function for the nonstiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
     void feval (const double &t, const double *Y, double *DY) const override; 
 
+    // Funcion feval para un solo término
     double feval_i (const double &t, const double *Y, const int &i) const override;
 
     // Exportar los datos a un archivo txt

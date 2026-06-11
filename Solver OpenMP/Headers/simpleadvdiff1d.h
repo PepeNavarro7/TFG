@@ -23,9 +23,10 @@ public:
     // Initialize stage vector Y0 with neqn components
     void init(double *Y0) const override; 
 
-    //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
+    // vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
     void feval (const double &t, const double *Y, double *DY) const override;
 
+    // Funcion feval para un solo término
     double feval_i (const double &t, const double *Y, const int &i) const override;
 
     // Exportar los datos a un archivo txt

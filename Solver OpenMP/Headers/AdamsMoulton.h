@@ -18,7 +18,7 @@ public:
     AdamsMoulton (const int &n, RungeKutta* r, AdamsBashford* ab);
 
     // Aplicar Adams-Moulton el numero necesario de veces
-    void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) override;    
+    void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;    
 };
 
 #endif
