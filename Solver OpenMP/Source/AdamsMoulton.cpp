@@ -8,15 +8,6 @@
 
 using namespace std;
 
-
-// Constructor de la clase
-AdamsMoulton::AdamsMoulton (const int &n, RungeKutta* r, AdamsBashford* ab){
-    neqn = n;
-    ptr_runge = r;
-    ptr_bashford = ab;
-    nombre = "Adams-Moulton";
-}
-
 // Aplicar Adams-Moulton el numero necesario de veces
 void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const {
     double *Yn0 = new double[neqn], *Yn1 = new double[neqn], *Yn2 = new double[neqn], *Yn3 = new double[neqn], *Yn4 = new double[neqn], // Vectores intermedios
@@ -25,7 +16,7 @@ void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &t
            *Yn4_AM = new double [neqn], *YF4_AM = new double [neqn];    // Vectores para aproximar Yn4 usando Adams-Moulton
     const double h720=h/720.0, h_RK = h/100.0, h24=h/24.0;
     
-    vectorCopia(Y0, Yn0);   // Definimos Yn0
+    vectorCopia(Y0, Yn0, neqn);   // Definimos Yn0
         
     // Aplicamos 3 veces Runge-Kutta para obtener los primeros pasos
     ptr_runge->aplicarUnidad(problema, t0,          h, Yn0, Yn1);        //Obtenemos Yn1 con RK

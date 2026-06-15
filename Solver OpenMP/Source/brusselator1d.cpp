@@ -9,17 +9,6 @@ using namespace std;
 // PROBLEMA 3
 // Class for the IVP-ODE representing the 1D Brusselator model 
 
-// Constructor of the class 
-brusselator1d::brusselator1d(const int &nx_points){ 
-    name = "Brusselator_1D";
-    nx = nx_points;
-    neqn = 2*nx; // Number of ODEs
-    dtx = 1.0/(nx+1.0); // Compute Spatial step
-    dtx_squared = dtx*dtx;
-    DD = alpha/dtx_squared; 
- }
-
-
 void brusselator1d::init(double *Y0) const { 
     for (int i=0;i<nx;i++){  
         double x_i=(double)(i+1)*dtx;

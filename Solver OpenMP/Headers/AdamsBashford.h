@@ -9,17 +9,16 @@ using namespace std;
 
 class AdamsBashford: public Metodo{
 private:
-    RungeKutta *ptr_runge;
+    const RungeKutta* const ptr_runge; // Puntero constante a objeto constante
     
 public:   
     // Constructor de la clase
-    AdamsBashford (const int &n, RungeKutta* r);
+    AdamsBashford (const int &neqn, const int &orden, const RungeKutta* runge):
+        Metodo(neqn, "Adams-Bashford", orden),
+        ptr_runge(runge){};
 
     // Aplicar Adams-Bashford el numero necesario de veces
-    void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;    
-
-    // Aplicar Adams-Bashford una sola vez, aportando los pasos intermedios de antemano
-    void aplicarUnidad(Problema* problema, const double &t0, const double &h, const double *Yn0, const double *Y1, const double *Y2, const double *Y3, double *Y4) const;
+    void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;
 };
 
 #endif

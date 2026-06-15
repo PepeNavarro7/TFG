@@ -10,14 +10,17 @@ using namespace std;
 class brusselator1d:public Problema{
 
 private:
-    int nx; // number of grid points at each dimension
-    double dtx_squared; // Spatial step squared
-    double DD;
     const double alpha=1.0/50.0, A=1.0, B=3.0; // Variables auxiliares para el cálculo
+    const int nx; // number of grid points at each dimension
+    const double dtx_squared, // Spatial step squared
+        DD;
+    
 
 public:
     // Constructor of the class 
-    brusselator1d (const int &nx_points);
+    brusselator1d(const int &nx_points):
+        Problema( (2*nx_points), "Brusselator_1D", (1.0/((double)nx_points+1.0)) ),
+        nx(nx_points), dtx_squared(dtx*dtx), DD(alpha/(dtx*dtx)) {};
 
     // Initialize stage vector Y0 with neqn components
     void init(double *Y0) const override; 

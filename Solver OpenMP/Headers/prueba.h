@@ -9,11 +9,13 @@ using namespace std;
 class prueba: public Problema {
 
 private:
-    int nx; // number of grid points at each dimension
+    const int nx; // number of grid points at each dimension
             
 public:
     // Constructor of the class
-    prueba(const int &nx_points); 
+    prueba(const int &nx_points):
+        Problema( nx_points, "Prueba manual",(1.0/nx_points) ),
+        nx(nx_points) { };
 
     // Initialize stage vector Y0 with neqn components
     void init(double *Y0) const override; 

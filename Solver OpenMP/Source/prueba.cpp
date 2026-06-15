@@ -9,13 +9,6 @@ using namespace std;
 
 // PROBLEMA 0
 
-prueba::prueba(const int &nx_points){ 
-    nx = nx_points;
-    neqn = nx;
-    dtx=1.0/nx;     // Compute Spatial step
-    name = "Prueba manual";
-}
-
 // Initialize stage vector Y0 with neqn components
 void prueba::init(double *Y0) const {
     for (int i=0;i<neqn;i++) { 

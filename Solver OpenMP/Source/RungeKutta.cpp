@@ -10,12 +10,6 @@
 
 using namespace std;
 
-RungeKutta::RungeKutta (const int &o, const int &n){
-    orden = o;
-    neqn = n;
-    nombre = "Runge-Kutta";
-}
-
 // Aplicar Runge-Kutta el numero necesario de veces
 void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const {
     double *Yn = new double [neqn], // vector con la Y en cada iteracion
@@ -33,7 +27,6 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
             #pragma omp for
             for (int i = 0; i < neqn; ++i) // Definimos K1
                 K1[i] = problema->feval_i(tn, Yn, i);
-
 
             // K2 = feval(tn + h/2, Yn + K1*h/2) 
             #pragma omp for

@@ -9,16 +9,6 @@
 
 using namespace std;
 
-// Constructor of the class IVP_ODE_advdiff1d    
-advdiff1d::advdiff1d(const int &nx_points){ 
-    name = "1D_Advection-Diffusion";
-    nx=nx_points;
-    neqn = nx;
-    dtx=1.0/nx;     // Compute Spatial step
-    dtx_squared=dtx*dtx;
-    dtx_quad=4.0*dtx;
-}
-
 // Initialize stage vector Y0 with neqn components
 void advdiff1d::init(double *Y0) const {
     for (int i=0; i<neqn; ++i) { 

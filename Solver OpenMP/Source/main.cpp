@@ -61,9 +61,9 @@ int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvect
 
 	// Objetos y puntero de los metodos de resolucion
 	const int neqn = ptr_problema->get_num_ODEs(); 					// Obtenemos el numero de ODEs del problema
-	RungeKutta RungeKutta(orden_metodo, neqn); 						// Objeto para aplicar Runge-Kutta y sus operaciones asociadas
-	AdamsBashford AdamsBashford(neqn, &RungeKutta); 				// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
-	AdamsMoulton AdamsMoulton(neqn, &RungeKutta, &AdamsBashford); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
+	RungeKutta RungeKutta(neqn, orden_metodo); 						// Objeto para aplicar Runge-Kutta y sus operaciones asociadas
+	AdamsBashford AdamsBashford(neqn, orden_metodo, &RungeKutta); 				// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
+	AdamsMoulton AdamsMoulton(neqn, orden_metodo, &RungeKutta, &AdamsBashford); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
 	Metodo *ptr_metodo; 											// Puntero al metodo seleccionado
 	switch(num_metodo){
 		case 1: ptr_metodo=&RungeKutta; break;
@@ -74,7 +74,6 @@ int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvect
 
 	double *Y0 = new double[neqn], // Vector de entrada
 		   *Y1 = new double[neqn]; // Vector de salida
-	//cout.precision(6);
 	ptr_problema->init(Y0); 					// inicializamos el vector inicial
 	ptr_problema->archivo("datos0.txt", Y0);	// Guardamos en un txt los valores iniciales
 	timeIni = omp_get_wtime();					// Obtenemos el tiempo antes de computar
@@ -84,7 +83,7 @@ int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvect
 	tiempo_ms = (timeFin - timeIni)*1000.0;		// Calculamos el tiempo en milisegundos
 	tiempo_m = (tiempo_ms / 1000.0)/60.0;		// Calculamos el tiempo en minutos
 	
-	cout << "Problema " << num_problema << " -> " << ptr_problema->get_name() << endl;
+	cout << "Problema " << num_problema << " -> " << ptr_problema->get_nombre() << endl;
 	cout << "Metodo de resolucion -> " << ptr_metodo->get_nombre() << " de orden " << orden_metodo << endl;
 	cout << "Tamaño del vector -> " << num_points << endl;
 	cout << "Numero de ecuaciones -> " << neqn << endl;

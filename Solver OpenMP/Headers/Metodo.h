@@ -9,15 +9,18 @@ using namespace std;
 class Metodo{
 protected:
     static constexpr double PI = 3.14159265358979;
-    static int neqn;       // Numero de ecuaciones
-    string nombre;  // Nombre del método
-    int orden;      // Orden
+    const int neqn;  // Numero de ecuaciones
+    const string nombre;    // Nombre del método
+    const int orden;        // Orden
 
-    // Escalar esc * vector X + vector Y -> Y
-    static void escalarPorVector(const double &esc, const double *X, double *Y);
+    Metodo(const int &neqn, const string &nombre, const int &orden):
+        neqn(neqn), nombre(nombre), orden(orden) {};
+
+    // vector Y += Escalar esc * vector X 
+    static void escalarPorVector(const double &esc, const double *X, double *Y, const int &neqn);
 
     // Copia de X en Y
-    static void vectorCopia(const double *X, double *Y);
+    static void vectorCopia(const double *X, double *Y, const int &neqn);
 
 public:
     virtual void aplicar(Problema* problema, const double &t0, const double &tf, const double &h0, const double *Y0, double *Y1) const = 0;

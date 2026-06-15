@@ -10,15 +10,17 @@ using namespace std;
 class simpleadvdiff1d: public Problema {
 
 private:
-    int nx; // number of grid points at each dimension
-    double dtx_doubled, // Spatial step doubled
+    const int nx; // number of grid points at each dimension
+    const double dtx_doubled, // Spatial step doubled
         dtx_squared; // Spatial step squared
     const double a=10.0, // Constant scalar representing the strength of advection
         d=10.0;          // Constant scalar representing the strength of diffusion
             
 public:
     // Constructor of the class
-    simpleadvdiff1d(const int &nx_points); 
+    simpleadvdiff1d(const int &nx_points): 
+        Problema(nx_points,"1D_Simple Advection-Diffusion",(1.0/nx_points)), 
+        nx(nx_points), dtx_doubled(2.0*dtx), dtx_squared(dtx*dtx) {};
 
     // Initialize stage vector Y0 with neqn components
     void init(double *Y0) const override; 

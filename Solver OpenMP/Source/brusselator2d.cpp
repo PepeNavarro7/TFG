@@ -8,16 +8,6 @@
 
 using namespace std;
 
-// Constructor of the class 
-brusselator2d::brusselator2d(const int &nx_points) {
-    name = "Brusselator_2D";
-    ny = nx = nx_points;
-    neqn = 2 * nx * ny;
-    dtx = 1.0 / (nx + 1);
-    dtx_squared = dtx * dtx;
-    DD = alpha / dtx_squared;
-}
-
 void brusselator2d::init(double* Y0) const {
     for (int i = 0; i < nx; i++) {
         for (int j = 0; j < ny; j++) {
