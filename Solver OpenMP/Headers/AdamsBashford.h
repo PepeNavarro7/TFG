@@ -18,7 +18,7 @@ public:
         ptr_runge(runge){};
 
     // Aplicar Adams-Bashford el numero necesario de veces
-    void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;
+    void aplicar(const Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;
 };
 
 #endif

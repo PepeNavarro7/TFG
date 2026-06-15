@@ -20,12 +20,12 @@ protected:
     void archivo3(const string &filename, const double *Y) const; // Sacar vector de 3 componentes por archivo
 
 public:
-    inline int get_num_ODEs() const { return neqn; };
-    inline string get_nombre() const { return nombre; };
     virtual void init(double *Y0) const = 0; // Inicialización del vector inicial
     virtual void feval (const double &t, const double *Y, double *DY) const = 0; // Evaluacion de la exprexion, G+F
     virtual double feval_i (const double &t, const double *Y, const int &i) const = 0; // Evaluacion de la exprexion pero solo para 1 término
     virtual void archivo (const string &filename, const double *Y) const = 0; // Exportar vector a un archivo
+    inline int get_num_ODEs() const { return neqn; };
+    inline string get_nombre() const { return nombre; };
 };
 
 #endif
