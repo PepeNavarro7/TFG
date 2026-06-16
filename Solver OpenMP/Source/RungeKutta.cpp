@@ -194,6 +194,7 @@ void RungeKutta::aplicarUnidad(const Problema* problema, const double &t0, const
             } // Barrera implícita
         break;
         case 4: 
+        default:
             #pragma omp for
             for (int i = 0; i < neqn; ++i) {
                 // K1 = feval(tn, Yn)

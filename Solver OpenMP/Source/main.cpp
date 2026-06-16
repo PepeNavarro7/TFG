@@ -83,16 +83,16 @@ int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvect
 	tiempo_ms = (timeFin - timeIni)*1000.0;		// Calculamos el tiempo en milisegundos
 	tiempo_m = (tiempo_ms / 1000.0)/60.0;		// Calculamos el tiempo en minutos
 	
-	cout << "Problema " << num_problema << " -> " << ptr_problema->get_nombre() << endl;
-	cout << "Metodo de resolucion -> " << ptr_metodo->get_nombre() << " de orden " << orden_metodo << endl;
+	cout << "\nProblema " << num_problema << " -> " << ptr_problema->get_nombre() << endl;
+	cout << "Metodo de resolucion -> " << ptr_metodo->get_nombre() << " de orden " << ptr_metodo->get_orden() << endl;
 	cout << "Tamaño del vector -> " << num_points << endl;
-	cout << "Numero de ecuaciones -> " << neqn << endl;
+	cout << "Numero de ecuaciones -> " << ptr_metodo->get_neqn() << endl;
 	cout << "Salto h=" << h << " -> " << num_iter << " iteraciones" << endl;
 	cout << "Numero de hebras OpenMP -> " << num_hebras << endl;
 	cout << "Tiempo -> "<< tiempo_ms << " milisegundos, es decir, " << floor(tiempo_m) << " minuto";
 	if(floor(tiempo_m)!=1)
 		cout << "s";
-	cout << " y " << (tiempo_m-floor(tiempo_m))*60 << " segundos." << endl;
+	cout << " y " << (tiempo_m-floor(tiempo_m))*60 << " segundos\n" << endl;
 	
 	delete [] Y0, Y1;
 	return 0;
