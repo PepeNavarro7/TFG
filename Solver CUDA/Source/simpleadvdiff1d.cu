@@ -9,14 +9,17 @@ using namespace std;
 // PROBLEMA 1
 // Class for the IVP-ODE representing a 1D Advection-Diffusion model 
 
-simpleadvdiff1d::simpleadvdiff1d(const int &nx_points){ 
-    nx = nx_points;
-    neqn = nx;
-    dtx=1.0/nx;     // Compute Spatial step
-    dtx_doubled = 2.0 * dtx;
-    dtx_squared = dtx*dtx;
-    name = "1D_Simple Advection-Diffusion";
-}
+struct Params_simpleadvdiff1d {
+    int n;
+    double dtx_2_inv;
+    double dtx_sq_inv;
+    double a;
+    double d;
+};
+
+// Variable en memoria constante (vive en la GPU)
+__constant__ Params_simpleadvdiff1d cte1;
+
 
 // Initialize stage vector Y0 with neqn components
 void simpleadvdiff1d::init(double *Y0) const {
@@ -26,25 +29,41 @@ void simpleadvdiff1d::init(double *Y0) const {
     }
 }
 
-__global__ void feval_simpleadvdiff1d(const double &t, const double* Y, double* DY, const int &nx, const double &dtx_squared, const double &dtx_doubled){
+void simpleadvdiff1d::updateConstants() const {
+    Params_simpleadvdiff1d aux;
+
+    aux.n = neqn;
+    aux.dtx_2_inv  = 1.0 / dtx_doubled;
+    aux.dtx_sq_inv = 1.0 / dtx_squared;
+    aux.a = a;
+    aux.d = d;
+
+    cudaMemcpyToSymbol(cte1, &aux, sizeof(Params_simpleadvdiff1d));
+}
+
+
+__global__ void feval_simpleadvdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
-    const double a=10.0, d=10.0;
-    // Compute partially DY in inner points
-    if(i>=1 && i<=(nx-2)){
-        DY[i] = d * (Y[i + 1] - 2 * Y[i] + Y[i - 1]) / dtx_squared
-              - a * (Y[i + 1]            - Y[i - 1]) / dtx_doubled;
-    } else if(i==0){
-        DY[0] = d * (Y[1] - 2 * Y[0] + Y[nx-1]) / dtx_squared
-              - a * (Y[1]            - Y[nx-1]) / dtx_doubled;
-    } else if(i==(nx-1)){
-        DY[nx - 1] = d * (Y[0] - 2 * Y[nx-1] + Y[nx-2]) / dtx_squared
-                   - a * (Y[0]               - Y[nx-2]) / dtx_doubled;
+    if(i<cte1.n){
+        const int ult = cte1.n-1;
+        const int i_ant = i ==  0  ? ult : i-1, // Calculamos indices vecinos
+                  i_pst = i == ult ?  0  : i+1;
+
+        const double v_ant = Y[i_ant], // Acceso a los indices
+                     valor = Y[i],
+                     v_pst = Y[i_pst];
+        
+        DY[i] = cte1.d * (v_pst - 2.0*valor + v_ant) * cte1.dtx_sq_inv // Calculo del valor feval
+              - cte1.a * (v_pst             - v_ant) * cte1.dtx_2_inv;    
     }
+        
+    
     
 }
 
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
 void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY) const {
-    feval_simpleadvdiff1d<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t, Y, DY, nx, dtx_squared, dtx_doubled);
+    feval_simpleadvdiff1d<<<NUM_BLOCKS, THREADSPERBLOCK>>>(t, Y, DY);
 }
+
 #endif

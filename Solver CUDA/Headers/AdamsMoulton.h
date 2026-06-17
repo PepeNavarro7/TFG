@@ -10,17 +10,17 @@ using namespace std;
 
 class AdamsMoulton: public Metodo{
 private:
-    RungeKutta *ptr_runge;
-    AdamsBashford *ptr_bashford;
+    const RungeKutta *ptr_runge;
+    const AdamsBashford *ptr_bashford;
 
 public:   
     // Constructor de la clase
-    AdamsMoulton (const int &n, RungeKutta* r, AdamsBashford* ab);
-
-    void set_threads(const int &t) override;
+    AdamsMoulton (const int &n, const int &orden, const int &threads, const RungeKutta* runge, const AdamsBashford* bash):
+        Metodo(n, "Adams-Moulton", orden, threads),
+        ptr_runge(runge), ptr_bashford(bash) { };
 
     // Aplicar Adams-Moulton el numero necesario de veces
-    void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) override;    
+    void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;    
 };
 
 #endif

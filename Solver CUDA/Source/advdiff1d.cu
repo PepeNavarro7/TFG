@@ -7,7 +7,7 @@
 using namespace std;
 
 // Constructor of the class IVP_ODE_advdiff1d    
-advdiff1d::advdiff1d(const int nx_points){ 
+advdiff1d::advdiff1d(const int &nx_points){ 
     name = "1D_Advection-Diffusion";
     nx=nx_points;
     neqn = nx;

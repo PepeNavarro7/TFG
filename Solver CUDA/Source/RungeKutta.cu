@@ -8,18 +8,14 @@
 
 using namespace std;
 
-RungeKutta::RungeKutta (const int &n){
-    neqn = n;
-    nombre = "Runge-Kutta";
+__global__ void d_sumatoriaRK(double *Yn, const double h, const double *K1, const double *K2, const double *K3, const double *K4, const int neqn) {
+    const int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if(i<neqn){
+        Yn[i] += (h/6.0) * (K1[i] + 2.0*K2[i] + 2.0*K3[i] + K4[i]);
+    }
 }
 
-void RungeKutta::set_threads(const int &t){ 
-    THREADSPERBLOCK=t; 
-    NUM_BLOCKS = ceil((double)neqn/THREADSPERBLOCK); 
-    NUM_BYTES = sizeof(double) * neqn;
-}
-
-void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf){
+void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const {
     // creamos y alojamos memoria para los arrays en el device
     double *Yn, // vector con la Y en cada iteracion
         *K1, *K2, *K3, *K4, // Vectores de cada paso
@@ -54,10 +50,7 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
 
 
         // Yn+1 = Yn + K1*h/6 + K2*h/3 + K3*h/3 + K4*h/6
-        escalarPorVector(h/6.0, K1, Yn);     // Yn += K1*h/6
-        escalarPorVector(h/3.0, K2, Yn);     // Yn += K2*h/3
-        escalarPorVector(h/3.0, K3, Yn);     // Yn += K3*h/3
-        escalarPorVector(h/6.0, K4, Yn);     // Yn += K4*h/6
+        d_sumatoriaRK<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn, h, K1, K2, K3, K4, neqn);
         // Tras las sumas, el vector Yn ahora es Yn+1
     }
     
@@ -71,7 +64,7 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
     cudaFree(Yaux);
 }
 
-void RungeKutta::aplicarUnidad(Problema* problema, const double &t0, const double &h, const double *Y0, double *Yf){
+void RungeKutta::aplicarUnidad(Problema* problema, const double &t0, const double &h, const double *Y0, double *Yf) const {
     double *K1, *K2, *K3, *K4, // Vectores de cada paso
         *Yaux, *Yn0; // Vector auxiliar
     cudaMalloc((void**)&K1,NUM_BYTES);
@@ -103,10 +96,7 @@ void RungeKutta::aplicarUnidad(Problema* problema, const double &t0, const doubl
 
     // Yn+1 = Yn + K1*h/6 + K2*h/3 + K3*h/3 + K4*h/6
     cudaMemcpy(Yaux, Yn0, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn0 -> Yaux
-    escalarPorVector(h/6.0, K1, Yaux);        // Yaux += K1*h/6
-    escalarPorVector(h/3.0, K2, Yaux);        // Yaux += K2*h/3
-    escalarPorVector(h/3.0, K3, Yaux);        // Yaux += K3*h/3
-    escalarPorVector(h/6.0, K4, Yaux);        // Yaux += K4*h/6
+    d_sumatoriaRK<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yaux, h, K1, K2, K3, K4, neqn);
     
     cudaMemcpy(Yf, Yaux, NUM_BYTES, cudaMemcpyDeviceToHost); // Yaux -> Yf
     

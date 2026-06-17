@@ -7,24 +7,8 @@
 
 using namespace std;
 
-
-// Constructor de la clase
-AdamsMoulton::AdamsMoulton (const int &n, RungeKutta* r, AdamsBashford* ab){
-    neqn = n;
-    ptr_runge = r;
-    ptr_bashford = ab;
-    nombre = "Adams-Moulton";
-}
-
-void AdamsMoulton::set_threads(const int &t) { 
-    THREADSPERBLOCK=t; 
-    NUM_BLOCKS = ceil((double)neqn/THREADSPERBLOCK); 
-    NUM_BYTES = sizeof(double) * neqn;
-    ptr_bashford->set_threads(t);
-}
-
 // Aplicar Adams-Moulton el numero necesario de veces
-void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf){
+void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const {
     double *Yn0, *Yn1, *Yn2, *Yn3, *Yn4, // Vectores intermedios
         *Yaux,      // vector auxiliar
         *Yn4_AB,    // Vector para aproximar Yn4 usando Adams-Bashford

@@ -9,15 +9,14 @@ using namespace std;
 class RungeKutta: public Metodo{
 public:   
     // Constructor de la clase
-    RungeKutta (const int &n);
-
-    void set_threads(const int &t) override;
+    RungeKutta (const int &n, const int &orden, const int &threads):
+        Metodo(n, "Runge-Kutta", orden, threads) { };
 
     // Aplicar Runge-Kutta el numero necesario de veces
-    void aplicar(Problema* problema, const double &t0, const double &tf, const double &h0, const double *Y0, double *Yf) override;
+    void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;
 
     // Aplicar Runge-Kutta una unica vez
-    void aplicarUnidad(Problema* problema, const double &t0, const double &h, const double *Y0, double *Yf);
+    void aplicarUnidad(Problema* problema, const double &t0, const double &h, const double *Y0, double *Yf) const;
 };
 
 #endif

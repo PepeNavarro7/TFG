@@ -12,7 +12,7 @@ __global__ void d_escalarPorVector(const double esc, const double *X, double *Y,
     }
 }
 
-void Metodo::escalarPorVector(const double &esc, const double *X, double *Y){
+void Metodo::escalarPorVector(const double &esc, const double *X, double *Y) const {
     d_escalarPorVector<<<NUM_BLOCKS,THREADSPERBLOCK>>>(esc, X, Y, neqn);
 }
 
