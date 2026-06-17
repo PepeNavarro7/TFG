@@ -12,7 +12,7 @@ public:
     RungeKutta (const int &neqn, const int &orden):
         Metodo(neqn, "Runge-Kutta", orden) { };
 
-    // Aplicar Runge-Kutta el numero necesario de veces - PARALELIZADO
+    // Aplicar Runge-Kutta el numero necesario de veces
     void aplicar(const Problema* problema, const double &t0, const double &tf, const double &h0, const double *Y0, double *Yf) const override;
 
     // Aplicar Runge-Kutta una unica vez - SECUENCIAL

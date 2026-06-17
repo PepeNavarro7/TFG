@@ -28,7 +28,7 @@ ALL_DATA    := $(DIR_D)/datos0.txt   $(DIR_D)/datos1.txt
 
 CC := g++
 
-NUM_PROBS := 1 2 3
+NUM_PROBS := 1 2 3 4
 NUM_HEBRAS := 1 2 4 8 16
 TAMS := 100 200 500 1000 2000 5000 10000
 

@@ -12,9 +12,9 @@ class simpleadvdiff1d: public Problema {
 private:
     const int nx; // number of grid points at each dimension
     const double dtx_doubled, // Spatial step doubled
-        dtx_squared; // Spatial step squared
+                 dtx_squared; // Spatial step squared
     const double a=10.0, // Constant scalar representing the strength of advection
-        d=10.0;          // Constant scalar representing the strength of diffusion
+                 d=10.0; // Constant scalar representing the strength of diffusion
             
 public:
     // Constructor of the class

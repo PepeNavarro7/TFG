@@ -22,7 +22,7 @@ using namespace std;
 int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvector salto
 	if (argc != 7){
 		string texto = "solverOMP metodo= orden= problema= hebras= tamvector= salto=\n";
-		texto+= "\tMetodos: 1=Runge-Kutta 2=Adams-Bashford 3=Adams-Moulton\n\tOrden: 1-2-3-4\n";
+		texto+= "\tMetodos: 1=Runge-Kutta 2=Adams-Bashford 3=Adams-Moulton\n\tOrden: 1-2-3-4-5(AM)\n";
 		texto+= "\tProblemas: 1=simpleavdiff 2=advdiff1d 3=brusselator1d 4=brusselator2d\n\tNumero de hebras en OMP {1,4,16}\n";
 		texto+= "\tTamaño del vector[100,10000]\n\tSalto en la forma 10^(-x)\n";
 		cout << texto;
@@ -62,8 +62,8 @@ int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvect
 	// Objetos y puntero de los metodos de resolucion
 	const int neqn = ptr_problema->get_num_ODEs(); 					// Obtenemos el numero de ODEs del problema
 	RungeKutta RungeKutta(neqn, orden_metodo); 						// Objeto para aplicar Runge-Kutta y sus operaciones asociadas
-	AdamsBashford AdamsBashford(neqn, orden_metodo, &RungeKutta); 				// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
-	AdamsMoulton AdamsMoulton(neqn, orden_metodo, &RungeKutta, &AdamsBashford); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
+	AdamsBashford AdamsBashford(neqn, orden_metodo, &RungeKutta); 	// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
+	AdamsMoulton AdamsMoulton(neqn, orden_metodo, &RungeKutta); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
 	Metodo *ptr_metodo; 											// Puntero al metodo seleccionado
 	switch(num_metodo){
 		case 1: ptr_metodo=&RungeKutta; break;
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvect
 
 	double *Y0 = new double[neqn], // Vector de entrada
 		   *Y1 = new double[neqn]; // Vector de salida
-	ptr_problema->init(Y0); 					// inicializamos el vector inicial
+	ptr_problema->init(Y0); 					// Inicializamos el vector inicial
 	ptr_problema->archivo("datos0.txt", Y0);	// Guardamos en un txt los valores iniciales
 	timeIni = omp_get_wtime();					// Obtenemos el tiempo antes de computar
 	ptr_metodo->aplicar(ptr_problema, t0, tf, h, Y0, Y1); // Aplicamos el método
