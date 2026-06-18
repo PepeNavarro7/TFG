@@ -10,15 +10,22 @@ using namespace std;
 class advdiff1d: public Problema {
 
 private:
-    int nx; // number of grid points at each dimension
-    double dtx_squared,     // Spatial step squared
-           dtx_quad;        // Spatial step times 4
+    const int nx; // number of grid points at each dimension
+    const double dtx_sq,     // Spatial step squared
+           dtx_4;        // Spatial step times 4
     const double a=10.0,    // constant scalar representing the strength of advection 
                  d=1.0;     // constant scalar representing the strength of diffusion
             
 public:
     // Constructor of the class IVP_ODE_advdiff1d    
-    advdiff1d(const int &nx_points);
+    advdiff1d(const int &nx_points, const int &threads):
+        Problema(nx_points, "1D_Advection-Diffusion", (1.0/nx_points), threads),
+        nx(nx_points), dtx_sq(dtx*dtx), dtx_4(4.0*dtx) { 
+            updateConstants();
+        };
+
+    // Definicion de los valores constantes para el kernel
+    void updateConstants() const override;
     
     // Initialize stage vector Y0 with neqn components
     void init(double *Y0) const override; 
@@ -27,7 +34,6 @@ public:
     void feval (const double &t, const double *Y, double *DY) const override; 
     
     // Exportar los datos a un archivo txt
-    inline void archivo (const string &n, const double *Y) const override { archivo1(n,Y); };
+    inline void archivo (const string &filename, const double *Y) const override { archivo1(filename,Y); };
 };
-
 #endif

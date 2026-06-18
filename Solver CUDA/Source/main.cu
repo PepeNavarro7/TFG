@@ -4,6 +4,8 @@
 #include <iomanip> // cambiar precision de los double
 #include <cmath> // floor
 #include <chrono> // medicion de tiempo
+#include <cassert>
+#define assertm(exp, msg) assert((void(msg), exp))
 
 #include "Metodo.h"
 #include "RungeKutta.h"
@@ -12,18 +14,18 @@
 
 #include "Problema.h"
 #include "simpleadvdiff1d.h"
-//#include "advdiff1d.h"
-//#include "brusselator1d.h"
-//#include "brusselator2d.h"
+#include "advdiff1d.h"
+#include "brusselator1d.h"
+#include "brusselator2d.h"
 //#include "prueba.h"
 
 using namespace std;
 
 int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	if (argc != 7){
-		string texto = "solverOMP metodo= orden= problema= hebras= tamvector= salto=\n";
+		string texto = "./solverCUDA metodo= orden= problema= hebras= tamvector= salto=\n";
 		texto+= "\tMetodos: 1=Runge-Kutta 2=Adams-Bashford 3=Adams-Moulton\n\tOrden: 1-2-3-4-5(AM)\n";
-		texto+= "\tProblemas: 1=simpleavdiff 2=advdiff1d 3=brusselator1d 4=brusselator2d\n\tHebras del bloque CUDA {128, 256}\n";
+		texto+= "\tProblemas: 1=simpleavdiff 2=advdiff1d 3=brusselator1d 4=brusselator2d\n\tHebras del bloque CUDA X%32==0\n";
 		texto+= "\tTamaño del vector[100,10000]\n\tSalto en la forma 10^(-x)\n";
 		cout << texto;
 		return 0;
@@ -32,29 +34,33 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 
     // Variables que usaremos en el solver
 	const int num_metodo = atoi(argv[1]), 	// Metodo a utilizar -> [1,3]
-		orden_metodo = atoi(argv[2]),		// Orden del metodo
+		orden_metodo = atoi(argv[2]),		// Orden del metodo -> [1,5]
 		num_problema = atoi(argv[3]), 		// Problema a ejecutar -> [0,4]
-		num_hebras = atoi(argv[4]),			// numero de hebras -> {128, 256}
-        num_points = atoi(argv[5]),			// tamanio del vector -> [100, 10000]
+		num_hebras = atoi(argv[4]),			// Numero de hebras -> X%32==0
+        num_points = atoi(argv[5]),			// Tamaño del vector -> [100, 10000]
 		salto = atoi(argv[6]); 				// salto en la forma 10^-X -> [5,7]
 	const double t0 = 0.0, 					// valor de tiempo inicial
 		tf = 1.0,  							// valor de tiempo final
 		h = pow(10,(-1*salto));				// valor de salto
 	const int num_iter = (tf-t0)/h; 		// numero total de iteraciones
+	assertm(num_metodo>=1 && num_metodo<=3, "Metodo a utilizar -> [1,3]");
+	assertm(orden_metodo>=1 && orden_metodo<=5, "Orden del metodo -> [1,5]");
+	assertm(num_problema>=0 && num_problema<=4, "Problema a ejecutar -> [0,4]");
+	assertm(num_hebras%32 == 0, "Numero de hebras -> X%32==0");
 
     // Objetos y puntero de los diferentes problemas
 	//prueba prueba(num_points);
 	simpleadvdiff1d simpleadvdiff1d(num_points, num_hebras);// 1D_Simple Advection-Diffusion
-	//advdiff1d advdiff1d(num_points, num_hebras); 			// 1D Advection-Diffusion model 
-	//brusselator1d brusselator1d(num_points, num_hebras); 	// 1D Brusselator model 
-	//brusselator2d brusselator2d(num_points, num_hebras); 	// 2D Brusselator model 
+	advdiff1d advdiff1d(num_points, num_hebras); 			// 1D Advection-Diffusion model 
+	brusselator1d brusselator1d(num_points, num_hebras); 	// 1D Brusselator model 
+	brusselator2d brusselator2d(num_points, num_hebras); 	// 2D Brusselator model 
 	Problema *ptr_problema; 					// Puntero al problema seleccionado
 	switch(num_problema){
 		//case 0: ptr_problema=&prueba; break;
 		case 1: ptr_problema=&simpleadvdiff1d; break;
-		//case 2: ptr_problema=&advdiff1d; break;
-		//case 3: ptr_problema=&brusselator1d; break;
-		//case 4: ptr_problema=&brusselator2d; break;
+		case 2: ptr_problema=&advdiff1d; break;
+		case 3: ptr_problema=&brusselator1d; break;
+		case 4: ptr_problema=&brusselator2d; break;
 		default: ptr_problema=NULL; break;
 	}
 
@@ -62,7 +68,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	const int neqn = ptr_problema->get_num_ODEs(); 					// Obtenemos el numero de ODEs del problema
 	RungeKutta RungeKutta(neqn, orden_metodo, num_hebras); 						// Objeto para aplicar Runge-Kutta y sus operaciones asociadas
 	AdamsBashford AdamsBashford(neqn, orden_metodo, num_hebras, &RungeKutta); 	// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
-	AdamsMoulton AdamsMoulton(neqn, orden_metodo, num_hebras, &RungeKutta); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
+	AdamsMoulton AdamsMoulton(neqn, orden_metodo, num_hebras, &RungeKutta, &AdamsBashford); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
 	Metodo *ptr_metodo; 											// Puntero al metodo seleccionado
 	switch(num_metodo){
 		case 1: ptr_metodo=&RungeKutta; break;
@@ -70,6 +76,9 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		case 3: ptr_metodo=&AdamsMoulton; break;
 		default: ptr_metodo=NULL; break;
 	}
+
+	cout << "Check de memorias: neqn=" << ptr_metodo->get_neqn() << " THREADSPERBLOCK=" << ptr_metodo->get_threads_per_block() << " NUM_BLOCKS=" 
+		<< ptr_metodo->get_num_blocks() << " y NUM_BYTES=" << ptr_metodo->get_num_bytes() << endl;
 
 	double *Y0 = new double[neqn], // Vector de entrada
 		*Yf = new double[neqn]; // Vector de salida

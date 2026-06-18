@@ -6,14 +6,32 @@
 
 using namespace std;
 
-// Constructor of the class 
-brusselator2d::brusselator2d(const int &nx_points) {
-    name = "Brusselator_2D";
-    ny = nx = nx_points;
-    neqn = 2 * nx * ny;
-    dtx = 1.0 / (nx + 1);
-    dtx_squared = dtx * dtx;
-    DD = alpha / dtx_squared;
+// Problema 4
+// the Brusselator 2D model 
+struct Params_brusselator2d {
+    int neqn;
+    int nx;
+    double A;
+    double B;
+    double dtx;
+    double DD;
+};
+
+// Variable en memoria constante (vive en la GPU)
+__constant__ Params_brusselator2d cte4;
+
+// Definicion de los valores constantes para el kernel
+void brusselator2d::updateConstants() const {
+    Params_brusselator2d aux;
+
+    aux.neqn = neqn;
+    aux.nx = nx;
+    aux.A = A;
+    aux.B = B;
+    aux.dtx = dtx;
+    aux.DD = DD;
+
+    cudaMemcpyToSymbol(cte4, &aux, sizeof(Params_brusselator2d));
 }
 
 void brusselator2d::init(double* Y0) const {
@@ -28,71 +46,48 @@ void brusselator2d::init(double* Y0) const {
 }
 
 //vector system function DY=FG(t,Y)
-__global__ void feval_brusselator2d(const double t, const double* Y, double* DY, const int nx, const double dtx) {
+__global__ void kernel_brusselator2d(const double t, const double* __restrict__ Y, double* __restrict__ DY) {
     const int thread = blockDim.x * blockIdx.x + threadIdx.x;
-    // Aunque está almacenado todo un vector, podemos transformarlo en componentes x, y, z
-    const int id_x = thread/(2*nx);
-    const int id_y = (thread - id_x*2*nx) / 2 ;
-    const int id_z = thread % 2;
-    const double alpha = 0.002, A = 1.0, B = 3.4;
-    const double DD = alpha / (dtx*dtx);
-
-    // Tenemos thread hebras == ThreadsPerBlock * NumBlocks >= neqn == 2 * nx^2  
+    const int tam_fila = cte4.nx*2, ult = cte4.nx-1;
+    // Aunque está almacenado todo en un mismo vector, podemos transformarlo en componentes x, y, z
     // thread == id_x * 2 * nx + id_y * 2 + id_z  
-    if (thread >= 0 && thread <= 2*nx*nx) {
-        double u_ij, v_ij; // Y[thread] y pareja
-        if(id_z==0){ // pares
-            u_ij = Y[thread], v_ij = Y[thread+1];
-        } else{ // impares
-            v_ij = Y[thread], u_ij = Y[thread-1];
-        }
-        const double term = B * u_ij - u_ij * u_ij * v_ij;
+    const int id_x = thread / tam_fila;
+    const int id_y = (thread - id_x*tam_fila) / 2 ;
+    const int id_z = thread % 2;
 
-        double u_im1j, v_im1j; // fila de arriba
-        if (id_x==0){ // si primera fila
-            u_im1j = v_im1j = Y[2*nx*(nx-1) + id_y*2 + id_z]; // ultima fila, misma columna
-        } else {
-            u_im1j = v_im1j = Y[thread - 2*nx]; // fila--
-        }
+    if(thread < cte4.neqn){
+        
 
-        double u_ip1j, v_ip1j; // fila de abajo
-        if (id_x==nx-1){ // si ultima fila
-            u_ip1j = v_ip1j = Y[id_y*2 + id_z]; // primera fila, misma columna
-        } else {
-            u_ip1j = v_ip1j = Y[thread + 2*nx]; // fila++
-        }
+        // Calculamos los indices de los vecinos    
+        const int i_pareja = id_z==0 ? thread+1 : thread-1,
+            i_arriba  =  id_x==0  ? (ult*tam_fila + id_y*2 + id_z) : (thread-tam_fila),
+            i_abajo  =  id_x==ult ? (     0       + id_y*2 + id_z) : (thread+tam_fila),
+            i_izquierda = id_y==0 ? (id_x*tam_fila + ult*2 + id_z) : (thread-2),
+            i_derecha = id_y==ult ? (id_x*tam_fila +   0   + id_z) : (thread+2);
 
-        double u_ijm1, v_ijm1; // columna a la izquierda
-        if (id_y == 0){ // si primera columna
-            u_ijm1 = v_ijm1 = Y[id_x*2*nx + (nx-1)*2 + id_z]; // ultima columna, misma fila
-        } else{
-            u_ijm1 = v_ijm1 = Y[thread - 2]; // columna--
-        }
+        // Calculamos los valores de los vecinos          
+        const double valor = Y[thread], val_pareja = Y[i_pareja],
+            val_arriba=Y[i_arriba], val_abajo=Y[i_abajo], val_izquierda=Y[i_izquierda], val_derecha=Y[i_derecha];
 
-        double u_ijp1, v_ijp1; // columna a la derecha
-        if(id_y == nx-1){ // si ultima columna
-            u_ijp1 = v_ijp1 = Y[id_x*nx*2 + id_z]; // primera columna, misma fila
-        } else {
-            u_ijp1 = v_ijp1 = Y[thread + 2]; // columna++
-        }
+        const double u_ij = id_z==0 ? valor : val_pareja,
+                     v_ij = id_z==1 ? valor : val_pareja;
+        const double term = cte4.B * u_ij - u_ij * u_ij * v_ij;
 
-        if(id_z == 0){ // pares
-            const double x = (id_x + 1) * dtx, y = (id_y + 1) * dtx;
+        DY[thread] = cte4.DD * (val_arriba + val_izquierda - 4.0 * valor + val_abajo + val_derecha);
+        if(id_z == 0){
+            const double x = (id_x + 1) * cte4.dtx, y = (id_y + 1) * cte4.dtx;
             const double xmxc = x - 0.3, ymyc = y - 0.5;
             const double r = 0.1;
             const double result = ((xmxc * xmxc + ymyc * ymyc) <= r * r && t >= 1.1) ? 5.0 : 0.0;
-
-            DY[thread] = DD * (u_im1j + u_ijm1 - 4.0 * u_ij + u_ip1j + u_ijp1) 
-                       + A - term - u_ij + result;
-        } else { // impares
-            DY[thread] = DD * (v_im1j + v_ijm1 - 4.0 * v_ij + v_ip1j + v_ijp1)
-                       + term;
-        }     
+            DY[thread]+= cte4.A - term - u_ij + result;
+        } else { // id_z==1
+            DY[thread]+= term;
+        }   
     }
 }
 
 void brusselator2d::feval(const double &t, const double* Y, double* DY) const {
-    feval_brusselator2d<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t, Y, DY, nx, dtx);
+    kernel_brusselator2d<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t, Y, DY);
 }
 
 // Auxiliary function f

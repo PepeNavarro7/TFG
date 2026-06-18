@@ -1,19 +1,40 @@
-#ifndef ADVDIFF1D_CPP
-#define ADVDIFF1D_CPP
+#ifndef ADVDIFF1D_CU
+#define ADVDIFF1D_CU
 
 #include "advdiff1d.h"
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 
-// Constructor of the class IVP_ODE_advdiff1d    
-advdiff1d::advdiff1d(const int &nx_points){ 
-    name = "1D_Advection-Diffusion";
-    nx=nx_points;
-    neqn = nx;
-    dtx=1.0/nx;     // Compute Spatial step
-    dtx_squared=dtx*dtx;
-    dtx_quad=4.0*dtx;
+// PROBLEMA 2
+// Class for the IVP-ODE representing a 1D Advection-Diffusion model
+struct Params_advdiff1d {
+    double PI;
+    int neqn;
+    double dtx;
+    double dtx_sq_inv;
+    double dtx_4_inv;
+    double a;
+    double d;
+};
+
+// Variable en memoria constante (vive en la GPU)
+__constant__ Params_advdiff1d cte2;
+
+// Definicion de los valores constantes para el kernel
+void advdiff1d::updateConstants() const {
+    Params_advdiff1d aux;
+
+    aux.PI = 3.14159265358979;
+    aux.neqn = neqn;
+    aux.dtx = dtx;
+    aux.dtx_sq_inv = 1.0 / dtx_sq; 
+    aux.dtx_4_inv = 1.0 / dtx_4; 
+    aux.a = a;
+    aux.d = d;
+
+    cudaMemcpyToSymbol(cte2, &aux, sizeof(Params_advdiff1d));
 }
 
 // Initialize stage vector Y0 with neqn components
@@ -24,12 +45,28 @@ void advdiff1d::init(double *Y0) const {
     }
 }
 
-__global__ void feval_advdiff1d(const double t, const double *Y, double *DY, const int nx, const double dtx, const double a, const double d){
+__global__ void feval_advdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
-    const double PI = 3.14159265358979,
-        dtx_squared=dtx*dtx,
-        dtx_quad=4.0*dtx;
+
+    const int ult = cte2.neqn-1;
+    const int i_ant = i==0 ? ult : i-1,
+              i_pst = i==ult ? 0 : i+1;
+    const double v_ant = Y[i_ant],
+                 valor = Y[i],
+                 v_pst = Y[i_pst];
     
+    DY[i] = cte2.d * (v_pst - 2.0 * valor + v_ant) * cte2.dtx_sq_inv
+          - cte2.a * (v_pst * v_pst - v_ant * v_ant) * cte2.dtx_4_inv;
+
+    const double x = (i+1) * cte2.dtx;
+    const double pi2xpt = 2.0 * cte2.PI * x + t;
+    const double c=cos(pi2xpt), s=sin(pi2xpt); 
+    const double res = c + 2.0 * cte2.a * cte2.PI * s * c 
+                     + 4.0 * cte2.d * cte2.PI * cte2.PI * s - s;
+
+    DY[i] += Y[i] + res;
+    
+    /*
     if(i>=1 && i<=(nx-2)){   // Compute partially DY in inner points
         DY[i] = d * (Y[i+1]    - 2*Y[i]   + Y[i-1]) / dtx_squared
               - a * (Y[i+1]*Y[i+1] - Y[i-1]*Y[i-1]) / dtx_quad;
@@ -50,11 +87,13 @@ __global__ void feval_advdiff1d(const double t, const double *Y, double *DY, con
 
         DY[i] += Y[i] + res;
     }
+        */
 }
 
 void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
-    feval_advdiff1d<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t, Y, DY, nx, dtx, a, d);
+    feval_advdiff1d<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t, Y, DY);
 }
+
 
 /*double advdiff1d::f(const double &x, const double &t) const{ 
     const double pi2xpt=2.0*PI*x + t;

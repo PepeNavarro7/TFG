@@ -1,5 +1,5 @@
-#ifndef SIMPLE_AVD_DIFF_CPP
-#define SIMPLE_AVD_DIFF_CPP
+#ifndef SIMPLE_AVD_DIFF_CU
+#define SIMPLE_AVD_DIFF_CU
 
 #include "simpleadvdiff1d.h"
 #include <cmath>
@@ -8,7 +8,6 @@ using namespace std;
 
 // PROBLEMA 1
 // Class for the IVP-ODE representing a 1D Advection-Diffusion model 
-
 struct Params_simpleadvdiff1d {
     int n;
     double dtx_2_inv;
@@ -20,6 +19,18 @@ struct Params_simpleadvdiff1d {
 // Variable en memoria constante (vive en la GPU)
 __constant__ Params_simpleadvdiff1d cte1;
 
+// Definicion de los valores constantes para el kernel
+void simpleadvdiff1d::updateConstants() const {
+    Params_simpleadvdiff1d aux;
+
+    aux.n = neqn;
+    aux.dtx_2_inv  = 1.0 / dtx_2;
+    aux.dtx_sq_inv = 1.0 / dtx_sq;
+    aux.a = a;
+    aux.d = d;
+
+    cudaMemcpyToSymbol(cte1, &aux, sizeof(Params_simpleadvdiff1d));
+}
 
 // Initialize stage vector Y0 with neqn components
 void simpleadvdiff1d::init(double *Y0) const {
@@ -29,20 +40,9 @@ void simpleadvdiff1d::init(double *Y0) const {
     }
 }
 
-void simpleadvdiff1d::updateConstants() const {
-    Params_simpleadvdiff1d aux;
-
-    aux.n = neqn;
-    aux.dtx_2_inv  = 1.0 / dtx_doubled;
-    aux.dtx_sq_inv = 1.0 / dtx_squared;
-    aux.a = a;
-    aux.d = d;
-
-    cudaMemcpyToSymbol(cte1, &aux, sizeof(Params_simpleadvdiff1d));
-}
 
 
-__global__ void feval_simpleadvdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
+__global__ void kernel_simpleadvdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     if(i<cte1.n){
         const int ult = cte1.n-1;
@@ -63,7 +63,7 @@ __global__ void feval_simpleadvdiff1d(const double t, const double* __restrict__
 
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
 void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY) const {
-    feval_simpleadvdiff1d<<<NUM_BLOCKS, THREADSPERBLOCK>>>(t, Y, DY);
+    kernel_simpleadvdiff1d<<<NUM_BLOCKS, THREADSPERBLOCK>>>(t, Y, DY);
 }
 
 #endif

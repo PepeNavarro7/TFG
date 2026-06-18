@@ -8,6 +8,14 @@
 
 using namespace std;
 
+auto check = [](const char* msg){
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess){
+        cout << "CUDA ERROR en " << msg << ": " << cudaGetErrorString(err) << endl;
+    }
+    cudaDeviceSynchronize();
+};
+
 __global__ void d_sumatoriaRK(double *Yn, const double h, const double *K1, const double *K2, const double *K3, const double *K4, const int neqn) {
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     if(i<neqn){
@@ -28,15 +36,16 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
     cudaMalloc((void**)&Yaux,NUM_BYTES);
     
     cudaMemcpy(Yn, Y0, NUM_BYTES, cudaMemcpyHostToDevice); // Y0 -> Yn, para primera iteración
-    
     for(double tn=t0; tn<tf; tn+=h){ // Todas las llamadas han de hacerse de forma secuencial, ya que cada una necesita de la anterior
         // K1 = feval(tn, Yn)
         problema->feval(tn,Yn,K1);              // Definimos K1
-
+        check("feval K1");
+        
         // K2 = feval(tn + h/2, Yn + K1*h/2)
         cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
         escalarPorVector(0.5*h, K1, Yaux);      // Yaux += K1*h/2
         problema->feval(tn + 0.5*h, Yaux, K2);  // Definimos K2
+        check("feval K2");
 
         // K3 = feval(tn + h/2, Yn + K2*h/2)
         cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
@@ -48,12 +57,11 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
         escalarPorVector(h, K3, Yaux);          // Yaux += h*K3
         problema->feval(tn+h, Yaux, K4);        // Definimos K4
 
-
         // Yn+1 = Yn + K1*h/6 + K2*h/3 + K3*h/3 + K4*h/6
         d_sumatoriaRK<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn, h, K1, K2, K3, K4, neqn);
         // Tras las sumas, el vector Yn ahora es Yn+1
     }
-    
+
     // Yn es el valor que arrastramos de la ultima iteracion
     cudaMemcpy(Yf, Yn, NUM_BYTES, cudaMemcpyDeviceToHost); // Yn -> Yf
     cudaFree(Yn);

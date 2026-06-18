@@ -1,5 +1,5 @@
-#ifndef ADAMS_MOULTON_CPP
-#define ADAMS_MOULTON_CPP
+#ifndef ADAMS_MOULTON_CU
+#define ADAMS_MOULTON_CU
 
 #include "AdamsMoulton.h"
 #include <iostream>

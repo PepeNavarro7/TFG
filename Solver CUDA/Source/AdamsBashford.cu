@@ -1,5 +1,5 @@
-#ifndef ADAMS_BASHFORD_CPP
-#define ADAMS_BASHFORD_CPP
+#ifndef ADAMS_BASHFORD_CU
+#define ADAMS_BASHFORD_CU
 
 #include "AdamsBashford.h"
 #include <iostream>

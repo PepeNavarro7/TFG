@@ -11,14 +11,22 @@ using namespace std;
 // the Brusselator 2D model 
 class brusselator2d: public Problema {
 private:
-    int nx; // number of grid points at x dimension
-    int ny; // number of grid points at y dimension
-    double dtx_squared; // Spatial step squared
-    double DD;
     const double alpha = 0.002, A = 1.0, B = 3.4; // variables para el calculo de los valores
+    const int nx; // number of grid points at x dimension
+    const int ny; // number of grid points at y dimension
+    const double dtx_sq; // Spatial step squared
+    const double DD;
 
 public:
-    brusselator2d(const int &nx_points);
+    // Constructor of the class 
+    brusselator2d(const int &nx_points, const int &threads):
+        Problema(2.0*nx_points*nx_points, "Brusselator_2D", 1.0/(nx_points+1), threads),
+        nx(nx_points), ny(nx_points), dtx_sq(dtx*dtx), DD(alpha/(dtx*dtx)) { 
+            updateConstants();
+        };
+
+    // Definicion de los valores constantes para el kernel
+    void updateConstants() const override;
 
     // Initialize stage vector Y0 with neqn components
     void init(double* Y0) const override;

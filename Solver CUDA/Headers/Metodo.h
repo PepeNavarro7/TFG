@@ -5,6 +5,8 @@ using namespace std;
 
 #include <string>
 #include "Problema.h"
+#include <iostream>
+#include <string>
 
 class Metodo{
 protected:
@@ -17,7 +19,8 @@ protected:
     const int NUM_BYTES; // numero de bytes de cada vector
     
     Metodo(const int &neqn, const string &nombre, const int &orden, const int &threads):
-        neqn(neqn), nombre(nombre), orden(orden), THREADSPERBLOCK(threads), NUM_BLOCKS(ceil(neqn/threads)), NUM_BYTES(sizeof(double)*neqn) {};
+        neqn(neqn), nombre(nombre), orden(orden), THREADSPERBLOCK(threads), 
+        NUM_BLOCKS(ceil((double)neqn/(double)threads)), NUM_BYTES(sizeof(double)*neqn) { };
 
     // Escalar esc * vector X + vector Y -> Y
     void escalarPorVector(const double &esc, const double *X, double *Y) const;

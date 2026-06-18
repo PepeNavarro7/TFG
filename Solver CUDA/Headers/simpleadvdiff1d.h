@@ -11,8 +11,8 @@ class simpleadvdiff1d: public Problema {
 
 private:
     const int nx; // number of grid points at each dimension
-    const double dtx_doubled, // Spatial step doubled
-                 dtx_squared; // Spatial step squared
+    const double dtx_2, // Spatial step times 2
+                 dtx_sq; // Spatial step squared
     const double a=10.0, // Constant scalar representing the strength of advection
                  d=10.0; // Constant scalar representing the strength of diffusion
             
@@ -20,7 +20,7 @@ public:
     // Constructor of the class
     simpleadvdiff1d(const int &nx_points, const int &threads):
         Problema(nx_points, "1D_Simple Advection-Diffusion", (1.0/nx_points), threads),
-        nx(nx_points), dtx_doubled(2.0*dtx), dtx_squared(dtx*dtx) { 
+        nx(nx_points), dtx_2(2.0*dtx), dtx_sq(dtx*dtx) { 
             updateConstants();
         };
 

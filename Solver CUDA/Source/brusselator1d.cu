@@ -1,5 +1,5 @@
-#ifndef BRUSSELATOR1D_CPP
-#define BRUSSELATOR1D_CPP
+#ifndef BRUSSELATOR1D_CU
+#define BRUSSELATOR1D_CU
 
 #include "brusselator1d.h"
 #include <cmath>
@@ -9,17 +9,29 @@ using namespace std;
 
 // PROBLEMA 3
 // Class for the IVP-ODE representing the 1D Brusselator model 
+struct Params_brusselator1d {
+    int neqn;
+    int nx;
+    double A;
+    double B;
+    double DD;
+};
 
-// Constructor of the class 
-brusselator1d::brusselator1d(const int &nx_points){ 
-    name = "Brusselator_1D";
-    nx = nx_points;
-    neqn = 2*nx; // Number of ODEs
-    dtx = 1.0/(nx+1.0); // Compute Spatial step
-    dtx_squared = dtx*dtx;
-    DD = alpha/dtx_squared; 
- }
+// Variable en memoria constante (vive en la GPU)
+__constant__ Params_brusselator1d cte3;
 
+// Definicion de los valores constantes para el kernel
+void brusselator1d::updateConstants() const {
+    Params_brusselator1d aux;
+
+    aux.neqn = neqn;
+    aux.nx = nx;
+    aux.A = A;
+    aux.B = B;
+    aux.DD = DD;
+
+    cudaMemcpyToSymbol(cte3, &aux, sizeof(Params_brusselator1d));
+}
 
 void brusselator1d::init(double *Y0) const { 
     for (int i=0;i<nx;i++){  
@@ -30,40 +42,34 @@ void brusselator1d::init(double *Y0) const {
 }
 
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-__global__ void feval_brusselator1d (const double t, const double *Y, double *DY, const int neqn, const double dtx){
+__global__ void kernel_brusselator1d (const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
-    const double alpha=1.0/50.0, A=1.0, B=3.0;
-    const double DD = alpha/(dtx*dtx);
-    //const double C[2]={A,B};
+    if(i<cte3.neqn){
+        const double C[2]={cte3.A, cte3.B};
+        const int ult_x = cte3.nx-1,
+            id_x = i/2,
+            id_z = i%2;
 
-    // Tenemos i hebras >= neqn; neqn == 2*nx
-    if(i>=2 && i<=neqn-3){
-        DY[i] = DD * (Y[i+2] - 2.0 * Y[i] + Y[i-2]);
-    } else if (i==0){
-        DY[i] = DD * (Y[i+2] - 2.0 * Y[i] + A);
-    } else if (i==1){
-        DY[i] = DD * (Y[i+2] - 2.0 * Y[i] + B);
-    } else if (i==neqn-2){
-        DY[i] = DD * ( A     - 2.0 * Y[i] + Y[i-2] );
-    } else if (i==neqn-1){
-        DY[i] = DD * ( B     - 2.0 * Y[i] + Y[i-2] );
-    }
+        const double v_ant = id_x == 0 ? C[id_z] : Y[i-2],
+                     valor = Y[i],
+                     v_pst = id_x==ult_x ? C[id_z] : Y[i+2];
 
-    if(i>=0 && i<=neqn-1){
-        if(i%2==0){ // pares == i0
-            const double ui = Y[i], vi=Y[i+1];
+        DY[i] = cte3.DD * (v_pst - 2.0 * valor + v_ant);
+
+        if(id_z==0){ // pares == x0
+            const double ui = valor, vi=Y[i+1];
             const double u2v=ui*ui*vi;
-            DY[i] += A+u2v-(B+1)*ui;
-        } else{ // impares == i1
-            const double vi = Y[i], ui=Y[i-1];
+            DY[i] += cte3.A + u2v - ( cte3.B + 1 ) * ui;
+        } else{ // impares == x1
+            const double vi = valor, ui=Y[i-1];
             const double u2v=ui*ui*vi;
-            DY[i] += B*ui-u2v; 
+            DY[i] += cte3.B * ui - u2v; 
         }
     }
 }
 
 void brusselator1d::feval (const double &t, const double *Y, double *DY) const {
-    feval_brusselator1d<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t,Y,DY,neqn,dtx);
+    kernel_brusselator1d<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t,Y,DY);
 }
   
 #endif   
