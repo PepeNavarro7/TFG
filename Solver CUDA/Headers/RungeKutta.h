@@ -12,6 +12,8 @@ public:
     RungeKutta (const int &n, const int &orden, const int &threads):
         Metodo(n, "Runge-Kutta", orden, threads) { };
 
+    void updateConstants(const int &neqn, const double &h) const override;
+    
     // Aplicar Runge-Kutta el numero necesario de veces
     void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;
 

@@ -19,6 +19,8 @@ public:
         Metodo(n, "Adams-Moulton", orden, threads),
         ptr_runge(runge), ptr_bashford(bash) { };
 
+    void updateConstants(const int &neqn, const double &h) const override;
+
     // Aplicar Adams-Moulton el numero necesario de veces
     void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;    
 };

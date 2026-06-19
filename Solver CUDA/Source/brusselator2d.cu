@@ -60,10 +60,10 @@ __global__ void kernel_brusselator2d(const double t, const double* __restrict__ 
 
         // Calculamos los indices de los vecinos    
         const int i_pareja = id_z==0 ? thread+1 : thread-1,
-            i_arriba  =  id_x==0  ? (ult*tam_fila + id_y*2 + id_z) : (thread-tam_fila),
-            i_abajo  =  id_x==ult ? (     0       + id_y*2 + id_z) : (thread+tam_fila),
-            i_izquierda = id_y==0 ? (id_x*tam_fila + ult*2 + id_z) : (thread-2),
-            i_derecha = id_y==ult ? (id_x*tam_fila +   0   + id_z) : (thread+2);
+            i_arriba  =  id_x==0  ? (ult*tam_fila  + id_y*2 + id_z) : (thread-tam_fila),
+            i_abajo  =  id_x==ult ? (     0        + id_y*2 + id_z) : (thread+tam_fila),
+            i_izquierda = id_y==0 ? (id_x*tam_fila +  ult*2 + id_z) : (thread-2),
+            i_derecha = id_y==ult ? (id_x*tam_fila +   0    + id_z) : (thread+2);
 
         // Calculamos los valores de los vecinos          
         const double valor = Y[thread], val_pareja = Y[i_pareja],

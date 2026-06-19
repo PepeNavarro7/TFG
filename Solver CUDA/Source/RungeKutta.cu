@@ -8,18 +8,42 @@
 
 using namespace std;
 
-auto check = [](const char* msg){
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess){
-        cout << "CUDA ERROR en " << msg << ": " << cudaGetErrorString(err) << endl;
-    }
-    cudaDeviceSynchronize();
+struct Params_RungeKutta {
+    int neqn;
+    double h;
 };
 
-__global__ void d_sumatoriaRK(double *Yn, const double h, const double *K1, const double *K2, const double *K3, const double *K4, const int neqn) {
-    const int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if(i<neqn){
-        Yn[i] += (h/6.0) * (K1[i] + 2.0*K2[i] + 2.0*K3[i] + K4[i]);
+// Variable en memoria constante (vive en la GPU)
+__constant__ Params_RungeKutta cteRK;
+
+// Definicion de los valores constantes para el kernel
+void RungeKutta::updateConstants(const int &neqn, const double &h) const {
+    Params_RungeKutta aux;
+
+    aux.neqn = neqn;
+    aux.h = h;
+
+    cudaMemcpyToSymbol(cteRK, &aux, sizeof(Params_RungeKutta));
+}
+
+__global__ void kernel_sumatoriaRK4(double* __restrict__ Yn, const double* __restrict__ K1, const double* __restrict__ K2, const double* __restrict__ K3, const double* __restrict__ K4) {
+    const int thread = blockDim.x * blockIdx.x + threadIdx.x;
+    if(thread<cteRK.neqn){ // Yn+1 = Yn + h/6 * (K1 + 2*K2 + 2*K3 + K4)
+        Yn[thread] += (cteRK.h/6.0) * (K1[thread] + 2.0*K2[thread] + 2.0*K3[thread] + K4[thread]);
+    }
+}
+
+__global__ void kernel_sumatoriaRK3(double* __restrict__ Yn, const double* __restrict__ K1, const double* __restrict__ K2, const double* __restrict__ K3) {
+    const int thread = blockDim.x * blockIdx.x + threadIdx.x;
+    if(thread<cteRK.neqn){ // Yn+1 = Yn + h/6 * (K1 + 4*K2 + K3)
+        Yn[thread] += (cteRK.h/6.0) * (K1[thread] + 4.0*K2[thread] + K3[thread]);
+    }
+}
+
+__global__ void kernel_sumatoriaRK2(double* __restrict__ Yn, const double* __restrict__ K1, const double* __restrict__ K2) {
+    const int thread = blockDim.x * blockIdx.x + threadIdx.x;
+    if(thread<cteRK.neqn){ // Yn+1 = Yn + h/2 * (K1 + K2)
+        Yn[thread] += (cteRK.h/2.0) * (K1[thread] + K2[thread]);
     }
 }
 
@@ -34,33 +58,73 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
     cudaMalloc((void**)&K3,NUM_BYTES);
     cudaMalloc((void**)&K4,NUM_BYTES);
     cudaMalloc((void**)&Yaux,NUM_BYTES);
+
+    updateConstants(neqn, h); // Constantes para los kernel
     
     cudaMemcpy(Yn, Y0, NUM_BYTES, cudaMemcpyHostToDevice); // Y0 -> Yn, para primera iteración
     for(double tn=t0; tn<tf; tn+=h){ // Todas las llamadas han de hacerse de forma secuencial, ya que cada una necesita de la anterior
-        // K1 = feval(tn, Yn)
-        problema->feval(tn,Yn,K1);              // Definimos K1
-        check("feval K1");
-        
-        // K2 = feval(tn + h/2, Yn + K1*h/2)
-        cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
-        escalarPorVector(0.5*h, K1, Yaux);      // Yaux += K1*h/2
-        problema->feval(tn + 0.5*h, Yaux, K2);  // Definimos K2
-        check("feval K2");
+        switch(orden){
+            case 1:
+                // K1 = feval(tn, Yn)
+                problema->feval(tn,Yn,K1);        // Definimos K1
 
-        // K3 = feval(tn + h/2, Yn + K2*h/2)
-        cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
-        escalarPorVector(0.5*h, K2, Yaux);      // Yaux += K2*h/2
-        problema->feval(tn + 0.5*h, Yaux, K3);  // Definimos K3
+                // Yn+1 = Yn + h*K1
+                escalarPorVector(h, K1, Yn);      // Yn += K1*h
+            break;
+            case 2:
+                // K1 = feval(tn, Yn)
+                problema->feval(tn,Yn,K1);              // Definimos K1
 
-        // K4 = feval(tn + h, Y0 + h*K3)
-        cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
-        escalarPorVector(h, K3, Yaux);          // Yaux += h*K3
-        problema->feval(tn+h, Yaux, K4);        // Definimos K4
+                // K2 = feval(tn + h, Yn + h*K1) 
+                cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+                escalarPorVector(h, K1, Yaux);      // Yaux += K1*h
+                problema->feval(tn + h, Yaux, K2);  // Definimos K2
 
-        // Yn+1 = Yn + K1*h/6 + K2*h/3 + K3*h/3 + K4*h/6
-        d_sumatoriaRK<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn, h, K1, K2, K3, K4, neqn);
-        // Tras las sumas, el vector Yn ahora es Yn+1
-    }
+                // Yn+1 = Yn + h/2 * (K1 + K2)
+                kernel_sumatoriaRK2<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn, K1, K2);
+            break;
+            case 3:
+                // K1 = feval(tn, Yn)
+                problema->feval(tn,Yn,K1);              // Definimos K1
+
+                // K2 = feval(tn + h/2, Yn + h/2 * K1) 
+                cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+                escalarPorVector(0.5*h, K1, Yaux);      // Yaux += K1*h/2
+                problema->feval(tn + 0.5*h, Yaux, K2);  // Definimos K2
+
+                // K3 = feval(tn + h, Yn -h*K1 + 2*h*K2 ) 
+                cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+                escalarPorVector((-1)*h, K1, Yaux);      // Yaux -= K1*h
+                escalarPorVector(2*h, K2, Yaux);      // Yaux += K2*h*2
+                problema->feval(tn + h, Yaux, K3);  // Definimos K3
+
+                // Yn+1 = Yn + h/6 * (K1 + 4*K2 + K3)
+                kernel_sumatoriaRK3<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn, K1, K2, K3);
+            break;
+            case 4:
+                // K1 = feval(tn, Yn)
+                problema->feval(tn,Yn,K1);              // Definimos K1
+                
+                // K2 = feval(tn + h/2, Yn + K1*h/2)
+                cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+                escalarPorVector(0.5*h, K1, Yaux);      // Yaux += K1*h/2
+                problema->feval(tn + 0.5*h, Yaux, K2);  // Definimos K2
+
+                // K3 = feval(tn + h/2, Yn + K2*h/2)
+                cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+                escalarPorVector(0.5*h, K2, Yaux);      // Yaux += K2*h/2
+                problema->feval(tn + 0.5*h, Yaux, K3);  // Definimos K3
+
+                // K4 = feval(tn + h, Y0 + h*K3)
+                cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+                escalarPorVector(h, K3, Yaux);          // Yaux += h*K3
+                problema->feval(tn+h, Yaux, K4);        // Definimos K4
+
+                // Yn+1 = Yn + h/6 * (K1 + 2*K2 + 2*K3 + K4)
+                kernel_sumatoriaRK4<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn, K1, K2, K3, K4);
+            break;        // Tras las sumas, el vector Yn ahora es Yn+1
+        } // Fin del switch
+    } // Fin del bucle for
 
     // Yn es el valor que arrastramos de la ultima iteracion
     cudaMemcpy(Yf, Yn, NUM_BYTES, cudaMemcpyDeviceToHost); // Yn -> Yf
@@ -73,47 +137,89 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
 }
 
 void RungeKutta::aplicarUnidad(Problema* problema, const double &t0, const double &h, const double *Y0, double *Yf) const {
-    double *K1, *K2, *K3, *K4, // Vectores de cada paso
-        *Yaux, *Yn0; // Vector auxiliar
+    // creamos y alojamos memoria para los arrays en el device
+    double *Yn, // vector con la Y en la iteracion
+        *K1, *K2, *K3, *K4, // Vectores de cada paso
+        *Yaux; // Vector auxiliar
+
+    cudaMalloc((void**)&Yn,NUM_BYTES);
     cudaMalloc((void**)&K1,NUM_BYTES);
     cudaMalloc((void**)&K2,NUM_BYTES);
     cudaMalloc((void**)&K3,NUM_BYTES);
     cudaMalloc((void**)&K4,NUM_BYTES);
     cudaMalloc((void**)&Yaux,NUM_BYTES);
-    cudaMalloc((void**)&Yn0,NUM_BYTES);
-
-    cudaMemcpy(Yn0, Y0, NUM_BYTES, cudaMemcpyHostToDevice); // Y0 -> Yn0
-      
-    // K1 = feval(tn, Yn)
-    problema->feval(t0,Yn0,K1);              // Definimos K1
-
-    // K2 = feval(tn + h/2, Yn + K1*h/2)
-    cudaMemcpy(Yaux, Yn0, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn0 -> Yaux
-    escalarPorVector(0.5*h, K1, Yaux);      // Yaux += K1*h/2
-    problema->feval(t0 + 0.5*h, Yaux, K2);  // Definimos K2
-
-    // K3 = feval(tn + h/2, Yn + K2*h/2)
-    cudaMemcpy(Yaux, Yn0, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn0 -> Yaux
-    escalarPorVector(0.5*h, K2, Yaux);      // Y1 += K2*h/2
-    problema->feval(t0 + 0.5*h, Yaux, K3);  // Definimos K3
-
-    // K4 = feval(tn + h, Y0 + h*K3)
-    cudaMemcpy(Yaux, Yn0, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn0 -> Yaux
-    escalarPorVector(h, K3, Yaux);          // Y1 += h*K3
-    problema->feval(t0+h, Yaux, K4);        // Definimos K4
-
-    // Yn+1 = Yn + K1*h/6 + K2*h/3 + K3*h/3 + K4*h/6
-    cudaMemcpy(Yaux, Yn0, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn0 -> Yaux
-    d_sumatoriaRK<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yaux, h, K1, K2, K3, K4, neqn);
     
-    cudaMemcpy(Yf, Yaux, NUM_BYTES, cudaMemcpyDeviceToHost); // Yaux -> Yf
-    
+    cudaMemcpy(Yn, Y0, NUM_BYTES, cudaMemcpyHostToDevice); // Y0 -> Yn
+    /*switch(orden){
+        case 1:
+            // K1 = feval(tn, Yn)
+            problema->feval(t0,Yn,K1);              // Definimos K1
+
+            // Yn+1 = Yn + h*K1
+            escalarPorVector(h, K1, Yn);      // Yn += K1*h
+        break;
+        case 2:
+            // K1 = feval(tn, Yn)
+            problema->feval(t0,Yn,K1);              // Definimos K1
+
+            // K2 = feval(tn + h, Yn + h*K1) 
+            cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+            escalarPorVector(h, K1, Yaux);      // Yaux += K1*h
+            problema->feval(t0 + h, Yaux, K2);  // Definimos K2
+
+            // Yn+1 = Yn + h/2 * (K1 + K2)
+            kernel_sumatoriaRK2<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn, K1, K2);
+        break;
+        case 3:
+            // K1 = feval(tn, Yn)
+            problema->feval(t0,Yn,K1);              // Definimos K1
+
+            // K2 = feval(tn + h/2, Yn + h/2 * K1) 
+            cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+            escalarPorVector(0.5*h, K1, Yaux);      // Yaux += K1*h/2
+            problema->feval(t0 + 0.5*h, Yaux, K2);  // Definimos K2
+
+            // K3 = feval(tn + h, Yn -h*K1 + 2*h*K2 ) 
+            cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+            escalarPorVector((-1)*h, K1, Yaux);      // Yaux -= K1*h
+            escalarPorVector(2*h, K2, Yaux);      // Yaux += K2*h*2
+            problema->feval(t0 + h, Yaux, K3);  // Definimos K3
+
+            // Yn+1 = Yn + h/6 * (K1 + 4*K2 + K3)
+            kernel_sumatoriaRK3<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn, K1, K2, K3);
+        break;
+        case 4:*/
+            // K1 = feval(tn, Yn)
+            problema->feval(t0,Yn,K1);              // Definimos K1
+            
+            // K2 = feval(tn + h/2, Yn + K1*h/2)
+            cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+            escalarPorVector(0.5*h, K1, Yaux);      // Yaux += K1*h/2
+            problema->feval(t0 + 0.5*h, Yaux, K2);  // Definimos K2
+
+            // K3 = feval(tn + h/2, Yn + K2*h/2)
+            cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+            escalarPorVector(0.5*h, K2, Yaux);      // Yaux += K2*h/2
+            problema->feval(t0 + 0.5*h, Yaux, K3);  // Definimos K3
+
+            // K4 = feval(tn + h, Y0 + h*K3)
+            cudaMemcpy(Yaux, Yn, NUM_BYTES, cudaMemcpyDeviceToDevice); // Yn -> Yaux
+            escalarPorVector(h, K3, Yaux);          // Yaux += h*K3
+            problema->feval(t0+h, Yaux, K4);        // Definimos K4
+
+            // Yn+1 = Yn + h/6 * (K1 + 2*K2 + 2*K3 + K4)
+            kernel_sumatoriaRK4<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn, K1, K2, K3, K4);
+        /*break;        // Tras las sumas, el vector Yn ahora es Yn+1
+    } // Fin del switch*/
+
+    // Yn es el valor que arrastramos de la ultima iteracion
+    cudaMemcpy(Yf, Yn, NUM_BYTES, cudaMemcpyDeviceToHost); // Yn -> Yf
+    cudaFree(Yn);
     cudaFree(K1);
     cudaFree(K2);
     cudaFree(K3);
     cudaFree(K4);
     cudaFree(Yaux);
-    cudaFree(Yn0);
 }
 
 

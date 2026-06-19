@@ -22,6 +22,8 @@ protected:
         neqn(neqn), nombre(nombre), orden(orden), THREADSPERBLOCK(threads), 
         NUM_BLOCKS(ceil((double)neqn/(double)threads)), NUM_BYTES(sizeof(double)*neqn) { };
 
+    virtual void updateConstants(const int &neqn, const double &h) const = 0;
+
     // Escalar esc * vector X + vector Y -> Y
     void escalarPorVector(const double &esc, const double *X, double *Y) const;
 
