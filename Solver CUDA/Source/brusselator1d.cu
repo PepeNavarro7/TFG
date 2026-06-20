@@ -45,8 +45,8 @@ void brusselator1d::init(double *Y0) const {
 __global__ void kernel_brusselator1d (const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int thread = blockDim.x * blockIdx.x + threadIdx.x;
     const int ult_x = cte3.nx-1, 
-        id_x = thread/2, // Identificamos coordenada x
-        id_z = thread%2; // Coordenada z
+        id_x = thread>>1, // Identificamos coordenada x -> th/2
+        id_z = thread&1; // Coordenada z -> th%2
 
     if(thread < cte3.neqn){
         const double C[2]={cte3.A, cte3.B};
@@ -69,8 +69,53 @@ __global__ void kernel_brusselator1d (const double t, const double* __restrict__
     }
 }
 
+// version con shuffle
+__global__ void kernel2_brusselator1d (const double t, const double* __restrict__ Y, double* __restrict__ DY){
+    const int thread = blockDim.x * blockIdx.x + threadIdx.x;
+    const int ult_x = cte3.nx-1, 
+        id_x = thread>>1, // Identificamos coordenada x -> th/2
+        id_z = thread&1, // Coordenada z -> th%2
+        lane = thread&31; // Posicion en el warp -> th%32
+    
+
+    if(thread < cte3.neqn){
+        const double C = id_z==0 ? cte3.A : cte3.B;
+        const double valor   = Y[thread]; 
+        double val_ant, val_pst, val_pareja;
+        unsigned activeMask; 
+        
+        if(lane<=1 || id_x==0){ // lanes 0 y 1 no pueden hacer shuffle, id_x==0 es frontera
+            val_ant = id_x == 0 ? C : Y[thread-2];
+        } else{
+            activeMask = __activemask();
+            val_ant = __shfl_up_sync(activeMask, valor, 2); // th(n-2) -> th(n)
+        }
+        if(lane>=30 || id_x==ult_x){ // lanes 30 y 31 no pueden shuffle, idx==ult es frontera
+            val_pst = id_x==ult_x ? C : Y[thread+2];
+        } else {
+            activeMask = __activemask();
+            val_pst = __shfl_down_sync(activeMask, valor, 2);// th(n+2) -> th(n)
+        }
+        activeMask = __activemask();
+        val_pareja = id_z==0 ? __shfl_down_sync(activeMask, valor, 1) 
+                             : __shfl_up_sync(activeMask, valor, 1);
+
+        DY[thread] = cte3.DD * (val_pst - 2.0 * valor + val_ant);
+
+        const double ui = id_z==0 ? valor : val_pareja,
+                     vi = id_z==1 ? valor : val_pareja;
+        const double u2v=ui*ui*vi;
+
+        if(id_z==0){ // pares == x0
+            DY[thread] += cte3.A + u2v - ( cte3.B + 1 ) * ui;
+        } else{ // impares == x1
+            DY[thread] += cte3.B * ui - u2v; 
+        }
+    }
+}
+
 void brusselator1d::feval (const double &t, const double *Y, double *DY) const {
-    kernel_brusselator1d<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t,Y,DY);
+    kernel2_brusselator1d<<<NUM_BLOCKS,THREADSPERBLOCK>>>(t,Y,DY);
 }
   
 #endif   
