@@ -19,7 +19,7 @@ private:
 public:
     // Constructor of the class
     simpleadvdiff1d(const int &nx_points, const int &threads):
-        Problema(nx_points, "1D_Simple Advection-Diffusion", (1.0/nx_points), threads),
+        Problema(nx_points, "1D_Simple Advection-Diffusion", (1.0/nx_points), dim3( (nx_points+threads-1)/threads,1,1 ), dim3(threads,1,1)),
         nx(nx_points), dtx_2(2.0*dtx), dtx_sq(dtx*dtx) { 
             updateConstants();
         };

@@ -14,13 +14,12 @@ protected:
     const int neqn;  // numero de ecuaciones
     const string nombre; // Nombre del método
     const int orden; // Orden
-    const int THREADSPERBLOCK; // Hebras cuda en cada bloque
-    const int NUM_BLOCKS; // Numero de bloques
-    const int NUM_BYTES; // numero de bytes de cada vector
+    const int num_blocks; // numero de bloques 1D
+    const int tam_blocks; // hebras cuda en cada bloque
+    const int bytes; // numero de bytes de cada vector
     
     Metodo(const int &neqn, const string &nombre, const int &orden, const int &threads):
-        neqn(neqn), nombre(nombre), orden(orden), THREADSPERBLOCK(threads), 
-        NUM_BLOCKS(ceil((double)neqn/(double)threads)), NUM_BYTES(sizeof(double)*neqn) { };
+        neqn(neqn), nombre(nombre), orden(orden), num_blocks( ceil((double)neqn/(double)threads) ), tam_blocks(threads), bytes(sizeof(double)*neqn) { };
 
     virtual void updateConstants(const int &neqn, const double &h) const = 0;
 
@@ -32,9 +31,9 @@ public:
     inline int get_neqn() const { return neqn; };
     inline string get_name() const { return nombre; };
     inline int get_orden() const { return orden; };
-    inline int get_threads_per_block() const { return THREADSPERBLOCK; };
-    inline int get_num_blocks() const { return NUM_BLOCKS; };
-    inline int get_num_bytes() const { return NUM_BYTES; };
+    inline int get_num_blocks() const { return num_blocks; };
+    inline int get_tam_blocks() const { return tam_blocks; };
+    inline int get_bytes() const { return bytes; };
 };
 
 

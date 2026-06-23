@@ -2,18 +2,25 @@
 #define PRUEBA_H
 
 #include "Problema.h"
+#include <string>
 
 using namespace std;
 
 class prueba: public Problema {
 
 private:
-    int nx; // number of grid points at each dimension
-    double dtx; // Spatial step
+    const int nx;
             
 public:
     // Constructor of the class
-    prueba(const int &nx_points); 
+    prueba(const int &nx_points, const int &threads):
+        Problema (nx_points, "Prueba manual", 1.0/nx_points, threads), 
+        nx(nx_points){ 
+            updateConstants();
+        };
+
+    // Definicion de los valores constantes para el kernel
+    void updateConstants() const override;
 
     // Initialize stage vector Y0 with neqn components
     void init(double *Y0) const override; 

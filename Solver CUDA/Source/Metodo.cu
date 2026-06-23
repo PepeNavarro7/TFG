@@ -13,7 +13,7 @@ __global__ void kernel_escalarPorVector(const double esc, const double* __restri
 }
 
 void Metodo::escalarPorVector(const double &esc, const double *X, double *Y) const {
-    kernel_escalarPorVector<<<NUM_BLOCKS,THREADSPERBLOCK>>>(esc, X, Y, neqn);
+    kernel_escalarPorVector<<<num_blocks,tam_blocks>>>(esc, X, Y, neqn);
 }
 
 #endif

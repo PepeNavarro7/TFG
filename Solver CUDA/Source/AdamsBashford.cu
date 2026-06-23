@@ -61,17 +61,17 @@ __global__ void kernel_sumatoriaAB1(double* __restrict__ Yn1, const double* __re
 void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const {
     double *Yn0, *Yn1, *Yn2, *Yn3, *Yn4, // Vectores intermedios
            *Fn0, *Fn1, *Fn2, *Fn3; // vectores funcion
-    cudaMalloc((void**)&Yn0,NUM_BYTES);
-    cudaMalloc((void**)&Yn1,NUM_BYTES);
-    cudaMalloc((void**)&Yn2,NUM_BYTES);
-    cudaMalloc((void**)&Yn3,NUM_BYTES);
-    cudaMalloc((void**)&Yn4,NUM_BYTES);
-    cudaMalloc((void**)&Fn0,NUM_BYTES);
-    cudaMalloc((void**)&Fn1,NUM_BYTES);
-    cudaMalloc((void**)&Fn2,NUM_BYTES);
-    cudaMalloc((void**)&Fn3,NUM_BYTES);
+    cudaMalloc((void**)&Yn0,this->bytes);
+    cudaMalloc((void**)&Yn1,this->bytes);
+    cudaMalloc((void**)&Yn2,this->bytes);
+    cudaMalloc((void**)&Yn3,this->bytes);
+    cudaMalloc((void**)&Yn4,this->bytes);
+    cudaMalloc((void**)&Fn0,this->bytes);
+    cudaMalloc((void**)&Fn1,this->bytes);
+    cudaMalloc((void**)&Fn2,this->bytes);
+    cudaMalloc((void**)&Fn3,this->bytes);
 
-    cudaMemcpy(Yn0, Y0, NUM_BYTES, cudaMemcpyHostToDevice); // Y0 -> Yn0
+    cudaMemcpy(Yn0, Y0, this->bytes, cudaMemcpyHostToDevice); // Y0 -> Yn0
     const double h_RK = h/100.0;
 
     ptr_runge->updateConstants(neqn, h_RK);
@@ -118,7 +118,7 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
         case 1: 
             for(double tn = t0; tn<tf; tn+=h){
                 // Yn1 = Yn0 + h * Fn0
-                kernel_sumatoriaAB1<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn1, Yn0, Fn0);
+                kernel_sumatoriaAB1<<<this->num_blocks,this->tam_blocks>>>(Yn1, Yn0, Fn0);
 
                 // Ahora que tenemos Yn1, convertimos todos los Yn en Yn-1
                 swap(Yn1, Yn0); // Yn1 -> Yn0
@@ -131,7 +131,7 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
         case 2:
             for(double tn = t0+h_RK*1.0; tn<tf; tn+=h){
                 // Yn2 = Yn1 + h/2 * (3*Fn1 - Fn0)
-                kernel_sumatoriaAB2<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn2, Yn1, Fn1, Fn0);
+                kernel_sumatoriaAB2<<<this->num_blocks,this->tam_blocks>>>(Yn2, Yn1, Fn1, Fn0);
 
                 // Ahora que tenemos Yn2, convertimos todos los Yn en Yn-1, y los Fn en Fn-1 para hacer la siguiente iteracion
                 swap(Yn1, Yn0); // Yn1 -> Yn0
@@ -146,7 +146,7 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
         case 3:
             for(double tn = t0+h_RK*2.0; tn<tf; tn+=h){
                 // Yn3 = Yn2 + h/12 * (23*Fn2 - 16*Fn1 + 5*Fn0)
-                kernel_sumatoriaAB3<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn3, Yn2, Fn2, Fn1, Fn0);
+                kernel_sumatoriaAB3<<<this->num_blocks,this->tam_blocks>>>(Yn3, Yn2, Fn2, Fn1, Fn0);
 
                 // Ahora que tenemos Yn3, convertimos todos los Yn en Yn-1, y los Fn en Fn-1 para hacer la siguiente iteracion
                 swap(Yn1, Yn0); // Yn1 -> Yn0
@@ -163,7 +163,7 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
         case 4:
             for(double tn = t0+h_RK*3.0; tn<tf; tn+=h){
                 // Yn4 = Yn3 + h/24 * (55*Fn3 - 59*Fn2 + 37*Fn1 - 9*Fn0)
-                kernel_sumatoriaAB4<<<NUM_BLOCKS,THREADSPERBLOCK>>>(Yn4, Yn3, Fn3, Fn2, Fn1, Fn0);
+                kernel_sumatoriaAB4<<<this->num_blocks,this->tam_blocks>>>(Yn4, Yn3, Fn3, Fn2, Fn1, Fn0);
                 
                 // Ahora que tenemos Yn4, convertimos todos los Yn en Yn-1, y los Fn en Fn-1 para hacer la siguiente iteracion
                 swap(Yn1, Yn0); // Yn1 -> Yn0
@@ -183,16 +183,16 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
 
     switch(orden){ // Switch para arrastrar el vector resultado
         case 1:
-            cudaMemcpy(Yf, Yn0, NUM_BYTES, cudaMemcpyDeviceToHost); // Yn0 -> Yf
+            cudaMemcpy(Yf, Yn0, this->bytes, cudaMemcpyDeviceToHost); // Yn0 -> Yf
         break;
         case 2:
-            cudaMemcpy(Yf, Yn1, NUM_BYTES, cudaMemcpyDeviceToHost); // Yn1 -> Yf
+            cudaMemcpy(Yf, Yn1, this->bytes, cudaMemcpyDeviceToHost); // Yn1 -> Yf
         break;
         case 3:
-            cudaMemcpy(Yf, Yn2, NUM_BYTES, cudaMemcpyDeviceToHost); // Yn2 -> Yf
+            cudaMemcpy(Yf, Yn2, this->bytes, cudaMemcpyDeviceToHost); // Yn2 -> Yf
         break;
         case 4:
-            cudaMemcpy(Yf, Yn3, NUM_BYTES, cudaMemcpyDeviceToHost); // Yn3 -> Yf
+            cudaMemcpy(Yf, Yn3, this->bytes, cudaMemcpyDeviceToHost); // Yn3 -> Yf
         break;
     } // Fin del switch resultado
     

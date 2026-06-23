@@ -49,7 +49,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	assertm(num_hebras%32 == 0, "Numero de hebras -> X%32==0");
 
     // Objetos y puntero de los diferentes problemas
-	//prueba prueba(num_points);
+	//prueba prueba(num_points, num_hebras);
 	simpleadvdiff1d simpleadvdiff1d(num_points, num_hebras);// 1D_Simple Advection-Diffusion
 	advdiff1d advdiff1d(num_points, num_hebras); 			// 1D Advection-Diffusion model 
 	brusselator1d brusselator1d(num_points, num_hebras); 	// 1D Brusselator model 
@@ -77,17 +77,19 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		default: ptr_metodo=NULL; break;
 	}
 
-	cout << "Check de memorias: neqn=" << ptr_metodo->get_neqn() << " THREADSPERBLOCK=" << ptr_metodo->get_threads_per_block() << " NUM_BLOCKS=" 
-		<< ptr_metodo->get_num_blocks() << " y NUM_BYTES=" << ptr_metodo->get_num_bytes() << endl;
+	cout << "Check de memorias(metodo): neqn=" << ptr_metodo->get_neqn() << " Grid de " << ptr_metodo->get_num_blocks() << " por " 
+		<< ptr_metodo->get_tam_blocks() << " threads y NUM_BYTES=" << ptr_metodo->get_bytes() << endl;
+	cout << "Check de memorias(problema): neqn=" << ptr_problema->get_num_ODEs() << " Grid de " << ptr_problema->get_grid().x << " por " 
+		<< ptr_problema->get_block().x << " threads y NUM_BYTES=" << ptr_problema->get_bytes() << endl;
 
-	double *Y0 = new double[neqn], // Vector de entrada
-		*Yf = new double[neqn]; // Vector de salida
-	ptr_problema->init(Y0); // Inicializamos el vector inicial
-	ptr_problema->archivo("datos0.txt",Y0);// Guardamos en un txt los valores iniciales
+	double *Y0_host = new double[neqn], // Vector de entrada
+		*Yf_host = new double[neqn]; // Vector de salida
+	ptr_problema->init(Y0_host); // Inicializamos el vector inicial
+	ptr_problema->archivo("datos0.txt",Y0_host);// Guardamos en un txt los valores iniciales
 	auto timeIni = std::chrono::high_resolution_clock::now(); // Obtenemos el tiempo antes de computar
-	ptr_metodo->aplicar(ptr_problema,t0,tf,h,Y0,Yf); // Aplicamos el método
+	ptr_metodo->aplicar(ptr_problema,t0,tf,h,Y0_host,Yf_host); // Aplicamos el método
 	auto timeFin = std::chrono::high_resolution_clock::now(); // Obtenemos el tiempo después de computar
-	ptr_problema->archivo("datos1.txt", Yf); // Guardamos en un txt los valores finales
+	ptr_problema->archivo("datos1.txt", Yf_host); // Guardamos en un txt los valores finales
 	double tiempo_ms = std::chrono::duration<double, std::milli>(timeFin-timeIni).count(); // Calculamos el tiempo en milisegundos
 	double tiempo_m = (tiempo_ms/1000.0)/60.0; // Calculamos el tiempo en minutos
 	
@@ -95,14 +97,15 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	cout << "\nProblema " << num_problema << " -> " << ptr_problema->get_name() << endl;
 	cout << "Metodo de resolucion -> " << ptr_metodo->get_name() << " de orden " << ptr_metodo->get_orden() << endl;
 	cout << "Tamaño del vector-> " << num_points << endl;
-	cout << "Numero de ecuaciones -> " << ptr_metodo->get_neqn() << endl;
+	cout << "Numero de ecuaciones -> " << ptr_problema->get_num_ODEs() << endl;
 	cout << "Salto h=" << h << " -> " << num_iter << " iteraciones" << endl;
-	cout << ptr_metodo->get_num_blocks() << " bloques CUDA de " << ptr_metodo->get_threads_per_block() << " hebras"<< endl;
+	cout << "Grid de " << ptr_problema->get_grid().x << "," << ptr_problema->get_grid().y << "," << ptr_problema->get_grid().z << " bloques CUDA de ";
+	cout << ptr_problema->get_block().x << "," << ptr_problema->get_block().y << "," << ptr_problema->get_block().z << " hebras" << endl;
 	cout << "Tiempo -> "<< tiempo_ms << " milisegundos, es decir, " << floor(tiempo_m) << " minuto";
 	if(floor(tiempo_m)!=1)
 		cout << "s";
 	cout << " y " << (tiempo_m-floor(tiempo_m))*60 << " segundos\n" << endl;
 	
-	delete [] Y0, Yf;
+	delete [] Y0_host, Yf_host;
 	return 0;
 }

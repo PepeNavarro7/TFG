@@ -20,7 +20,7 @@ private:
 public:
     // Constructor of the class 
     brusselator2d(const int &nx_points, const int &threads):
-        Problema(2.0*nx_points*nx_points, "Brusselator_2D", 1.0/(nx_points+1), threads),
+        Problema(2.0*nx_points*nx_points, "Brusselator_2D", 1.0/(nx_points+1), dim3( (nx_points*nx_points*2.0+threads-1)/threads, 1, 1 ), dim3(threads,1,1)),
         nx(nx_points), ny(nx_points), dtx_sq(dtx*dtx), DD(alpha/(dtx*dtx)) { 
             updateConstants();
         };
@@ -38,11 +38,11 @@ public:
     inline void archivo(const string &filename, const double *Y) const override { archivo3(filename,Y); };
 
 private:
-    // Auxiliary function f
-    //double f(const int &i, const int &j, const double &t) const;
+/*    // Auxiliary function f
+    double f(const int &i, const int &j, const double &t) const;*/
 
     // Indexation function which maps 2D spatial coordinates (i,j) to a 1D position in a vector
-    inline int idx(const int &i, const int &j, const int &k) const { return 2 * (i * ny + j) + k; }
+    inline int idx(const int &i, const int &j, const int &k) const { return 2 * (i * ny + j) + k; } 
 };
 
 #endif
