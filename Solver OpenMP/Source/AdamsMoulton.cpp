@@ -17,7 +17,7 @@ void AdamsMoulton::aplicar(const Problema* problema, const double &t0, const dou
     
     vectorCopia(Y0, Yn0, neqn);   // Definimos Yn0
     const double h_RK = h/100.0;
-    switch(orden){ // Aplicamos Runge-Kutta para obtener los primeros pasos
+    switch(orden){ // Aplicamos RK4 para obtener los primeros pasos
         case 1:
         case 2: break; // No necesitamos RK en orden 1 & 2
         case 3: // Definimos Yn1
@@ -144,7 +144,7 @@ void AdamsMoulton::aplicar(const Problema* problema, const double &t0, const dou
             {
                 for (double tn=t0+h_RK; tn<tf; tn+=h){
                     #pragma omp for // Aplicamos Adams-Bashford para obtener una 1ª aproximación de Yn2 -> Y_AB
-                    for (int i = 0; i < neqn; ++i) // Y_AB = Yn1 + h/2 * (3*YF1 - YF0)
+                    for (int i = 0; i < neqn; ++i) // Y_AB = Yn1 + h/2 * (3*Fn1 - Fn0)
                         Y_AB[i] = Yn1[i] + h2 * (3.0*Fn1[i] - 1*Fn0[i]);            
                     
                     #pragma omp for // Obtenemos el feval de Y_AB

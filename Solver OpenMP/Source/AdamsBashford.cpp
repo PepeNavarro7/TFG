@@ -15,7 +15,7 @@ void AdamsBashford::aplicar(const Problema* problema, const double &t0, const do
     vectorCopia(Y0, Yn0, neqn); // copia paralelizada
     const double h_RK = h/100.0;
     
-    switch(orden){ // Aplicamos orden-1 veces Runge-Kutta para obtener los primeros pasos
+    switch(orden){ // Aplicamos orden-1 veces RK4 para obtener los primeros pasos
         case 1: break; // Orden 1 no necesita RK
         case 2: 
             ptr_runge->aplicarUnidad(problema, t0,          h_RK, Yn0, Yn1);

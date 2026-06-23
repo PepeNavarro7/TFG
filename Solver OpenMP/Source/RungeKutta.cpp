@@ -129,14 +129,14 @@ void RungeKutta::aplicar(const Problema* problema, const double &t0, const doubl
     delete[] Yaux;
 }
 
-// Aplicar Runge-Kutta una unica vez
+// Aplicar Runge-Kutta ORDEN4 una unica vez
 void RungeKutta::aplicarUnidad(const Problema* problema, const double &t0, const double &h, const double *Y0, double *Yf) const {
     double *K1 = new double[neqn], *K2 = new double[neqn], *K3 = new double[neqn], *K4 = new double[neqn], // Vectores de cada paso
         *Yaux = new double[neqn]; // Vector auxiliar
     
     #pragma omp parallel
     {    
-        switch(orden){
+        /*switch(orden){
         case 1: 
             #pragma omp for
             for (int i = 0; i < neqn; ++i) {
@@ -194,7 +194,7 @@ void RungeKutta::aplicarUnidad(const Problema* problema, const double &t0, const
             } // Barrera implícita
         break;
         case 4: 
-        default:
+        default:*/
             #pragma omp for
             for (int i = 0; i < neqn; ++i) {
                 // K1 = feval(tn, Yn)
@@ -228,8 +228,8 @@ void RungeKutta::aplicarUnidad(const Problema* problema, const double &t0, const
                 // Yn+1 = Yn + h/6 * (K1 + 2*K2 + 2*K3 + K4)
                 Yf[i] = Y0[i] + (h/6.0) * ( K1[i] + 2*K2[i] + 2*K3[i] + K4[i] ) ; // Tras las sumas, el vector Yn ahora contiene Yn+1
             } // Barrera implícita
-        break; 
-        } // Fin del switch
+        /*break; 
+        } // Fin del switch*/
     } // Se cierra el parallel
         
     delete[] K1;
