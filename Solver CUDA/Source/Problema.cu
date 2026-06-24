@@ -60,4 +60,21 @@ void Problema::archivo3(const string &filename, const double *Y) const{
 	file.close();
 }
 
+// Exportamos al archivo los valores en tres columnas, el valor dtx y los valores correspondientes del vector
+void Problema::archivo2v2(const string &filename, const double *Y) const {
+    string str = "./Datos/"+filename;
+    ofstream file(str);
+    if (!file) {
+      cerr << "Error opening the file: " << str << endl;
+      return;
+    }
+    const int n = this->neqn/2;
+    for (int i = 0; i<n; i++){
+      double x_i=(double)(i+1)*(1.0/neqn);
+      file << x_i << '\t' << Y[i] << '\t' << Y[i+n] << endl; 
+    }
+    cout << "Generado " << str << endl;
+    file.close();
+}
+
 #endif

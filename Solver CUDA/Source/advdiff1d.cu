@@ -45,18 +45,22 @@ void advdiff1d::init(double *Y0) const {
     }
 }
 
+// Kernel para paralelizar con CUDA el feval del problema
 __global__ void kernel_advdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int thread = blockDim.x * blockIdx.x + threadIdx.x;
     const int ult = cte2.neqn-1;
 
     if(thread<cte2.neqn){
-        const int i_ant = thread==0   ? ult : thread-1,
+        // Indice de los vecinos + frontera
+        const int i_ant =  thread==0  ? ult : thread-1,
                   i_pst = thread==ult ?  0  : thread+1;
+        // Obtenemos los valores
         const double val_ant = Y[i_ant],
                      valor   = Y[thread],
                      val_pst = Y[i_pst];
         
-        DY[thread] = cte2.d * (val_pst - 2.0 * valor + val_ant) * cte2.dtx_sq_inv
+        // Realizamos los calculos
+        DY[thread] = cte2.d * (val_pst -    2.0 * valor    + val_ant) * cte2.dtx_sq_inv
                    - cte2.a * (val_pst * val_pst - val_ant * val_ant) * cte2.dtx_4_inv;
 
         const double x = (thread+1) * cte2.dtx;
@@ -69,6 +73,7 @@ __global__ void kernel_advdiff1d(const double t, const double* __restrict__ Y, d
     }
 }
 
+// Version del Kernel en la que usamos shuffle
 __global__ void kernel2_advdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int thread = blockDim.x * blockIdx.x + threadIdx.x,
         ult = cte2.neqn-1, // Ultimo valor
@@ -76,7 +81,7 @@ __global__ void kernel2_advdiff1d(const double t, const double* __restrict__ Y, 
 
     if(thread<cte2.neqn){
         const unsigned mask = 0xFFFFFFFF;
-        const double valor   = Y[thread];
+        const double valor = Y[thread];
 
         // Hacemos los shuffles con todos los hilos, incluidos los erroneos
         double val_ant = __shfl_up_sync  (mask, valor, 1), // th(n-1) -> th(n)
@@ -88,7 +93,7 @@ __global__ void kernel2_advdiff1d(const double t, const double* __restrict__ Y, 
         if(lane==31 || thread==ult)
             val_pst = thread==ult ?  Y[0]  : Y[thread+1]; 
         
-        DY[thread] = cte2.d * (val_pst - 2.0 * valor + val_ant) * cte2.dtx_sq_inv
+        DY[thread] = cte2.d * (val_pst -    2.0 * valor    + val_ant) * cte2.dtx_sq_inv
                    - cte2.a * (val_pst * val_pst - val_ant * val_ant) * cte2.dtx_4_inv;
 
         const double x = (thread+1) * cte2.dtx;

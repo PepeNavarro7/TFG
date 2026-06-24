@@ -41,8 +41,7 @@ void simpleadvdiff1d::init(double *Y0) const {
     }
 }
 
-
-
+// Kernel para paralelizar con CUDA el feval del problema
 __global__ void kernel_simpleadvdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     if(i<cte1.neqn){
@@ -59,6 +58,7 @@ __global__ void kernel_simpleadvdiff1d(const double t, const double* __restrict_
     }    
 }
 
+// Version del Kernel en la que usamos shuffle
 __global__ void kernel2_simpleadvdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int thread = blockDim.x * blockIdx.x + threadIdx.x,
         ult = cte1.neqn-1, // Último valor

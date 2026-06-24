@@ -45,19 +45,16 @@ void brusselator2d::init(double* Y0) const {
     }
 }
 
-//vector system function DY=FG(t,Y)
+// Kernel para paralelizar con CUDA el feval del problema
 __global__ void kernel_brusselator2d(const double t, const double* __restrict__ Y, double* __restrict__ DY) {
     const int thread = blockDim.x * blockIdx.x + threadIdx.x;
-    const int tam_fila = cte4.nx*2, ult = cte4.nx-1;
-    // Aunque está almacenado todo en un mismo vector, podemos transformarlo en componentes x, y, z
-    // thread == id_x * 2 * nx + id_y * 2 + id_z  
-    const int id_x = thread / tam_fila;
-    const int id_y = (thread - id_x*tam_fila) / 2 ;
-    const int id_z = thread % 2;
+    const int tam_fila = cte4.nx*2, 
+        ult = cte4.nx-1;
+    const int id_x = thread / tam_fila, // thread == id_x * 2 * nx + id_y * 2 + id_z  
+        id_y = (thread - id_x*tam_fila) / 2,
+        id_z = thread % 2;
 
     if(thread < cte4.neqn){
-        
-
         // Calculamos los indices de los vecinos    
         const int i_pareja = id_z==0 ? thread+1 : thread-1,
             i_arriba  =  id_x==0  ? (ult*tam_fila  + id_y*2 + id_z) : (thread-tam_fila),
@@ -85,15 +82,15 @@ __global__ void kernel_brusselator2d(const double t, const double* __restrict__ 
         }   
     }
 }
+
+// Version del Kernel en la que usamos shuffle
 __global__ void kernel2_brusselator2d(const double t, const double* __restrict__ Y, double* __restrict__ DY) {
-    const int thread = blockDim.x * blockIdx.x + threadIdx.x,
-        tam_fila = cte4.nx*2, 
-        ult = cte4.nx-1;
-    // Aunque está almacenado todo en un mismo vector, podemos transformarlo en componentes x, y, z
-    // thread == id_x * 2 * nx + id_y * 2 + id_z  
+    const int thread = blockDim.x * blockIdx.x + threadIdx.x, // thread == id_x * 2 * nx + id_y * 2 + id_z  
+              tam_fila = cte4.nx*2, 
+              ult = cte4.nx-1;
     const int id_x = thread / tam_fila, // Identificamos coordenada x
               id_y = (thread - id_x*tam_fila) >> 1, // Coordenada Y -> / 2
-              id_z = thread & 1, // Coordenada z -> %2
+              id_z = threadIdx.x & 1, // Coordenada z -> %2
               lane = threadIdx.x & 31; // Posicion en el warp -> th%32
 
     if(thread < cte4.neqn){

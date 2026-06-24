@@ -22,6 +22,7 @@ protected:
     void archivo1(const string &filename, const double *Y) const; // Sacar vector de 1 componente por archivo
     void archivo2(const string &filename, const double *Y) const; // Sacar vector de 2 componentes por archivo
     void archivo3(const string &filename, const double *Y) const; // Sacar vector de 3 componentes por archivo
+    void archivo2v2(const string &filename, const double *Y) const; // Sacar vector de 2 componentes por archivo
 
 public:
     virtual void updateConstants() const = 0; // Definicion de los valores constantes para el kernel

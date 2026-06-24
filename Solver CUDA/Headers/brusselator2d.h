@@ -38,8 +38,8 @@ public:
     inline void archivo(const string &filename, const double *Y) const override { archivo3(filename,Y); };
 
 private:
-/*    // Auxiliary function f
-    double f(const int &i, const int &j, const double &t) const;*/
+    // Auxiliary function f
+    //double f(const int &i, const int &j, const double &t) const;
 
     // Indexation function which maps 2D spatial coordinates (i,j) to a 1D position in a vector
     inline int idx(const int &i, const int &j, const int &k) const { return 2 * (i * ny + j) + k; } 

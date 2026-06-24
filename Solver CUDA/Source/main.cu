@@ -17,6 +17,7 @@
 #include "advdiff1d.h"
 #include "brusselator1d.h"
 #include "brusselator2d.h"
+#include "brusselator1dv2.h"
 //#include "prueba.h"
 
 using namespace std;
@@ -45,7 +46,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	const int num_iter = (tf-t0)/h; 		// numero total de iteraciones
 	assertm(num_metodo>=1 && num_metodo<=3, "Metodo a utilizar -> [1,3]");
 	assertm(orden_metodo>=1 && orden_metodo<=5, "Orden del metodo -> [1,5]");
-	assertm(num_problema>=0 && num_problema<=4, "Problema a ejecutar -> [0,4]");
+	assertm(num_problema>=0 && num_problema<=5, "Problema a ejecutar -> [0,4]");
 	assertm(num_hebras%32 == 0, "Numero de hebras -> X%32==0");
 
     // Objetos y puntero de los diferentes problemas
@@ -54,6 +55,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	advdiff1d advdiff1d(num_points, num_hebras); 			// 1D Advection-Diffusion model 
 	brusselator1d brusselator1d(num_points, num_hebras); 	// 1D Brusselator model 
 	brusselator2d brusselator2d(num_points, num_hebras); 	// 2D Brusselator model 
+	brusselator1dv2 brusselator1dv2(num_points, num_hebras);
 	Problema *ptr_problema; 					// Puntero al problema seleccionado
 	switch(num_problema){
 		//case 0: ptr_problema=&prueba; break;
@@ -61,6 +63,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		case 2: ptr_problema=&advdiff1d; break;
 		case 3: ptr_problema=&brusselator1d; break;
 		case 4: ptr_problema=&brusselator2d; break;
+		case 5: ptr_problema=&brusselator1dv2; break;
 		default: ptr_problema=NULL; break;
 	}
 

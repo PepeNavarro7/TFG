@@ -41,12 +41,12 @@ void brusselator1d::init(double *Y0) const {
     }  
 }
 
-//vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
+// Kernel para paralelizar con CUDA el feval del problema
 __global__ void kernel_brusselator1d (const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int thread = blockDim.x * blockIdx.x + threadIdx.x;
     const int ult_x = cte3.nx-1, 
-        id_x = thread>>1, // Identificamos coordenada x -> th/2
-        id_z = thread&1;  // Coordenada z -> th%2
+        id_x = thread/2, // Identificamos coordenada x
+        id_z = thread%2;  // Coordenada z
 
     if(thread < cte3.neqn){
         const double C[2]={cte3.A, cte3.B};
@@ -69,12 +69,12 @@ __global__ void kernel_brusselator1d (const double t, const double* __restrict__
     }
 }
 
-// version con shuffle
+// Version del Kernel en la que usamos shuffle
 __global__ void kernel2_brusselator1d (const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int thread = blockDim.x * blockIdx.x + threadIdx.x;
     const int ult_x = cte3.nx-1, // Ultimo valor de la coordenada X
         id_x = thread >> 1,      // Identificamos coordenada X -> th/2
-        id_z = thread & 1,       // Coordenada Z -> th%2
+        id_z = threadIdx.x & 1,       // Coordenada Z -> th%2
         lane = threadIdx.x & 31; // Posicion en el warp -> th%32
 
     if(thread < cte3.neqn){
@@ -106,7 +106,7 @@ __global__ void kernel2_brusselator1d (const double t, const double* __restrict_
 }
 
 void brusselator1d::feval (const double &t, const double *Y, double *DY) const {
-    kernel2_brusselator1d<<<this->grid,this->block>>>(t,Y,DY);
+    kernel_brusselator1d<<<this->grid,this->block>>>(t,Y,DY);
 }
   
 #endif   

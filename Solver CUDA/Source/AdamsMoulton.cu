@@ -207,8 +207,7 @@ void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &t
                 // Ahora que tenemos una 2ª aproximación de Yn2, volvemos a aplicar A-M con ella, para obtener el Yn2 definitivo
                 kernel_sumatoriaAM3<<<this->num_blocks,this->tam_blocks>>>(Yn2, Yn1, F_AM, Fn1, Fn0);// Yn2 = Yn1 + h/12 * (5Fn_AM + 8Fn1 - 1Fn0)
 
-                // Ahora que tenemos Yn2, convertimos todos los Yn en Yn-1, y los Fn en Fn-1 para hacer la siguiente iteracion
-                swap(Yn1, Yn0); // Yn1 -> Yn0
+                // Ahora que tenemos Yn2, convertimos Yn2 en Yn1, y los Fn en Fn-1 para hacer la siguiente iteracion
                 swap(Yn2, Yn1); // Yn2 -> Yn1
                 swap(Fn1, Fn0); // Fn1 -> Fn0
                 // Tras los cambios, Yn2, Fn1, Y_AB, F_AB, Y_AM & F_AM contienen basura y serán reescritos
@@ -234,9 +233,7 @@ void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &t
                 // Ahora que tenemos una 2ª aproximación de Yn3, volvemos a aplicar A-M con ella, para obtener el Yn3 definitivo
                 kernel_sumatoriaAM4<<<this->num_blocks,this->tam_blocks>>>(Yn3, Yn2, F_AM, Fn2, Fn1, Fn0);// Yn3 = Yn2 + h/24 * (9F_AM + 19Fn2 - 5Fn1 + 1Fn0)
 
-                // Ahora que tenemos Yn3, convertimos todos los Yn en Yn-1, y los Fn en Fn-1 para hacer la siguiente iteracion
-                swap(Yn1, Yn0); // Yn1 -> Yn0
-                swap(Yn2, Yn1); // Yn2 -> Yn1
+                // Ahora que tenemos Yn3, convertimos Yn3 en Yn2, y los Fn en Fn-1 para hacer la siguiente iteracion
                 swap(Yn3, Yn2); // Yn3 -> Yn2
                 swap(Fn1, Fn0); // Fn1 -> Fn0
                 swap(Fn2, Fn1); // Fn2 -> Fn1
@@ -264,9 +261,6 @@ void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &t
                 kernel_sumatoriaAM5<<<this->num_blocks,this->tam_blocks>>>(Yn4, Yn3, F_AM, Fn3, Fn2, Fn1, Fn0); // Yn4 = Yn3 + h/720 * (251F_AM + 646Fn3 - 264Fn2 + 106Fn1 - 19Fn0)
 
                 // Ahora que tenemos Yn4, convertimos todos los Yn en Yn-1, y los Fn en Fn-1 para hacer la siguiente iteracion
-                swap(Yn1, Yn0); // Yn1 -> Yn0
-                swap(Yn2, Yn1); // Yn2 -> Yn1
-                swap(Yn3, Yn2); // Yn3 -> Yn2
                 swap(Yn4, Yn3); // Yn4 -> Yn3
                 swap(Fn1, Fn0); // Fn1 -> Fn0
                 swap(Fn2, Fn1); // Fn2 -> Fn1

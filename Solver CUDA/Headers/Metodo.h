@@ -19,12 +19,12 @@ protected:
     const int bytes; // numero de bytes de cada vector
     
     Metodo(const int &neqn, const string &nombre, const int &orden, const int &threads):
-        neqn(neqn), nombre(nombre), orden(orden), num_blocks( ceil((double)neqn/(double)threads) ), tam_blocks(threads), bytes(sizeof(double)*neqn) { };
+        neqn(neqn), nombre(nombre), orden(orden), num_blocks( (neqn+threads-1)/threads ), tam_blocks(threads), bytes(sizeof(double)*neqn) {
+            update();
+        };
 
     virtual void updateConstants(const int &neqn, const double &h) const = 0;
-
-    // Escalar esc * vector X + vector Y -> Y
-    void escalarPorVector(const double &esc, const double *X, double *Y) const;
+    void update() const;
 
 public:
     virtual void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Y1) const = 0;

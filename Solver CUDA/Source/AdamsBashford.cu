@@ -57,10 +57,11 @@ __global__ void kernel_sumatoriaAB1(double* __restrict__ Yn1, const double* __re
     }
 }
 
-// Aplicar Adams-Bashford ORDEN 4
+// Aplicar Adams-Bashford 
 void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const {
     double *Yn0, *Yn1, *Yn2, *Yn3, *Yn4, // Vectores intermedios
            *Fn0, *Fn1, *Fn2, *Fn3; // vectores funcion
+
     cudaMalloc((void**)&Yn0,this->bytes);
     cudaMalloc((void**)&Yn1,this->bytes);
     cudaMalloc((void**)&Yn2,this->bytes);
@@ -133,8 +134,7 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
                 // Yn2 = Yn1 + h/2 * (3*Fn1 - Fn0)
                 kernel_sumatoriaAB2<<<this->num_blocks,this->tam_blocks>>>(Yn2, Yn1, Fn1, Fn0);
 
-                // Ahora que tenemos Yn2, convertimos todos los Yn en Yn-1, y los Fn en Fn-1 para hacer la siguiente iteracion
-                swap(Yn1, Yn0); // Yn1 -> Yn0
+                // Ahora que tenemos Yn2, convertimos Yn2 a Yn1, y los Fn en Fn-1 para hacer la siguiente iteracion
                 swap(Yn2, Yn1); // Yn2 -> Yn1
                 swap(Fn1, Fn0); // Fn1 -> Fn0
                 // Tras los cambios, Yn2 & Fn1 contienen basura y serán reescritos
@@ -148,9 +148,7 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
                 // Yn3 = Yn2 + h/12 * (23*Fn2 - 16*Fn1 + 5*Fn0)
                 kernel_sumatoriaAB3<<<this->num_blocks,this->tam_blocks>>>(Yn3, Yn2, Fn2, Fn1, Fn0);
 
-                // Ahora que tenemos Yn3, convertimos todos los Yn en Yn-1, y los Fn en Fn-1 para hacer la siguiente iteracion
-                swap(Yn1, Yn0); // Yn1 -> Yn0
-                swap(Yn2, Yn1); // Yn2 -> Yn1
+                // Ahora que tenemos Yn3, convertimos Yn3 a Yn2, y los Fn en Fn-1 para hacer la siguiente iteracion
                 swap(Yn3, Yn2); // Yn3 -> Yn2
                 swap(Fn1, Fn0); // Fn1 -> Fn0
                 swap(Fn2, Fn1); // Fn2 -> Fn1
@@ -165,10 +163,7 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
                 // Yn4 = Yn3 + h/24 * (55*Fn3 - 59*Fn2 + 37*Fn1 - 9*Fn0)
                 kernel_sumatoriaAB4<<<this->num_blocks,this->tam_blocks>>>(Yn4, Yn3, Fn3, Fn2, Fn1, Fn0);
                 
-                // Ahora que tenemos Yn4, convertimos todos los Yn en Yn-1, y los Fn en Fn-1 para hacer la siguiente iteracion
-                swap(Yn1, Yn0); // Yn1 -> Yn0
-                swap(Yn2, Yn1); // Yn2 -> Yn1
-                swap(Yn3, Yn2); // Yn3 -> Yn2
+                // Ahora que tenemos Yn4, convertimos Yn4 a Yn3, y los Fn en Fn-1 para hacer la siguiente iteracion
                 swap(Yn4, Yn3); // Yn4 -> Yn3
                 swap(Fn1, Fn0); // Fn1 -> Fn0
                 swap(Fn2, Fn1); // Fn2 -> Fn1
