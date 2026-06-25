@@ -51,7 +51,7 @@ $(ALL_OBJ): $(DIR_O)/%.o: $(DIR_S)/%.cu $(DIR_H)/%.h
 
 # Ejecucion de problema con las variables introducidas
 run:
-	./solverCUDA $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(salto) 
+	./solverCUDA $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) 
 
 #exportar con un método u otro
 exporta:

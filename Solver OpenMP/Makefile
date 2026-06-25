@@ -46,7 +46,7 @@ $(ALL_OBJ): $(DIR_O)/%.o: $(DIR_S)/%.cpp $(DIR_H)/%.h
 
 # Ejecucion de problema con las variables introducidas
 run:
-	./solverOMP $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(salto) 
+	./solverOMP $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) 
 
 #exportar con un método u otro
 exporta:

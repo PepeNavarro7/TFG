@@ -20,26 +20,30 @@
 using namespace std;
 
 int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvector salto
-	if (argc != 7){
-		string texto = "solverOMP metodo= orden= problema= hebras= tamvector= salto=\n";
+	if (argc != 9){
+		string texto = "./solverCUDA metodo= orden= problema= hebras= tamvector= salto=\n";
 		texto+= "\tMetodos: 1=Runge-Kutta 2=Adams-Bashford 3=Adams-Moulton\n\tOrden: 1-2-3-4-5(AM)\n";
-		texto+= "\tProblemas: 1=simpleavdiff 2=advdiff1d 3=brusselator1d 4=brusselator2d\n\tNumero de hebras en OMP {1,4,16}\n";
-		texto+= "\tTamaño del vector[100,10000]\n\tSalto en la forma 10^(-x)\n";
+		texto+= "\tProblemas: 1=simpleavdiff 2=advdiff1d 3=brusselator1d 4=brusselator2d\n\tHebras del bloque CUDA X%32==0\n";
+		texto+= "\tTamaño del vector[100,10000]\n\tTiempo inicialt0\n\tTiempo final tf\n\tSalto en la forma 10^(-x)\n";
 		cout << texto;
 		return 0;
 	}
 		
-    // Variables que usaremos en el solver
-	const int num_metodo = atoi(argv[1]), 	// Metodo a utilizar
-			  orden_metodo = atoi(argv[2]), // Orden del metodo
-			  num_problema = atoi(argv[3]),	// Problema a ejecutar
-			  num_hebras = atoi(argv[4]),	// Numero de hebras OpenMP
-        	  num_points = atoi(argv[5]), 	// Tamaño del vector (malla espacial)
-			  salto = atoi(argv[6]);		// Salto en la forma 10^-X
-	const double t0 = 0.0, 					// Valor de tiempo inicial
-				 tf = 1.0,  				// Valor de tiempo final
-				 h = pow(10,(-1*salto));	// Valor de salto
-	const int num_iter = (tf-t0)/h; // Numero total de iteraciones
+	// Variables que usaremos en el solver
+	const int num_metodo = atoi(argv[1]), 	// Metodo a utilizar -> [1,3]
+		orden_metodo = atoi(argv[2]),		// Orden del metodo -> [1,5]
+		num_problema = atoi(argv[3]), 		// Problema a ejecutar -> [0,4]
+		num_hebras = atoi(argv[4]),			// Numero de hebras OpenMP
+        num_points = atoi(argv[5]),			// Tamaño del vector -> [100, 10000]
+		t0 = atof(argv[6]),					// Valor de tiempo inicial
+		tf = atof(argv[7]),					// Valor de tiempo final
+		salto = atoi(argv[8]); 				// Salto en la forma 10^-X -> [5,7]
+	const double h = pow(10,(-1*salto));	// Valor de salto h
+	const int num_iter = (tf-t0)/h; 		// Numero de iteraciones que se realizarán
+	assertm(num_metodo>=1 && num_metodo<=3, "Metodo a utilizar -> [1,3]");
+	assertm(orden_metodo>=1 && orden_metodo<=5, "Orden del metodo -> [1,5]");
+	assertm(num_problema>=0 && num_problema<=4, "Problema a ejecutar -> [0,4]");
+	assertm(num_hebras%2 == 0, "Numero de hebras -> X%2==0");
 	double timeIni, timeFin, tiempo_ms, tiempo_m; // Medidores para calcular el tiempo de procesamiento
 	omp_set_num_threads(num_hebras); // Marcamos numero de hebras en regiones paralelas
 
@@ -82,11 +86,12 @@ int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvect
 	ptr_problema->archivo("datos1.txt", Y1);	// Guardamos en un txt los valores finales
 	tiempo_ms = (timeFin - timeIni)*1000.0;		// Calculamos el tiempo en milisegundos
 	tiempo_m = (tiempo_ms / 1000.0)/60.0;		// Calculamos el tiempo en minutos
-	
-	cout << "\nProblema " << num_problema << " -> " << ptr_problema->get_nombre() << endl;
+
+	cout << "\nProblema " << num_problema << " -> " << ptr_problema->get_name() << endl;
 	cout << "Metodo de resolucion -> " << ptr_metodo->get_nombre() << " de orden " << ptr_metodo->get_orden() << endl;
-	cout << "Tamaño del vector -> " << num_points << endl;
-	cout << "Numero de ecuaciones -> " << ptr_metodo->get_neqn() << endl;
+	cout << "Tamaño del vector-> " << num_points << endl;
+	cout << "Numero de ecuaciones -> " << ptr_problema->get_num_ODEs() << endl;
+	cout << "T0 = " << t0 << " y tf = " << tf << endl;
 	cout << "Salto h=" << h << " -> " << num_iter << " iteraciones" << endl;
 	cout << "Numero de hebras OpenMP -> " << num_hebras << endl;
 	cout << "Tiempo -> "<< tiempo_ms << " milisegundos, es decir, " << floor(tiempo_m) << " minuto";

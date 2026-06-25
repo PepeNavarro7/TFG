@@ -23,15 +23,14 @@
 using namespace std;
 
 int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
-	if (argc != 7){
+	if (argc != 9){
 		string texto = "./solverCUDA metodo= orden= problema= hebras= tamvector= salto=\n";
 		texto+= "\tMetodos: 1=Runge-Kutta 2=Adams-Bashford 3=Adams-Moulton\n\tOrden: 1-2-3-4-5(AM)\n";
 		texto+= "\tProblemas: 1=simpleavdiff 2=advdiff1d 3=brusselator1d 4=brusselator2d\n\tHebras del bloque CUDA X%32==0\n";
-		texto+= "\tTamaño del vector[100,10000]\n\tSalto en la forma 10^(-x)\n";
+		texto+= "\tTamaño del vector[100,10000]\n\tTiempo inicialt0\n\tTiempo final tf\n\tSalto en la forma 10^(-x)\n";
 		cout << texto;
 		return 0;
 	}
-		
 
     // Variables que usaremos en el solver
 	const int num_metodo = atoi(argv[1]), 	// Metodo a utilizar -> [1,3]
@@ -39,14 +38,14 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		num_problema = atoi(argv[3]), 		// Problema a ejecutar -> [0,4]
 		num_hebras = atoi(argv[4]),			// Numero de hebras -> X%32==0
         num_points = atoi(argv[5]),			// Tamaño del vector -> [100, 10000]
-		salto = atoi(argv[6]); 				// salto en la forma 10^-X -> [5,7]
-	const double t0 = 0.0, 					// valor de tiempo inicial
-		tf = 1.0,  							// valor de tiempo final
-		h = pow(10,(-1*salto));				// valor de salto
-	const int num_iter = (tf-t0)/h; 		// numero total de iteraciones
+		t0 = atof(argv[6]),					// Valor de tiempo inicial
+		tf = atof(argv[7]),					// Valor de tiempo final
+		salto = atoi(argv[8]); 				// Salto en la forma 10^-X -> [5,7]
+	const double h = pow(10,(-1*salto));	// Valor de salto h
+	const int num_iter = (tf-t0)/h; 		// Numero de iteraciones que se realizarán
 	assertm(num_metodo>=1 && num_metodo<=3, "Metodo a utilizar -> [1,3]");
 	assertm(orden_metodo>=1 && orden_metodo<=5, "Orden del metodo -> [1,5]");
-	assertm(num_problema>=0 && num_problema<=5, "Problema a ejecutar -> [0,4]");
+	assertm(num_problema>=0 && num_problema<=4, "Problema a ejecutar -> [0,4]");
 	assertm(num_hebras%32 == 0, "Numero de hebras -> X%32==0");
 
     // Objetos y puntero de los diferentes problemas
@@ -101,6 +100,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	cout << "Metodo de resolucion -> " << ptr_metodo->get_name() << " de orden " << ptr_metodo->get_orden() << endl;
 	cout << "Tamaño del vector-> " << num_points << endl;
 	cout << "Numero de ecuaciones -> " << ptr_problema->get_num_ODEs() << endl;
+	cout << "T0 = " << t0 << " y tf = " << tf << endl;
 	cout << "Salto h=" << h << " -> " << num_iter << " iteraciones" << endl;
 	cout << "Grid de " << ptr_problema->get_grid().x << "," << ptr_problema->get_grid().y << "," << ptr_problema->get_grid().z << " bloques CUDA de ";
 	cout << ptr_problema->get_block().x << "," << ptr_problema->get_block().y << "," << ptr_problema->get_block().z << " hebras" << endl;
