@@ -25,17 +25,17 @@ Aplicado en un contexto de programación, tendremos una clase $RungeKutta$ con u
 		\State $K2 \gets feval(t_n+h/2, Y_n + K1\cdot h/2)$
 		\State $K3 \gets feval(t_n+h/2, Y_n + K2\cdot h/2)$
 		\State $K4 \gets feval(t_n+h, Y_n + K3\cdot h)$
-		\State $Y_{n+1} \gets Y_n + K1 \cdot h/6 + K2 \cdot h/3 + K3 \cdot h/3 + K4 \cdot h/6$
+		\State $Y_{n+1} \gets Y_n + h/6 \cdot (K1 + 2 \cdot K2 + 2 \cdot K3 + K4)$
 		\State $t_n += h$
 		\EndWhile
 	\end{algorithmic}
 \end{algorithm}
 
-Como podemos ver, la aplicación del algoritmo es relativamente simple, se trabaja con 4 vectores auxiliares en los que hacemos los cálculos intermedios, que luego se suman. Es en estas operaciones, las evaluaciones de cada miembro, y las sumas y multiplicaciones de cada vector, en las que podremos entrar a trabajar el paralelismo para mejorar la eficiencia de nuestro  código.
+Como podemos ver, la aplicación del algoritmo es relativamente simple, se trabaja con 4 vectores auxiliares en los que hacemos los cálculos intermedios, que luego se suman. Es en estas operaciones, las evaluaciones de cada miembro, las sumas, y las multiplicaciones de cada vector, en las que podremos entrar a trabajar el paralelismo para mejorar la eficiencia de nuestro  código.
 
 \creaSeccion{Adams-Bashford}
 
 \creaSeccion{Adams-Moulton}
 
 \creaSeccion{SimpleAdvDiff}
-En primero de los programas con los que trabajaremos será este SimpleAdvDiff, que representa un modelo simple de Advección-Difusión en 1D. En este problema trabajaremos con un vector que estará compuesto de dos partes, una parte rígida y una no rígida, que se sumarán para dar los valores de cada una de las celdas del vector.
+En primero de los programas con los que trataremos será este SimpleAdvDiff, que representa un modelo simple de Advección-Difusión en 1D. En este problema trabajaremos con un vector que estará compuesto de dos partes, una parte rígida y una no rígida, que se sumarán para dar los valores de cada una de las celdas del vector.

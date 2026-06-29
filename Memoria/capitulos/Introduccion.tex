@@ -51,7 +51,7 @@ Los métodos semiimplícitos son una herramienta clave para resolver eficienteme
 
 Por otro lado, los métodos multipaso usan varios valores anteriores de la solución para calcular el siguiente paso en el tiempo, en lugar de basarse solo en el valor actual. En el ejemplo \ref{eq:EulerExplicito} que hemos tratado anteriormente, sólo teníamos en cuenta un valor, $y_n$ para hallar $y_{n+1}$ pero posteriormente trataremos con otras ecuaciones más complejas en las que necesitaremos otros como $y_{n-1}$ y $y_{n-2}$. Para problemas de gran tamaño, los métodos multipaso permiten alcanzar resultados con gran precisión y de una forma más eficiente que los métodos de un paso como el de Euler o el de Runge-Kutta.
 
-Comenzaremos a trabajar programando por el método de Runge-Kutta de orden 4, con el que haremos un planteamiento a la resolución de los problemas que trataremos de dos formas distintas, usando OpenMP y usando CUDA, es decir, haciendo la paralelización en las hebras de la CPU, y en la GPU, respectivamente.
+Comenzaremos a trabajar programando por el método de Runge-Kutta de órdenes 1 a 4, con el que haremos un planteamiento a la resolución de los problemas que trataremos de dos formas distintas, usando OpenMP y usando CUDA, es decir, haciendo la paralelización en las hebras de la CPU, y en la GPU, respectivamente.
 
 \creaSeccion{OpenMP}
 
