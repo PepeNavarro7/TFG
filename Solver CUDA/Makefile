@@ -8,7 +8,7 @@ PROB1 := simpleadvdiff1d
 PROB2 := advdiff1d
 PROB3 := brusselator1d
 PROB4 := brusselator2d
-PROB5 := brusselator1dv2
+PROB5 := brusselator1d_grid
 PROB0 := prueba
 
 DIR_H := Headers

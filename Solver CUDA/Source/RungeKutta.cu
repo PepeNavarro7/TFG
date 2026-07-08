@@ -67,7 +67,9 @@ void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf,
     cudaMalloc((void**)&K4,this->bytes);
     cudaMalloc((void**)&Yaux,this->bytes);
 
-    updateConstants(neqn, h); // Constantes para los kernel
+    // Constantes para los kernel, tanto de RK como del problema
+    this->updateConstants(neqn, h); 
+    problema->updateConstants();
     const double h2 = h/2.0, h_n = -1*h, h_2=2.0*h;
     
     cudaMemcpy(Yn, Y0, this->bytes, cudaMemcpyHostToDevice); // Y0 -> Yn, para primera iteración

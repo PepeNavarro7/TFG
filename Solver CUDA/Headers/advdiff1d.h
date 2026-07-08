@@ -20,9 +20,7 @@ public:
     // Constructor of the class IVP_ODE_advdiff1d    
     advdiff1d(const int &nx_points, const int &threads):
         Problema(nx_points, "1D_Advection-Diffusion", (1.0/nx_points), dim3( (nx_points+threads-1)/threads, 1, 1 ), dim3(threads,1,1)),
-        nx(nx_points), dtx_sq(dtx*dtx), dtx_4(4.0*dtx) { 
-            updateConstants();
-        };
+        nx(nx_points), dtx_sq(dtx*dtx), dtx_4(4.0*dtx) { };
 
     // Definicion de los valores constantes para el kernel
     void updateConstants() const override;

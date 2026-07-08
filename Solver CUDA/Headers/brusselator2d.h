@@ -21,9 +21,7 @@ public:
     // Constructor of the class 
     brusselator2d(const int &nx_points, const int &threads):
         Problema(2.0*nx_points*nx_points, "Brusselator_2D", 1.0/(nx_points+1), dim3( (nx_points*nx_points*2.0+threads-1)/threads, 1, 1 ), dim3(threads,1,1)),
-        nx(nx_points), ny(nx_points), dtx_sq(dtx*dtx), DD(alpha/(dtx*dtx)) { 
-            updateConstants();
-        };
+        nx(nx_points), ny(nx_points), dtx_sq(dtx*dtx), DD(alpha/(dtx*dtx)) { };
 
     // Definicion de los valores constantes para el kernel
     void updateConstants() const override;

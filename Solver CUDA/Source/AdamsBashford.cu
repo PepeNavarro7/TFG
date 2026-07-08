@@ -73,9 +73,13 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
     cudaMalloc((void**)&Fn3,this->bytes);
 
     cudaMemcpy(Yn0, Y0, this->bytes, cudaMemcpyHostToDevice); // Y0 -> Yn0
-    const double h_RK = h/100.0;
 
+    // Constantes para los kernels, tanto de los metodos como del problema
+    const double h_RK = h/100.0;
     ptr_runge->updateConstants(neqn, h_RK);
+    this->updateConstants(neqn, h);
+    problema->updateConstants();
+
     switch(orden){ // Aplicamos orden-1 veces Runge-Kutta para obtener los primeros pasos
         case 1: break; // Orden 1 no necesita RK
         case 2: 
@@ -113,7 +117,6 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
         break;
     } // Fin del switch de arranque
     
-    updateConstants(neqn, h); // Constantes para los kernel
     // Ahora aplicamos Adams-Bashford del orden indicado
     switch(orden){ // Switch principal con el for que se trabaja
         case 1: 

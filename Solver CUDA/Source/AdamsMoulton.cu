@@ -95,8 +95,13 @@ void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &t
     cudaMalloc((void**)&F_AM,this->bytes);
     
     cudaMemcpy(Yn0, Y0, this->bytes, cudaMemcpyHostToDevice); // Definimos Yn0
+
+    // Constantes para los kernels, tanto de los metodos como del problema
     const double h_RK = h/100.0;
     ptr_runge->updateConstants(neqn, h_RK);
+    ptr_bashford->updateConstants(neqn, h);
+    this->updateConstants(neqn, h);
+    problema->updateConstants();
 
     switch(orden){ // Aplicamos RK4 para obtener los primeros pasos
         case 1:
@@ -137,8 +142,6 @@ void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &t
         break;
     } // Fin del switch de arranque
 
-    updateConstants(neqn, h);
-    ptr_bashford->updateConstants(neqn, h);
     switch(orden){
         case 1: // Yn+1 = Yn + h * Fn+1
             for (double tn=t0; tn<tf; tn+=h){
