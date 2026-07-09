@@ -7,6 +7,14 @@
 
 using namespace std;
 
+struct Params_AdamsBashford {
+    int neqn;
+    double h;
+    double h2;
+    double h12;
+    double h24;
+};
+
 class AdamsBashford: public Metodo{
 private:
     const RungeKutta *ptr_runge;

@@ -11,6 +11,7 @@
 #include "RungeKutta.h"
 #include "AdamsBashford.h"
 #include "AdamsMoulton.h"
+//#include "RungeKutta_graph.h"
 
 #include "Problema.h"
 #include "simpleadvdiff1d.h"
@@ -18,6 +19,7 @@
 #include "brusselator1d.h"
 #include "brusselator2d.h"
 #include "brusselator1d_grid.h"
+#include "brusselator1d_shuffle.h"
 //#include "prueba.h"
 
 using namespace std;
@@ -45,7 +47,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	const int num_iter = (tf-t0)/h; 		// Numero de iteraciones que se realizarán
 	assertm(num_metodo>=1 && num_metodo<=3, "Metodo a utilizar -> [1,3]");
 	assertm(orden_metodo>=1 && orden_metodo<=5, "Orden del metodo -> [1,5]");
-	assertm(num_problema>=0 && num_problema<=5, "Problema a ejecutar -> [0,5]");
+	assertm(num_problema>=0 && num_problema<=6, "Problema a ejecutar -> [0,6]");
 	assertm(num_hebras%32 == 0, "Numero de hebras -> X%32==0");
 
     // Objetos y puntero de los diferentes problemas
@@ -53,16 +55,18 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	simpleadvdiff1d simpleadvdiff1d(num_points, num_hebras);// 1D_Simple Advection-Diffusion
 	advdiff1d advdiff1d(num_points, num_hebras); 			// 1D Advection-Diffusion model 
 	brusselator1d brusselator1d(num_points, num_hebras); 	// 1D Brusselator model 
-	brusselator2d brusselator2d(num_points, num_hebras); 	// 2D Brusselator model 
+	brusselator1d_shuffle brusselator1d_shuffle(num_points, num_hebras); // 1D Brusselator model con grid multidimensional
 	brusselator1d_grid brusselator1d_grid(num_points, num_hebras); // 1D Brusselator model con grid multidimensional
+	brusselator2d brusselator2d(num_points, num_hebras); 	// 2D Brusselator model 
 	Problema *ptr_problema; 					// Puntero al problema seleccionado
 	switch(num_problema){
 		//case 0: ptr_problema=&prueba; break;
 		case 1: ptr_problema=&simpleadvdiff1d; break;
 		case 2: ptr_problema=&advdiff1d; break;
 		case 3: ptr_problema=&brusselator1d; break;
-		case 4: ptr_problema=&brusselator2d; break;
+		case 4: ptr_problema=&brusselator1d_shuffle; break;
 		case 5: ptr_problema=&brusselator1d_grid; break;
+		case 6: ptr_problema=&brusselator2d; break;
 		default: ptr_problema=NULL; break;
 	}
 
@@ -71,11 +75,13 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	RungeKutta RungeKutta(neqn, orden_metodo, num_hebras); 						// Objeto para aplicar Runge-Kutta y sus operaciones asociadas
 	AdamsBashford AdamsBashford(neqn, orden_metodo, num_hebras, &RungeKutta); 	// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
 	AdamsMoulton AdamsMoulton(neqn, orden_metodo, num_hebras, &RungeKutta, &AdamsBashford); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
+	//RungeKutta_graph RungeKutta_graph(neqn, orden_metodo, num_hebras); 
 	Metodo *ptr_metodo; 											// Puntero al metodo seleccionado
 	switch(num_metodo){
 		case 1: ptr_metodo=&RungeKutta; break;
 		case 2: ptr_metodo=&AdamsBashford; break;
 		case 3: ptr_metodo=&AdamsMoulton; break;
+		//case 4: ptr_metodo=&RungeKutta_graph; break;
 		default: ptr_metodo=NULL; break;
 	}
 

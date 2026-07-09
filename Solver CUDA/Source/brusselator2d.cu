@@ -7,15 +7,6 @@
 using namespace std;
 
 // Problema 4
-// the Brusselator 2D model 
-struct Params_brusselator2d {
-    int neqn;
-    int nx;
-    double A;
-    double B;
-    double dtx;
-    double DD;
-};
 
 // Variable en memoria constante (vive en la GPU)
 __constant__ Params_brusselator2d cte4;
@@ -130,6 +121,9 @@ __global__ void kernel2_brusselator2d(const double t, const double* __restrict__
 
 void brusselator2d::feval(const double &t, const double* Y, double* DY) const {
     kernel2_brusselator2d<<<this->grid,this->block>>>(t, Y, DY);
+}
+void brusselator2d::feval (const double *Y, double* DY, cudaStream_t stream) const {
+    kernel2_brusselator2d<<<this->grid, this->block, 0, stream>>>(0.0, Y, DY);
 }
 /* // Auxiliary function f
 double brusselator2d::f(const int &i, const int &j, const double &t) const {

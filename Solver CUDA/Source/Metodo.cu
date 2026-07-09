@@ -5,10 +5,6 @@
 
 using namespace std;
 
-struct Params_Metodo {
-    int num;
-};
-
 // Variable en memoria constante (vive en la GPU)
 __constant__ Params_Metodo cteMet;
 

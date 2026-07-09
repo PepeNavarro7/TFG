@@ -6,6 +6,13 @@
 
 using namespace std;
 
+struct Params_RungeKutta {
+    int neqn;
+    double h;
+    double h2;
+    double h6;
+};
+
 class RungeKutta: public Metodo{
 public:   
     // Constructor de la clase

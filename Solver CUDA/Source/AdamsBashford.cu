@@ -6,14 +6,6 @@
 
 using namespace std;
 
-struct Params_AdamsBashford {
-    int neqn;
-    double h;
-    double h2;
-    double h12;
-    double h24;
-};
-
 // Variable en memoria constante (vive en la GPU)
 __constant__ Params_AdamsBashford cteAB;
 

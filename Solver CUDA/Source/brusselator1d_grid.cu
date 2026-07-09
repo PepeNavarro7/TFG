@@ -9,15 +9,6 @@ using namespace std;
 
 // PROBLEMA 3
 // Class for the IVP-ODE representing the 1D Brusselator model 
-struct Params_brusselator1d_grid {
-    int neqn;
-    int nx;
-    int ny;
-    double A;
-    double B;
-    double DD;
-};
-
 // Variable en memoria constante (vive en la GPU)
 __constant__ Params_brusselator1d_grid cte3_g;
 
@@ -27,7 +18,6 @@ void brusselator1d_grid::updateConstants() const {
 
     aux.neqn = this->neqn;
     aux.nx = this->nx;
-    aux.ny = this->ny;
     aux.A = this->A;
     aux.B = this->B;
     aux.DD = this->DD;
@@ -57,7 +47,7 @@ __global__ void kernel_brusselator1d_grid (const double t, const double* __restr
     const int thread = id_z*cte3_g.nx + id_x; // thread
     
 
-    if(id_x < cte3_g.nx && id_z < 2 << thread<cte3_g.neqn){
+    if(id_x < cte3_g.nx && id_z < 2 && thread<cte3_g.neqn){
         const double valor = Y[thread];
         const unsigned mask = 0xFFFFFFFF;
         const double C = id_z==0 ? cte3_g.A : cte3_g.B;
@@ -85,6 +75,9 @@ __global__ void kernel_brusselator1d_grid (const double t, const double* __restr
 
 void brusselator1d_grid::feval (const double &t, const double *Y, double *DY) const {
     kernel_brusselator1d_grid<<<this->grid,this->block>>>(t,Y,DY);
+}
+void brusselator1d_grid::feval (const double *Y, double* DY, cudaStream_t stream) const {
+    kernel_brusselator1d_grid<<<this->grid, this->block, 0, stream>>>(0.0, Y, DY);
 }
   
 #endif   

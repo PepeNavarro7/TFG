@@ -8,6 +8,16 @@
 
 using namespace std;
 
+struct Params_AdamsMoulton {
+    int neqn;
+    double h;
+    double h2;
+    double h12;
+    double h24;
+    double h720;
+};
+
+
 class AdamsMoulton: public Metodo{
 private:
     const RungeKutta *ptr_runge;

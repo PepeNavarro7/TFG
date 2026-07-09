@@ -8,14 +8,7 @@
 using namespace std;
 
 // PROBLEMA 1
-// Class for the IVP-ODE representing a 1D Advection-Diffusion model 
-struct Params_simpleadvdiff1d {
-    int neqn;
-    double dtx_2_inv;
-    double dtx_sq_inv;
-    double a;
-    double d;
-};
+// Class for the IVP-ODE representing a 1D Advection-Diffusion model
 
 // Variable en memoria constante (vive en la GPU)
 __constant__ Params_simpleadvdiff1d cte1;
@@ -85,6 +78,9 @@ __global__ void kernel2_simpleadvdiff1d(const double t, const double* __restrict
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
 void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY) const {
     kernel_simpleadvdiff1d<<<grid, block>>>(t, Y, DY);
+}
+void simpleadvdiff1d::feval (const double *Y, double* DY, cudaStream_t stream) const {
+    kernel_simpleadvdiff1d<<<this->grid, this->block, 0, stream>>>(0.0, Y, DY);
 }
 
 #endif

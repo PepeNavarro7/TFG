@@ -8,17 +8,6 @@
 using namespace std;
 
 // PROBLEMA 2
-// Class for the IVP-ODE representing a 1D Advection-Diffusion model
-struct Params_advdiff1d {
-    double PI;
-    int neqn;
-    double dtx;
-    double dtx_sq_inv;
-    double dtx_4_inv;
-    double a;
-    double d;
-};
-
 // Variable en memoria constante (vive en la GPU)
 __constant__ Params_advdiff1d cte2;
 
@@ -108,6 +97,9 @@ __global__ void kernel2_advdiff1d(const double t, const double* __restrict__ Y, 
 
 void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
     kernel_advdiff1d<<<this->grid,this->block>>>(t, Y, DY);
+}
+void advdiff1d::feval (const double *Y, double* DY, cudaStream_t stream) const {
+    kernel_advdiff1d<<<this->grid, this->block, 0, stream>>>(0.0, Y, DY);
 }
 
 

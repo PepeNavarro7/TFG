@@ -6,13 +6,20 @@
 using namespace std;
 
 // PROBLEMA 3
+struct Params_brusselator1d_grid {
+    int neqn;
+    int nx;
+    double A;
+    double B;
+    double DD;
+};
+
 // Class for the IVP-ODE representing the 1D Brusselator model 
 class brusselator1d_grid:public Problema{
 
 private:
     const double alpha=1.0/50.0, A=1.0, B=3.0; // variables auxiliares para el calculo
     const int nx; // number of grid points at each dimension
-    const int ny;
     const double dtx_sq; // Spatial step squared
     const double DD;
         
@@ -21,7 +28,7 @@ public:
     // Constructor of the class 
     brusselator1d_grid(const int &nx_points, const int &threads):
         Problema(nx_points*2.0, "Brusselator_1D_grid", (1.0/(nx_points+1.0)), dim3( (nx_points*2.0+threads-1)/threads, 1, 1 ), dim3(threads/2,2,1)),
-        nx(nx_points), ny(2), dtx_sq(dtx*dtx), DD(alpha/(dtx*dtx)) { };
+        nx(nx_points), dtx_sq(dtx*dtx), DD(alpha/(dtx*dtx)) { };
 
     // Definicion de los valores constantes para el kernel
     void updateConstants() const override;
@@ -31,6 +38,7 @@ public:
     
     //vector system function for the nonstiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
     void feval (const double &t, const double *Y, double *DY) const override; 
+    void feval (const double *Y, double* DY, cudaStream_t stream) const override;
     
     // Exportar los datos a un archivo txt
     inline void archivo(const string &filename, const double *Y) const override { archivo2v2(filename,Y); };

@@ -8,6 +8,10 @@ using namespace std;
 #include <iostream>
 #include <string>
 
+struct Params_Metodo {
+    int num;
+};
+
 class Metodo{
 protected:
     const double PI = 3.14159265358979;

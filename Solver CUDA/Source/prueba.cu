@@ -6,10 +6,6 @@
 
 using namespace std;
 
-struct Params_prueba {
-    double neqn;
-};
-
 // Variable en memoria constante (vive en la GPU)
 __constant__ Params_prueba cte0;
 

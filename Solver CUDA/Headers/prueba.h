@@ -6,6 +6,10 @@
 
 using namespace std;
 
+struct Params_prueba {
+    double neqn;
+};
+
 class prueba: public Problema {
 
 private:

@@ -6,6 +6,16 @@
 using namespace std;
 
 // PROBLEMA 2
+struct Params_advdiff1d {
+    double PI;
+    int neqn;
+    double dtx;
+    double dtx_sq_inv;
+    double dtx_4_inv;
+    double a;
+    double d;
+};
+
 // Class for the IVP-ODE representing a 1D Advection-Diffusion model 
 class advdiff1d: public Problema {
 
@@ -30,6 +40,7 @@ public:
     
     //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
     void feval (const double &t, const double *Y, double *DY) const override; 
+    void feval (const double *Y, double* DY, cudaStream_t stream) const override;
     
     // Exportar los datos a un archivo txt
     inline void archivo (const string &filename, const double *Y) const override { archivo1(filename,Y); };

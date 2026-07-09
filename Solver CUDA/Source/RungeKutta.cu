@@ -12,13 +12,6 @@ extern __global__ void kernel_escalarPorVector(const double esc, const double* _
 extern __global__ void kernel_escalarSumaMult(const double* __restrict__ Y0, const double esc, const double* __restrict__ X, double* __restrict__ Yf);
 extern __global__ void kernel_escalarSuma2Mult(const double* __restrict__ Y0, const double esc1, const double* __restrict__ X, const double esc2, const double* __restrict__ Z, double* __restrict__ Yf);
 
-struct Params_RungeKutta {
-    int neqn;
-    double h;
-    double h2;
-    double h6;
-};
-
 // Variable en memoria constante (vive en la GPU)
 __constant__ Params_RungeKutta cteRK;
 
@@ -57,7 +50,7 @@ __global__ void kernel_sumatoriaRK2(double* __restrict__ Yn, const double* __res
 
 void RungeKutta::aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const {
     // creamos y alojamos memoria para los arrays en el device
-    double *Yn, // vector con la Y en cada iteracion
+    double *Yn, // Vector con la Y en cada iteracion
         *K1, *K2, *K3, *K4, // Vectores de cada paso
         *Yaux; // Vector auxiliar
     cudaMalloc((void**)&Yn,this->bytes);

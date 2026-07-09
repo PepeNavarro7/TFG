@@ -8,6 +8,15 @@ using namespace std;
 
 
 // Problema 4
+struct Params_brusselator2d {
+    int neqn;
+    int nx;
+    double A;
+    double B;
+    double dtx;
+    double DD;
+};
+
 // the Brusselator 2D model 
 class brusselator2d: public Problema {
 private:
@@ -30,7 +39,8 @@ public:
     void init(double* Y0) const override;
 
     //vector system function for the nonstiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-    void feval(const double &t, const double* Y, double* DY) const override;
+    void feval (const double &t, const double* Y, double* DY) const override;
+    void feval (const double *Y, double* DY, cudaStream_t stream) const override;
 
     // Exportar los datos a un archivo txt
     inline void archivo(const string &filename, const double *Y) const override { archivo3(filename,Y); };

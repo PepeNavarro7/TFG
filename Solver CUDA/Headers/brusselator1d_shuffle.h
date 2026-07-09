@@ -1,12 +1,12 @@
-#ifndef BRUSSELATOR1D_H
-#define BRUSSELATOR1D_H
+#ifndef BRUSSELATOR1D_SHUFFLE_H
+#define BRUSSELATOR1D_SHUFFLE_H
 
 #include "Problema.h"
 
 using namespace std;
 
 // PROBLEMA 3
-struct Params_brusselator1d {
+struct Params_brusselator1d_shuffle {
     int neqn;
     int nx;
     double A;
@@ -15,19 +15,18 @@ struct Params_brusselator1d {
 };
 
 // Class for the IVP-ODE representing the 1D Brusselator model 
-class brusselator1d:public Problema{
+class brusselator1d_shuffle:public Problema{
 
 private:
     const double alpha=1.0/50.0, A=1.0, B=3.0; // variables auxiliares para el calculo
     const int nx; // number of grid points at each dimension
     const double dtx_sq; // Spatial step squared
     const double DD;
-        
 
 public:
     // Constructor of the class 
-    brusselator1d(const int &nx_points, const int &threads):
-        Problema(nx_points*2.0, "Brusselator_1D", (1.0/(nx_points+1.0)), dim3( (nx_points*2.0+threads-1)/threads, 1, 1 ), dim3(threads,1,1)),
+    brusselator1d_shuffle(const int &nx_points, const int &threads):
+        Problema(nx_points*2.0, "Brusselator_1D_shuffle", (1.0/(nx_points+1.0)), dim3( (nx_points*2.0+threads-1)/threads, 1, 1 ), dim3(threads,1,1)),
         nx(nx_points), dtx_sq(dtx*dtx), DD(alpha/(dtx*dtx)) { };
 
     // Definicion de los valores constantes para el kernel

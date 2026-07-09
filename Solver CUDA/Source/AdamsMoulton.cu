@@ -12,16 +12,6 @@ extern __global__ void kernel_sumatoriaAB2(double* __restrict__ Yn2, const doubl
 extern __global__ void kernel_sumatoriaAB3(double* __restrict__ Yn3, const double* __restrict__ Yn2, const double* __restrict__ Fn2, const double* __restrict__ Fn1, const double* __restrict__ Fn0);
 extern __global__ void kernel_sumatoriaAB4(double* __restrict__ Yn4, const double* __restrict__ Yn3, const double* __restrict__ Fn3, const double* __restrict__ Fn2, const double* __restrict__ Fn1, const double* __restrict__ Fn0);
 
-
-struct Params_AdamsMoulton {
-    int neqn;
-    double h;
-    double h2;
-    double h12;
-    double h24;
-    double h720;
-};
-
 // Variable en memoria constante (vive en la GPU)
 __constant__ Params_AdamsMoulton cteAM;
 
