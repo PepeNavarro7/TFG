@@ -11,6 +11,7 @@ PROB3 := brusselator1d
 PROB4 := brusselator1d_shuffle
 PROB5 := brusselator1d_grid
 PROB6 := brusselator2d
+PROB7 := brusselator2d_shuffle
 PROB0 := prueba
 
 DIR_H := Headers
@@ -18,21 +19,27 @@ DIR_O := Obj
 DIR_S := Source
 DIR_D := Datos
 
-ALL_HEADERS := $(DIR_H)/$(METOD).h  $(DIR_H)/$(RUNGE).h  $(DIR_H)/$(BASHF).h  $(DIR_H)/$(MOULT).h  \
-			   $(DIR_H)/$(PROBP).h  $(DIR_H)/$(PROB1).h  $(DIR_H)/$(PROB2).h  $(DIR_H)/$(PROB3).h  $(DIR_H)/$(PROB4).h  $(DIR_H)/$(PROB5).h  $(DIR_H)/$(PROB6).h #$(DIR_H)/$(PROB0).h
+ALL_HEADERS := $(DIR_H)/$(METOD).h  $(DIR_H)/$(PROBP).h \
+			   $(DIR_H)/$(RUNGE).h  $(DIR_H)/$(BASHF).h  $(DIR_H)/$(MOULT).h  $(DIR_H)/$(RUN_G).h \
+			   $(DIR_H)/$(PROB1).h  $(DIR_H)/$(PROB2).h  $(DIR_H)/$(PROB3).h  $(DIR_H)/$(PROB4).h \
+			   $(DIR_H)/$(PROB5).h  $(DIR_H)/$(PROB6).h  $(DIR_H)/$(PROB7).h #$(DIR_H)/$(PROB0).h
   
 
-ALL_OBJ     := $(DIR_O)/$(METOD).o  $(DIR_O)/$(RUNGE).o  $(DIR_O)/$(BASHF).o  $(DIR_O)/$(MOULT).o  \
-			   $(DIR_O)/$(PROBP).o  $(DIR_O)/$(PROB1).o  $(DIR_O)/$(PROB2).o  $(DIR_O)/$(PROB3).o  $(DIR_O)/$(PROB4).o  $(DIR_O)/$(PROB5).o  $(DIR_O)/$(PROB6).o #$(DIR_O)/$(PROB0).o
+ALL_OBJ     := $(DIR_O)/$(METOD).o  $(DIR_O)/$(PROBP).o \
+			   $(DIR_O)/$(RUNGE).o  $(DIR_O)/$(BASHF).o  $(DIR_O)/$(MOULT).o  $(DIR_O)/$(RUN_G).o \
+			   $(DIR_O)/$(PROB1).o  $(DIR_O)/$(PROB2).o  $(DIR_O)/$(PROB3).o  $(DIR_O)/$(PROB4).o \
+			   $(DIR_O)/$(PROB5).o  $(DIR_O)/$(PROB6).o  $(DIR_O)/$(PROB7).o #$(DIR_O)/$(PROB0).o
  
 
-ALL_SRC     := $(DIR_S)/$(METOD).cu $(DIR_S)/$(RUNGE).cu $(DIR_S)/$(BASHF).cu $(DIR_S)/$(MOULT).cu \
-			   $(DIR_S)/$(PROBP).cu $(DIR_S)/$(PROB1).cu $(DIR_S)/$(PROB2).cu $(DIR_S)/$(PROB3).cu $(DIR_S)/$(PROB4).cu $(DIR_S)/$(PROB5).cu $(DIR_S)/$(PROB6).cu #$(DIR_S)/$(PROB0).cu
+ALL_SRC     := $(DIR_S)/$(METOD).cu $(DIR_S)/$(PROBP).cu \
+			   $(DIR_S)/$(RUNGE).cu $(DIR_S)/$(BASHF).cu $(DIR_S)/$(MOULT).cu $(DIR_S)/$(RUN_G).cu \
+			   $(DIR_S)/$(PROB1).cu $(DIR_S)/$(PROB2).cu $(DIR_S)/$(PROB3).cu $(DIR_S)/$(PROB4).cu \
+			   $(DIR_S)/$(PROB5).cu $(DIR_S)/$(PROB6).cu $(DIR_S)/$(PROB7).cu #$(DIR_S)/$(PROB0).cu
  
 			   
 ALL_DATA    := $(DIR_D)/datos0.txt   $(DIR_D)/datos1.txt 
 
-CC := nvcc
+CC := nvcc -rdc=true
 LIBS := -L/usr/local/cuda/lib64 -lcuda -lcudart
 
 NUM_PROBS := 1 2 3 4

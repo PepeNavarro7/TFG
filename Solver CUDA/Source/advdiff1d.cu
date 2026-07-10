@@ -98,7 +98,7 @@ __global__ void kernel2_advdiff1d(const double t, const double* __restrict__ Y, 
 void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
     kernel_advdiff1d<<<this->grid,this->block>>>(t, Y, DY);
 }
-void advdiff1d::feval (const double *Y, double* DY, cudaStream_t stream) const {
+void advdiff1d::feval (const double &h, const double *Y, double* DY, cudaStream_t stream) const {
     kernel_advdiff1d<<<this->grid, this->block, 0, stream>>>(0.0, Y, DY);
 }
 

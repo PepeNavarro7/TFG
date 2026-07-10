@@ -11,15 +11,16 @@
 #include "RungeKutta.h"
 #include "AdamsBashford.h"
 #include "AdamsMoulton.h"
-//#include "RungeKutta_graph.h"
+#include "RungeKutta_graph.h"
 
 #include "Problema.h"
 #include "simpleadvdiff1d.h"
 #include "advdiff1d.h"
 #include "brusselator1d.h"
-#include "brusselator2d.h"
 #include "brusselator1d_grid.h"
 #include "brusselator1d_shuffle.h"
+#include "brusselator2d.h"
+#include "brusselator2d_shuffle.h"
 //#include "prueba.h"
 
 using namespace std;
@@ -45,9 +46,9 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		salto = atoi(argv[8]); 				// Salto en la forma 10^-X -> [5,7]
 	const double h = pow(10,(-1*salto));	// Valor de salto h
 	const int num_iter = (tf-t0)/h; 		// Numero de iteraciones que se realizarán
-	assertm(num_metodo>=1 && num_metodo<=3, "Metodo a utilizar -> [1,3]");
+	assertm(num_metodo>=1 && num_metodo<=4, "Metodo a utilizar -> [1,4]");
 	assertm(orden_metodo>=1 && orden_metodo<=5, "Orden del metodo -> [1,5]");
-	assertm(num_problema>=0 && num_problema<=6, "Problema a ejecutar -> [0,6]");
+	assertm(num_problema>=0 && num_problema<=7, "Problema a ejecutar -> [0,7]");
 	assertm(num_hebras%32 == 0, "Numero de hebras -> X%32==0");
 
     // Objetos y puntero de los diferentes problemas
@@ -55,9 +56,10 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	simpleadvdiff1d simpleadvdiff1d(num_points, num_hebras);// 1D_Simple Advection-Diffusion
 	advdiff1d advdiff1d(num_points, num_hebras); 			// 1D Advection-Diffusion model 
 	brusselator1d brusselator1d(num_points, num_hebras); 	// 1D Brusselator model 
-	brusselator1d_shuffle brusselator1d_shuffle(num_points, num_hebras); // 1D Brusselator model con grid multidimensional
+	brusselator1d_shuffle brusselator1d_shuffle(num_points, num_hebras); // 1D Brusselator model con shuffle
 	brusselator1d_grid brusselator1d_grid(num_points, num_hebras); // 1D Brusselator model con grid multidimensional
-	brusselator2d brusselator2d(num_points, num_hebras); 	// 2D Brusselator model 
+	brusselator2d brusselator2d(num_points, num_hebras); 	// 2D Brusselator model
+	brusselator2d_shuffle brusselator2d_shuffle(num_points, num_hebras); 	// 2D Brusselator model con shuffle
 	Problema *ptr_problema; 					// Puntero al problema seleccionado
 	switch(num_problema){
 		//case 0: ptr_problema=&prueba; break;
@@ -67,6 +69,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		case 4: ptr_problema=&brusselator1d_shuffle; break;
 		case 5: ptr_problema=&brusselator1d_grid; break;
 		case 6: ptr_problema=&brusselator2d; break;
+		case 7: ptr_problema=&brusselator2d_shuffle; break;
 		default: ptr_problema=NULL; break;
 	}
 
@@ -75,23 +78,18 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	RungeKutta RungeKutta(neqn, orden_metodo, num_hebras); 						// Objeto para aplicar Runge-Kutta y sus operaciones asociadas
 	AdamsBashford AdamsBashford(neqn, orden_metodo, num_hebras, &RungeKutta); 	// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
 	AdamsMoulton AdamsMoulton(neqn, orden_metodo, num_hebras, &RungeKutta, &AdamsBashford); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
-	//RungeKutta_graph RungeKutta_graph(neqn, orden_metodo, num_hebras); 
+	RungeKutta_graph RungeKutta_graph(neqn, orden_metodo, num_hebras, &RungeKutta); 
 	Metodo *ptr_metodo; 											// Puntero al metodo seleccionado
 	switch(num_metodo){
 		case 1: ptr_metodo=&RungeKutta; break;
 		case 2: ptr_metodo=&AdamsBashford; break;
 		case 3: ptr_metodo=&AdamsMoulton; break;
-		//case 4: ptr_metodo=&RungeKutta_graph; break;
+		case 4: ptr_metodo=&RungeKutta_graph; break;
 		default: ptr_metodo=NULL; break;
 	}
 
-	cout << "Check de memorias(metodo): neqn=" << ptr_metodo->get_neqn() << " Grid de " << ptr_metodo->get_num_blocks() << " por " 
-		<< ptr_metodo->get_tam_blocks() << " threads y NUM_BYTES=" << ptr_metodo->get_bytes() << endl;
-	cout << "Check de memorias(problema): neqn=" << ptr_problema->get_num_ODEs() << " Grid de " << ptr_problema->get_grid().x << " por " 
-		<< ptr_problema->get_block().x << " threads y NUM_BYTES=" << ptr_problema->get_bytes() << endl;
-
 	double *Y0_host = new double[neqn], // Vector de entrada
-		*Yf_host = new double[neqn]; // Vector de salida
+		   *Yf_host = new double[neqn]; // Vector de salida
 	ptr_problema->init(Y0_host); // Inicializamos el vector inicial
 	ptr_problema->archivo("datos0.txt",Y0_host);// Guardamos en un txt los valores iniciales
 	auto timeIni = std::chrono::high_resolution_clock::now(); // Obtenemos el tiempo antes de computar
@@ -101,10 +99,9 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	double tiempo_ms = std::chrono::duration<double, std::milli>(timeFin-timeIni).count(); // Calculamos el tiempo en milisegundos
 	double tiempo_m = (tiempo_ms/1000.0)/60.0; // Calculamos el tiempo en minutos
 	
-	
 	cout << "\nProblema " << num_problema << " -> " << ptr_problema->get_name() << endl;
 	cout << "Metodo de resolucion -> " << ptr_metodo->get_name() << " de orden " << ptr_metodo->get_orden() << endl;
-	cout << "Tamaño del vector-> " << num_points << endl;
+	cout << "Tamaño del vector -> " << num_points << endl;
 	cout << "Numero de ecuaciones -> " << ptr_problema->get_num_ODEs() << endl;
 	cout << "T0 = " << t0 << " y tf = " << tf << endl;
 	cout << "Salto h=" << h << " -> " << num_iter << " iteraciones" << endl;

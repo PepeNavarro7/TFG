@@ -70,7 +70,7 @@ __global__ void kernel_brusselator1d_shuffle (const double t, const double* __re
 void brusselator1d_shuffle::feval (const double &t, const double *Y, double *DY) const {
     kernel_brusselator1d_shuffle<<<this->grid,this->block>>>(t,Y,DY);
 }
-void brusselator1d_shuffle::feval (const double *Y, double* DY, cudaStream_t stream) const {
+void brusselator1d_shuffle::feval (const double &h, const double *Y, double* DY, cudaStream_t stream) const {
     kernel_brusselator1d_shuffle<<<this->grid, this->block, 0, stream>>>(0.0, Y, DY);
 }
   

@@ -76,7 +76,7 @@ __global__ void kernel_brusselator1d_grid (const double t, const double* __restr
 void brusselator1d_grid::feval (const double &t, const double *Y, double *DY) const {
     kernel_brusselator1d_grid<<<this->grid,this->block>>>(t,Y,DY);
 }
-void brusselator1d_grid::feval (const double *Y, double* DY, cudaStream_t stream) const {
+void brusselator1d_grid::feval (const double &h, const double *Y, double* DY, cudaStream_t stream) const {
     kernel_brusselator1d_grid<<<this->grid, this->block, 0, stream>>>(0.0, Y, DY);
 }
   

@@ -7,6 +7,7 @@
 
 using namespace std;
 
+
 // Exportamos al archivo los valores en dos columnas, el valor dtx y el valor correspondiente del vector
 void Problema::archivo1(const string &filename, const double *Y) const {
     string str = "./Datos/"+filename;

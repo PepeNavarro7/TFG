@@ -38,7 +38,7 @@ public:
     
     //vector system function for the nonstiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
     void feval (const double &t, const double *Y, double *DY) const override; 
-    void feval (const double *Y, double* DY, cudaStream_t stream) const override;
+    void feval (const double &h, const double *Y, double* DY, cudaStream_t stream) const override;
     
     // Exportar los datos a un archivo txt
     inline void archivo(const string &filename, const double *Y) const override { archivo2v2(filename,Y); };

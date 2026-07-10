@@ -9,7 +9,7 @@ using namespace std;
 __constant__ Params_Metodo cteMet;
 
 // Definicion de los valores constantes para el kernel
-void Metodo::update() const {
+void Metodo::updateN() const {
     Params_Metodo aux;
 
     aux.num = this->neqn;
