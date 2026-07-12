@@ -32,29 +32,43 @@ public:
     // Constructor of the class 
     brusselator2d(const int &nx_points, const int &threads):
         Problema(2.0*nx_points*nx_points, "Brusselator_2D", 1.0/(nx_points+1), dim3( (nx_points*nx_points*2.0+threads-1)/threads, 1, 1 ), dim3(threads,1,1)),
-        nx(nx_points), ny(nx_points), dtx_sq(dtx*dtx), DD(alpha/(dtx*dtx)) { };
+        nx(nx_points), ny(nx_points), dtx_sq(get_dtx()*get_dtx()), DD(alpha/(get_dtx()*get_dtx())) { };
 
     // Definicion de los valores constantes para el kernel
-    void updateConstants() const override;
+    virtual void updateConstants() const override;
 
     // Initialize stage vector Y0 with neqn components
-    void init(double* Y0) const override;
+    virtual void init(double* Y0) const override;
 
     //vector system function for the nonstiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-    void feval (const double &t, const double* Y, double* DY) const override;
-    void feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const override;
+    virtual void feval (const double &t, const double* Y, double* DY) const override;
+    virtual void feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const override;
 
     // Exportar los datos a un archivo txt
-    inline void archivo(const string &filename, const double *Y) const override { archivo3(filename,Y); };
+    virtual inline void archivo(const string &filename, const double *Y) const override { archivo3(filename,Y); };
 
-    inline const void* get_t() const { return (const void*)&cte_br2d_t; }
+    virtual inline const void* get_t() const override{ return (const void*)&cte_br2d_t; }
 
-private:
+protected:
     // Auxiliary function f
     //double f(const int &i, const int &j, const double &t) const;
 
     // Indexation function which maps 2D spatial coordinates (i,j) to a 1D position in a vector
-    inline int idx(const int &i, const int &j, const int &k) const { return 2 * (i * ny + j) + k; } 
+    virtual inline int idx(const int &i, const int &j, const int &k) const { return 2 * (i * ny + j) + k; } 
+
+    // Constructor para las hijas
+    brusselator2d(const int &nx_points, const int &threads, const string &name):
+        Problema(2.0*nx_points*nx_points, name, 1.0/(nx_points+1), dim3( (nx_points*nx_points*2.0+threads-1)/threads, 1, 1 ), dim3(threads,1,1)),
+        nx(nx_points), ny(nx_points), dtx_sq(get_dtx()*get_dtx()), DD(alpha/(get_dtx()*get_dtx())) { };
+
+public:
+    inline double get_alpha() const { return alpha; }; 
+    inline double get_A() const { return A; }; 
+    inline double get_B() const { return B; }; 
+    inline double get_nx() const { return nx; }; 
+    inline double get_ny() const { return ny; }; 
+    inline double get_dtx_sq() const { return dtx_sq; }; 
+    inline double get_DD() const { return DD; };
 };
 
 #endif

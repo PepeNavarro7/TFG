@@ -14,11 +14,11 @@
 #include "RungeKutta_graph.h"
 
 #include "Problema.h"
-#include "simpleadvdiff1d.h"
-#include "advdiff1d.h"
+//#include "simpleadvdiff1d.h"
+//#include "advdiff1d.h"
 #include "brusselator1d.h"
-#include "brusselator1d_grid.h"
 #include "brusselator1d_shuffle.h"
+#include "brusselator1d_grid.h"
 #include "brusselator2d.h"
 #include "brusselator2d_shuffle.h"
 //#include "prueba.h"
@@ -53,8 +53,8 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 
     // Objetos y puntero de los diferentes problemas
 	//prueba prueba(num_points, num_hebras);
-	simpleadvdiff1d simpleadvdiff1d(num_points, num_hebras);// 1D_Simple Advection-Diffusion
-	advdiff1d advdiff1d(num_points, num_hebras); 			// 1D Advection-Diffusion model 
+	//simpleadvdiff1d simpleadvdiff1d(num_points, num_hebras);// 1D_Simple Advection-Diffusion
+	//advdiff1d advdiff1d(num_points, num_hebras); 			// 1D Advection-Diffusion model 
 	brusselator1d brusselator1d(num_points, num_hebras); 	// 1D Brusselator model 
 	brusselator1d_shuffle brusselator1d_shuffle(num_points, num_hebras); // 1D Brusselator model con shuffle
 	brusselator1d_grid brusselator1d_grid(num_points, num_hebras); // 1D Brusselator model con grid multidimensional
@@ -63,8 +63,8 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	Problema *ptr_problema; 					// Puntero al problema seleccionado
 	switch(num_problema){
 		//case 0: ptr_problema=&prueba; break;
-		case 1: ptr_problema=&simpleadvdiff1d; break;
-		case 2: ptr_problema=&advdiff1d; break;
+		//case 1: ptr_problema=&simpleadvdiff1d; break;
+		//case 2: ptr_problema=&advdiff1d; break;
 		case 3: ptr_problema=&brusselator1d; break;
 		case 4: ptr_problema=&brusselator1d_shuffle; break;
 		case 5: ptr_problema=&brusselator1d_grid; break;

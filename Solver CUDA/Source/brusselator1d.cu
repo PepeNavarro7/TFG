@@ -19,19 +19,19 @@ __constant__ double cte_br1d_t;
 void brusselator1d::updateConstants() const {
     Params_brusselator1d aux;
 
-    aux.neqn = this->neqn;
-    aux.nx = this->nx;
-    aux.A = this->A;
-    aux.B = this->B;
-    aux.DD = this->DD;
+    aux.neqn = get_num_ODEs();
+    aux.nx = nx;
+    aux.A = A;
+    aux.B = B;
+    aux.DD = DD;
 
     cudaMemcpyToSymbol(cte_br1d, &aux, sizeof(Params_brusselator1d));
 }
 
 void brusselator1d::init(double *Y0) const { 
     for (int i=0;i<nx;i++){  
-        double x_i=(double)(i+1)*dtx;
-        Y0[idx(i,0)]=A+sin(2*PI*x_i);
+        double x_i=(double)(i+1)*get_dtx();
+        Y0[idx(i,0)]=A+sin(2*get_PI()*x_i);
         Y0[idx(i,1)]=B;
     }  
 }
@@ -87,24 +87,13 @@ __global__ void graph_brusselator1d (const double offset, const double* __restri
 
 // Feval sin graph
 void brusselator1d::feval (const double &t, const double *Y, double *DY) const {
-    kernel_brusselator1d<<<this->grid,this->block>>>(t,Y,DY);
+    kernel_brusselator1d<<<get_grid(),get_block()>>>(t,Y,DY);
 }
 
 //Feval con graph
 void brusselator1d::feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const {
-    graph_brusselator1d<<<this->grid, this->block, 0, stream>>>(offset, Y, DY);
+    graph_brusselator1d<<<get_grid(),get_block(), 0, stream>>>(offset, Y, DY);
 }
 
-const void* brusselator1d::get_t() const { 
-    return (const void*)&cte_br1d_t; 
-}
-
-void brusselator1d::archivo(const string &filename, const double *Y) const { 
-    archivo2(filename,Y); 
-}
-
-int brusselator1d::idx(const int &i, const int &j) const { 
-    return i * 2 + j; 
-}
   
 #endif   

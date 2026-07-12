@@ -16,12 +16,12 @@ __constant__ double cte_br2d_t;
 void brusselator2d::updateConstants() const {
     Params_brusselator2d aux;
 
-    aux.neqn = this->neqn;
-    aux.nx = this->nx;
-    aux.A = this->A;
-    aux.B = this->B;
-    aux.dtx = this->dtx;
-    aux.DD = this->DD;
+    aux.neqn = get_num_ODEs();
+    aux.nx = nx;
+    aux.A = A;
+    aux.B = B;
+    aux.dtx = get_dtx();
+    aux.DD = DD;
 
     cudaMemcpyToSymbol(cte_br2d, &aux, sizeof(Params_brusselator2d));
 }
@@ -29,8 +29,8 @@ void brusselator2d::updateConstants() const {
 void brusselator2d::init(double* Y0) const {
     for (int i = 0; i < nx; i++) {
         for (int j = 0; j < ny; j++) {
-            double x_i = (double)(i + 1) * dtx;
-            double y_i = (double)(j + 1) * dtx;
+            double x_i = (double)(i + 1) * get_dtx();
+            double y_i = (double)(j + 1) * get_dtx();
             Y0[idx(i, j, 0)] = 22 * y_i * pow(1 - y_i, 1.5);
             Y0[idx(i, j, 1)] = 27 * x_i * pow(1 - x_i, 1.5);
         }
@@ -111,18 +111,10 @@ __global__ void graph_brusselator2d(const double offset, const double* __restric
 }
 
 void brusselator2d::feval(const double &t, const double* Y, double* DY) const {
-    kernel_brusselator2d<<<this->grid,this->block>>>(t, Y, DY);
+    kernel_brusselator2d<<<get_grid(),get_block()>>>(t, Y, DY);
 }
 void brusselator2d::feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const {
-    graph_brusselator2d<<<this->grid, this->block, 0, stream>>>(offset, Y, DY);
+    graph_brusselator2d<<<get_grid(),get_block(), 0, stream>>>(offset, Y, DY);
 }
-/* // Auxiliary function f
-double brusselator2d::f(const int &i, const int &j, const double &t) const {
-    const double x = (i + 1) * dtx, y = (j + 1) * dtx;
-    const double xmxc = x - 0.3, ymyc = y - 0.5;
-    const double r = 0.1;
-    const double result = ((xmxc * xmxc + ymyc * ymyc) <= r * r && t >= 1.1) ? 5.0 : 0.0;
-    return result;
-}*/
 
 #endif

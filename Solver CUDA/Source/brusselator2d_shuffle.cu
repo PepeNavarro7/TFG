@@ -16,25 +16,14 @@ __constant__ double cte_br2ds_t; // Constante que utilizará el graph
 void brusselator2d_shuffle::updateConstants() const {
     Params_brusselator2d aux;
 
-    aux.neqn = this->neqn;
-    aux.nx = this->nx;
-    aux.A = this->A;
-    aux.B = this->B;
-    aux.dtx = this->dtx;
-    aux.DD = this->DD;
+    aux.neqn = get_num_ODEs();
+    aux.nx = get_nx();
+    aux.A = get_A();
+    aux.B = get_B();
+    aux.dtx = get_dtx();
+    aux.DD = get_DD();
 
     cudaMemcpyToSymbol(cte_br2ds, &aux, sizeof(Params_brusselator2d));
-}
-
-void brusselator2d_shuffle::init(double* Y0) const {
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
-            double x_i = (double)(i + 1) * dtx;
-            double y_i = (double)(j + 1) * dtx;
-            Y0[idx(i, j, 0)] = 22 * y_i * pow(1 - y_i, 1.5);
-            Y0[idx(i, j, 1)] = 27 * x_i * pow(1 - x_i, 1.5);
-        }
-    }
 }
 
 // Version del Kernel en la que usamos shuffle
@@ -129,10 +118,10 @@ __global__ void graph_brusselator2d_shuffle(const double offset, const double* _
 }
 
 void brusselator2d_shuffle::feval(const double &t, const double* Y, double* DY) const {
-    kernel_brusselator2d_shuffle<<<this->grid,this->block>>>(t, Y, DY);
+    kernel_brusselator2d_shuffle<<<get_grid(),get_block()>>>(t, Y, DY);
 }
 void brusselator2d_shuffle::feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const {
-    graph_brusselator2d_shuffle<<<this->grid, this->block, 0, stream>>>(offset, Y, DY);
+    graph_brusselator2d_shuffle<<<get_grid(),get_block(), 0, stream>>>(offset, Y, DY);
 }
 
 #endif

@@ -18,11 +18,11 @@ __constant__ double cte_br1dg_t;
 void brusselator1d_grid::updateConstants() const {
     Params_brusselator1d aux;
 
-    aux.neqn = this->neqn;
-    aux.nx = this->nx;
-    aux.A = this->A;
-    aux.B = this->B;
-    aux.DD = this->DD;
+    aux.neqn = get_num_ODEs();
+    aux.nx = get_nx();
+    aux.A = get_A();
+    aux.B = get_B();
+    aux.DD = get_DD();
 
     cudaMemcpyToSymbol(cte_br1dg, &aux, sizeof(Params_brusselator1d));
 }
@@ -32,12 +32,12 @@ void brusselator1d_grid::updateConstants() const {
 // ahora tendremos un Structure of Arrays -> [0u, 1u...n-1u, 0v, 1v...n-1v]
 void brusselator1d_grid::init(double *Y0) const { 
     for(int z=0; z<2; ++z){
-        for (int i=0;i<nx;i++){  
-            double x_i=(double)(i+1)*dtx;
-            Y0[z*nx+i]= z==0 ? A+sin(2*PI*x_i) : B;
+        for (int i=0;i<get_nx();i++){  
+            double x_i=(double)(i+1)*get_dtx();
+            const int x = z*get_nx()+i;
+            Y0[x]= z==0 ? get_A()+sin(2*get_PI()*x_i) : get_B();
         }  
     }
-    
 }
 
 // Con esta ordenación, los u->z==0, y los v->z==1
@@ -110,10 +110,10 @@ __global__ void graph_brusselator1d_grid (const double offset, const double* __r
 }
 
 void brusselator1d_grid::feval (const double &t, const double *Y, double *DY) const {
-    kernel_brusselator1d_grid<<<this->grid,this->block>>>(t,Y,DY);
+    kernel_brusselator1d_grid<<<get_grid(),get_block()>>>(t,Y,DY);
 }
 void brusselator1d_grid::feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const {
-    graph_brusselator1d_grid<<<this->grid, this->block, 0, stream>>>(offset, Y, DY);
+    graph_brusselator1d_grid<<<get_grid(),get_block(), 0, stream>>>(offset, Y, DY);
 }
   
 #endif   

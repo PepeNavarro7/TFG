@@ -1,7 +1,6 @@
 #ifndef BRUSSELATOR1D_GRID_H
 #define BRUSSELATOR1D_GRID_H
 
-#include "Problema.h"
 #include "brusselator1d.h"
 
 using namespace std;
@@ -12,19 +11,11 @@ extern __constant__ Params_brusselator1d cte_br1dg; // Estructura de datos const
 // PROBLEMA 3
 // Class for the IVP-ODE representing the 1D Brusselator model 
 
-class brusselator1d_grid:public Problema{
-
-private:
-    const double alpha=1.0/50.0, A=1.0, B=3.0; // variables auxiliares para el calculo
-    const int nx; // number of grid points at each dimension
-    const double dtx_sq; // Spatial step squared
-    const double DD;
-        
+class brusselator1d_grid:public brusselator1d{       
 public:
     // Constructor of the class 
     brusselator1d_grid(const int &nx_points, const int &threads):
-        Problema(nx_points*2.0, "Brusselator_1D_grid", (1.0/(nx_points+1.0)), dim3( (nx_points*2.0+threads-1)/threads, 1, 1 ), dim3(threads/2,2,1)),
-        nx(nx_points), dtx_sq(dtx*dtx), DD(alpha/(dtx*dtx)) { };
+        brusselator1d(nx_points, threads, "Brusselator_1D grid", dim3(threads/2,2,1)){};
 
     // Definicion de los valores constantes para el kernel
     void updateConstants() const override;
@@ -39,14 +30,11 @@ public:
     // Exportar los datos a un archivo txt
     inline void archivo(const string &filename, const double *Y) const override { archivo2v2(filename,Y); };
 
-    inline const void* get_t() const { return (const void*)&cte_br1dg_t; }
+    inline const void* get_t() const override { return (const void*)&cte_br1dg_t; }
     
-private:
-    // Auxiliary function f
-    //inline double f(const double &y) const { return( ((y-0.7)*(y-1.3)) / ((y-0.7)*(y-1.3)+0.1) ); };
-    
+private:    
     // Indexation function which maps 2D spatial coordinates (i,j) to a 1D position in a vector
-    inline int idx(const int &i, const int &j) const { return i + j * nx; };
+    inline int idx(const int &i, const int &j) const override { return i + j * get_nx(); };
 };
   
 #endif 
