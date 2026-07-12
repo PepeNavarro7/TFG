@@ -17,6 +17,7 @@ extern __global__ void kernel_sumatoriaRK3(double* __restrict__ Yn, const double
 extern __global__ void kernel_sumatoriaRK2(double* __restrict__ Yn, const double* __restrict__ K1, const double* __restrict__ K2);
 
 void RungeKutta_graph::updateConstants(const int &neqn, const double &h) const {
+    // Esta clase no tiene kernels (ni constantes propias por tanto) y llama al RK original
     ptr_runge->updateConstants(neqn, h);
 }
 
@@ -86,7 +87,7 @@ void RungeKutta_graph::aplicar(Problema* problema, const double &t0, const doubl
     // Aqui tenemos el bucle principal en el que lanzamos el graph
     for (double tn = t0; tn < tf; tn += h) {
         // Usamos memoria constante en device (c_t) y actualizarla antes del launch.
-        cudaMemcpyToSymbolAsync(cte_t, &tn, sizeof(double), 0, cudaMemcpyHostToDevice, stream);
+        cudaMemcpyToSymbolAsync(problema->get_t(), &tn, sizeof(double), 0, cudaMemcpyHostToDevice, stream);
         cudaGraphLaunch(instance, stream);
     }
 

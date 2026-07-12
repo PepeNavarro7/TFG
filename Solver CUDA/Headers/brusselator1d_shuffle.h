@@ -2,18 +2,14 @@
 #define BRUSSELATOR1D_SHUFFLE_H
 
 #include "Problema.h"
+#include "brusselator1d.h"
 
 using namespace std;
 
-// PROBLEMA 3
-struct Params_brusselator1d_shuffle {
-    int neqn;
-    int nx;
-    double A;
-    double B;
-    double DD;
-};
+extern __constant__ double cte_br1ds_t; // Constante que utilizará el graph
+extern __constant__ Params_brusselator1d cte_br1ds; // Estructura de datos constantes para los kernel
 
+// PROBLEMA 3
 // Class for the IVP-ODE representing the 1D Brusselator model 
 class brusselator1d_shuffle:public Problema{
 
@@ -37,10 +33,12 @@ public:
     
     //vector system function for the nonstiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
     void feval (const double &t, const double *Y, double *DY) const override; 
-    void feval (const double &h, const double *Y, double* DY, cudaStream_t stream) const override;
+    void feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const override;
     
     // Exportar los datos a un archivo txt
     inline void archivo(const string &filename, const double *Y) const override { archivo2(filename,Y); };
+
+    inline const void* get_t() const { return (const void*)&cte_br1ds_t; }
     
 private:
     // Auxiliary function f

@@ -8,8 +8,9 @@
 using namespace std;
 
 // PROBLEMA 2
-// Variable en memoria constante (vive en la GPU)
-__constant__ Params_advdiff1d cte2;
+// Variables en memoria constante (viven en la GPU)
+ __constant__ Params_advdiff1d cte_avd1; // Estructura de datos constantes para los kernel
+ __constant__ double cte_avd1_t; // Constante que utilizará el graph
 
 // Definicion de los valores constantes para el kernel
 void advdiff1d::updateConstants() const {
@@ -23,7 +24,7 @@ void advdiff1d::updateConstants() const {
     aux.a = this->a;
     aux.d = this->d;
 
-    cudaMemcpyToSymbol(cte2, &aux, sizeof(Params_advdiff1d));
+    cudaMemcpyToSymbol(cte_avd1, &aux, sizeof(Params_advdiff1d));
 }
 
 // Initialize stage vector Y0 with neqn components
@@ -36,10 +37,10 @@ void advdiff1d::init(double *Y0) const {
 
 // Kernel para paralelizar con CUDA el feval del problema
 __global__ void kernel_advdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
-    const int thread = blockDim.x * blockIdx.x + threadIdx.x;
-    const int ult = cte2.neqn-1;
+    const int thread = blockDim.x * blockIdx.x + threadIdx.x,
+            ult = cte_avd1.neqn-1;
 
-    if(thread<cte2.neqn){
+    if(thread<cte_avd1.neqn){
         // Indice de los vecinos + frontera
         const int i_ant =  thread==0  ? ult : thread-1,
                   i_pst = thread==ult ?  0  : thread+1;
@@ -49,14 +50,42 @@ __global__ void kernel_advdiff1d(const double t, const double* __restrict__ Y, d
                      val_pst = Y[i_pst];
         
         // Realizamos los calculos
-        DY[thread] = cte2.d * (val_pst -    2.0 * valor    + val_ant) * cte2.dtx_sq_inv
-                   - cte2.a * (val_pst * val_pst - val_ant * val_ant) * cte2.dtx_4_inv;
+        DY[thread] = cte_avd1.d * (val_pst -    2.0 * valor    + val_ant) * cte_avd1.dtx_sq_inv
+                   - cte_avd1.a * (val_pst * val_pst - val_ant * val_ant) * cte_avd1.dtx_4_inv;
 
-        const double x = (thread+1) * cte2.dtx;
-        const double pi2xpt = 2.0 * cte2.PI * x + t;
+        const double x = (thread+1) * cte_avd1.dtx;
+        const double pi2xpt = 2.0 * cte_avd1.PI * x + t;
         const double c=cos(pi2xpt), s=sin(pi2xpt); 
-        const double res = c + 2.0 * cte2.a * cte2.PI * s * c 
-                         + 4.0 * cte2.d * cte2.PI * cte2.PI * s - s;
+        const double res = c + 2.0 * cte_avd1.a * cte_avd1.PI * s * c 
+                         + 4.0 * cte_avd1.d * cte_avd1.PI * cte_avd1.PI * s - s;
+
+        DY[thread] += Y[thread] + res;
+    }
+}
+
+__global__ void graph_advdiff1d(const double offset, const double* __restrict__ Y, double* __restrict__ DY){
+    const double t = cte_avd1_t + offset;
+    const int thread = blockDim.x * blockIdx.x + threadIdx.x,
+            ult = cte_avd1.neqn-1;
+
+    if(thread<cte_avd1.neqn){
+        // Indice de los vecinos + frontera
+        const int i_ant =  thread==0  ? ult : thread-1,
+                  i_pst = thread==ult ?  0  : thread+1;
+        // Obtenemos los valores
+        const double val_ant = Y[i_ant],
+                     valor   = Y[thread],
+                     val_pst = Y[i_pst];
+        
+        // Realizamos los calculos
+        DY[thread] = cte_avd1.d * (val_pst -    2.0 * valor    + val_ant) * cte_avd1.dtx_sq_inv
+                   - cte_avd1.a * (val_pst * val_pst - val_ant * val_ant) * cte_avd1.dtx_4_inv;
+
+        const double x = (thread+1) * cte_avd1.dtx;
+        const double pi2xpt = 2.0 * cte_avd1.PI * x + t;
+        const double c=cos(pi2xpt), s=sin(pi2xpt); 
+        const double res = c + 2.0 * cte_avd1.a * cte_avd1.PI * s * c 
+                         + 4.0 * cte_avd1.d * cte_avd1.PI * cte_avd1.PI * s - s;
 
         DY[thread] += Y[thread] + res;
     }
@@ -65,10 +94,10 @@ __global__ void kernel_advdiff1d(const double t, const double* __restrict__ Y, d
 // Version del Kernel en la que usamos shuffle
 __global__ void kernel2_advdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
     const int thread = blockDim.x * blockIdx.x + threadIdx.x,
-        ult = cte2.neqn-1, // Ultimo valor
+        ult = cte_avd1.neqn-1, // Ultimo valor
         lane = threadIdx.x & 31; // Posicion en el warp -> th%32
 
-    if(thread<cte2.neqn){
+    if(thread<cte_avd1.neqn){
         const unsigned mask = 0xFFFFFFFF;
         const double valor = Y[thread];
 
@@ -82,14 +111,14 @@ __global__ void kernel2_advdiff1d(const double t, const double* __restrict__ Y, 
         if(lane==31 || thread==ult)
             val_pst = thread==ult ?  Y[0]  : Y[thread+1]; 
         
-        DY[thread] = cte2.d * (val_pst -    2.0 * valor    + val_ant) * cte2.dtx_sq_inv
-                   - cte2.a * (val_pst * val_pst - val_ant * val_ant) * cte2.dtx_4_inv;
+        DY[thread] = cte_avd1.d * (val_pst -    2.0 * valor    + val_ant) * cte_avd1.dtx_sq_inv
+                   - cte_avd1.a * (val_pst * val_pst - val_ant * val_ant) * cte_avd1.dtx_4_inv;
 
-        const double x = (thread+1) * cte2.dtx;
-        const double pi2xpt = 2.0 * cte2.PI * x + t;
+        const double x = (thread+1) * cte_avd1.dtx;
+        const double pi2xpt = 2.0 * cte_avd1.PI * x + t;
         const double c=cos(pi2xpt), s=sin(pi2xpt); 
-        const double res = c + 2.0 * cte2.a * cte2.PI * s * c 
-                         + 4.0 * cte2.d * cte2.PI * cte2.PI * s - s;
+        const double res = c + 2.0 * cte_avd1.a * cte_avd1.PI * s * c 
+                         + 4.0 * cte_avd1.d * cte_avd1.PI * cte_avd1.PI * s - s;
 
         DY[thread] += Y[thread] + res;
     }
@@ -98,8 +127,8 @@ __global__ void kernel2_advdiff1d(const double t, const double* __restrict__ Y, 
 void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
     kernel_advdiff1d<<<this->grid,this->block>>>(t, Y, DY);
 }
-void advdiff1d::feval (const double &h, const double *Y, double* DY, cudaStream_t stream) const {
-    kernel_advdiff1d<<<this->grid, this->block, 0, stream>>>(0.0, Y, DY);
+void advdiff1d::feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const {
+    graph_advdiff1d<<<this->grid, this->block, 0, stream>>>(offset, Y, DY);
 }
 
 

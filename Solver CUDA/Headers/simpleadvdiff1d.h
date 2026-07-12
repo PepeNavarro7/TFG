@@ -14,6 +14,9 @@ struct Params_simpleadvdiff1d {
     double d;
 };
 
+extern __constant__ Params_simpleadvdiff1d cte_savd; // Estructura de datos constantes para los kernel
+extern __constant__ double cte_savd_t; // Constante que utilizará el graph
+
 // Class for the IVP-ODE representing a 1D Advection-Diffusion model 
 class simpleadvdiff1d: public Problema {
 
@@ -38,9 +41,10 @@ public:
 
     //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
     void feval (const double &t, const double *Y, double *DY) const override;
-    void feval (const double &h, const double *Y, double* DY, cudaStream_t stream) const override;
-
+    void feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const override;
 
     inline void archivo (const string &filename, const double *Y) const override { archivo1(filename,Y); };
+
+    inline const void* get_t() const { return (const void*)&cte_savd_t; }
 };
 #endif

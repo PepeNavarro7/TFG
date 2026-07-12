@@ -6,8 +6,6 @@ using namespace std;
 #include <string>
 #include <cmath>
 
-extern __constant__ double cte_t;
-
 class Problema{
 protected:
     const double PI = 3.14159265358979; 
@@ -30,8 +28,9 @@ public:
     virtual void updateConstants() const = 0; // Definicion de los valores constantes para el kernel
     virtual void init(double *Y0) const = 0;
     virtual void feval (const double &t, const double *Y, double *DY) const = 0; // Evaluacion de la exprexion, G+F
-    virtual void feval (const double &h, const double* Y, double *DY, cudaStream_t stream) const = 0; // Overload de feval con streams
+    virtual void feval (const double &offset, const double* Y, double *DY, cudaStream_t stream) const = 0; // Overload de feval con streams
     virtual void archivo (const string &filename, const double *Y) const = 0;
+    virtual const void* get_t() const = 0;
 
     inline int get_num_ODEs() const { return neqn; };
     inline string get_name() const { return name; };
