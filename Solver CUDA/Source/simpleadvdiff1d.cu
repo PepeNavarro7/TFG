@@ -18,7 +18,7 @@ __constant__ double cte_savd_t; // Constante que utilizará el graph
 void simpleadvdiff1d::updateConstants() const {
     Params_simpleadvdiff1d aux;
 
-    aux.neqn = neqn;
+    aux.neqn = get_num_ODEs();
     aux.dtx_2_inv  = 1.0 / dtx_2;
     aux.dtx_sq_inv = 1.0 / dtx_sq;
     aux.a = a;
@@ -29,9 +29,9 @@ void simpleadvdiff1d::updateConstants() const {
 
 // Initialize stage vector Y0 with neqn components
 void simpleadvdiff1d::init(double *Y0) const {
-    for (int i=0;i<neqn;i++) { 
-        double x_i=(double)(i+1)*dtx;
-        Y0[i]=sin(2.0*PI*x_i);
+    for (int i=0;i<get_num_ODEs();i++) { 
+        double x_i=(double)(i+1)*get_dtx();
+        Y0[i]=sin(2.0*get_PI()*x_i);
     }
 }
 
@@ -96,10 +96,10 @@ __global__ void kernel2_simpleadvdiff1d(const double t, const double* __restrict
 
 //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
 void simpleadvdiff1d::feval(const double &t, const double* Y, double* DY) const {
-    kernel_simpleadvdiff1d<<<grid, block>>>(t, Y, DY);
+    kernel_simpleadvdiff1d<<<get_grid(), get_block()>>>(t, Y, DY);
 }
 void simpleadvdiff1d::feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const {
-    graph_simpleadvdiff1d<<<this->grid, this->block, 0, stream>>>(offset, Y, DY);
+    graph_simpleadvdiff1d<<<get_grid(), get_block(), 0, stream>>>(offset, Y, DY);
 }
 
 #endif

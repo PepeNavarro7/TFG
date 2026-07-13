@@ -17,6 +17,7 @@ struct Params_AdamsMoulton {
     double h720;
 };
 
+extern __constant__ Params_AdamsMoulton cte_AM;
 
 class AdamsMoulton: public Metodo{
 private:

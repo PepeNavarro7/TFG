@@ -31,20 +31,30 @@ public:
     // Constructor of the class
     simpleadvdiff1d(const int &nx_points, const int &threads):
         Problema(nx_points, "1D_Simple Advection-Diffusion", (1.0/nx_points), dim3( (nx_points+threads-1)/threads,1,1 ), dim3(threads,1,1)),
-        nx(nx_points), dtx_2(2.0*dtx), dtx_sq(dtx*dtx) { };
+        nx(nx_points), dtx_2(2.0*get_dtx()), dtx_sq(get_dtx()*get_dtx()) { };
 
     // Definicion de los valores constantes para el kernel
-    void updateConstants() const override;
+    virtual void updateConstants() const override;
     
     // Initialize stage vector Y0 with neqn components
     void init(double *Y0) const override; 
 
     //vector system function for the stiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-    void feval (const double &t, const double *Y, double *DY) const override;
-    void feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const override;
+    virtual void feval (const double &t, const double *Y, double *DY) const override;
+    virtual void feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const override;
 
     inline void archivo (const string &filename, const double *Y) const override { archivo1(filename,Y); };
 
-    inline const void* get_t() const { return (const void*)&cte_savd_t; }
+    virtual inline const void* get_t() const { return (const void*)&cte_savd_t; }
+protected:
+    simpleadvdiff1d(const int &nx_points, const int &threads, const string &name):
+        Problema(nx_points, name, (1.0/nx_points), dim3( (nx_points+threads-1)/threads,1,1 ), dim3(threads,1,1)),
+        nx(nx_points), dtx_2(2.0*get_dtx()), dtx_sq(get_dtx()*get_dtx()) { };
+public:
+    inline int get_nx () const { return nx; };
+    inline double get_dtx_2 () const { return dtx_2; };
+    inline double get_dtx_sq () const { return dtx_sq; };
+    inline double get_a () const { return a; };
+    inline double get_d () const { return d; };
 };
 #endif
