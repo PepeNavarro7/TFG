@@ -12,7 +12,7 @@ __constant__ Params_Metodo cteMet;
 void Metodo::updateN() const {
     Params_Metodo aux;
 
-    aux.num = this->neqn;
+    aux.num = neqn;
 
     cudaMemcpyToSymbol(cteMet, &aux, sizeof(Params_Metodo));
 }

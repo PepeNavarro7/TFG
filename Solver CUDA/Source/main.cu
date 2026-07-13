@@ -9,9 +9,11 @@
 
 #include "Metodo.h"
 #include "RungeKutta.h"
-#include "AdamsBashford.h"
-#include "AdamsMoulton.h"
 #include "RungeKutta_graph.h"
+#include "AdamsBashford.h"
+#include "AdamsBashford_graph.h"
+//#include "AdamsMoulton.h"
+
 
 #include "Problema.h"
 //#include "simpleadvdiff1d.h"
@@ -76,15 +78,17 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	// Objetos y puntero de los metodos de resolucion
 	const int neqn = ptr_problema->get_num_ODEs(); 					// Obtenemos el numero de ODEs del problema
 	RungeKutta RungeKutta(neqn, orden_metodo, num_hebras); 						// Objeto para aplicar Runge-Kutta y sus operaciones asociadas
-	AdamsBashford AdamsBashford(neqn, orden_metodo, num_hebras, &RungeKutta); 	// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
-	AdamsMoulton AdamsMoulton(neqn, orden_metodo, num_hebras, &RungeKutta, &AdamsBashford); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
 	RungeKutta_graph RungeKutta_graph(neqn, orden_metodo, num_hebras, &RungeKutta); 
+	AdamsBashford AdamsBashford(neqn, orden_metodo, num_hebras, &RungeKutta); 	// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
+	AdamsBashford_graph AdamsBashford_graph(neqn, orden_metodo, num_hebras, &RungeKutta, &AdamsBashford);
+	//AdamsMoulton AdamsMoulton(neqn, orden_metodo, num_hebras, &RungeKutta, &AdamsBashford); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
 	Metodo *ptr_metodo; 											// Puntero al metodo seleccionado
 	switch(num_metodo){
 		case 1: ptr_metodo=&RungeKutta; break;
-		case 2: ptr_metodo=&AdamsBashford; break;
-		case 3: ptr_metodo=&AdamsMoulton; break;
-		case 4: ptr_metodo=&RungeKutta_graph; break;
+		case 2: ptr_metodo=&RungeKutta_graph; break;
+		case 3: ptr_metodo=&AdamsBashford; break;
+		case 4: ptr_metodo=&AdamsBashford_graph; break;
+		//case 4: ptr_metodo=&AdamsMoulton; break;
 		default: ptr_metodo=NULL; break;
 	}
 
