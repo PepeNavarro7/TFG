@@ -19,7 +19,7 @@ __constant__ double cte_br1d_t;
 void brusselator1d::updateConstants() const {
     Params_brusselator1d aux;
 
-    aux.neqn = get_num_ODEs();
+    aux.neqn = get_neqn();
     aux.nx = nx;
     aux.A = A;
     aux.B = B;

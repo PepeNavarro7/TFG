@@ -16,22 +16,22 @@ using namespace std;
 void advdiff1d::updateConstants() const {
     Params_advdiff1d aux;
 
-    aux.PI = 3.14159265358979;
-    aux.neqn = this->neqn;
-    aux.dtx = this->dtx;
-    aux.dtx_sq_inv = 1.0 / this->dtx_sq; 
-    aux.dtx_4_inv = 1.0 / this->dtx_4; 
-    aux.a = this->a;
-    aux.d = this->d;
+    aux.PI = get_PI();
+    aux.neqn = get_neqn();
+    aux.dtx = get_dtx();
+    aux.dtx_sq_inv = 1.0 / get_dtx_sq(); 
+    aux.dtx_4_inv = 1.0 / get_dtx_4(); 
+    aux.a = get_a();
+    aux.d = get_d();
 
     cudaMemcpyToSymbol(cte_avd1, &aux, sizeof(Params_advdiff1d));
 }
 
 // Initialize stage vector Y0 with neqn components
 void advdiff1d::init(double *Y0) const {
-    for (int i=0; i<neqn; ++i) { 
-        double x_i = (double)(i+1)*dtx;
-        Y0[i] = sin(2.0*PI*x_i);
+    for (int i=0; i<get_neqn(); ++i) { 
+        double x_i = (double)(i+1)*get_dtx();
+        Y0[i] = sin(2.0*get_PI()*x_i);
     }
 }
 
@@ -125,10 +125,10 @@ __global__ void kernel2_advdiff1d(const double t, const double* __restrict__ Y, 
 }
 
 void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
-    kernel_advdiff1d<<<this->grid,this->block>>>(t, Y, DY);
+    kernel_advdiff1d<<<get_grid(), get_block()>>>(t, Y, DY);
 }
 void advdiff1d::feval (const double &offset, const double *Y, double* DY, cudaStream_t stream) const {
-    graph_advdiff1d<<<this->grid, this->block, 0, stream>>>(offset, Y, DY);
+    graph_advdiff1d<<<get_grid(), get_block(), 0, stream>>>(offset, Y, DY);
 }
 
 

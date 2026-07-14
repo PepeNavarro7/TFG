@@ -17,8 +17,8 @@
 #include "Problema.h"
 #include "simpleadvdiff1d.h"
 #include "simpleadvdiff1d_shuffle.h"
-//#include "advdiff1d.h"
-//#include "advdiff1d_shuffle.h"
+#include "advdiff1d.h"
+#include "advdiff1d_shuffle.h"
 #include "brusselator1d.h"
 #include "brusselator1d_shuffle.h"
 #include "brusselator1d_grid.h"
@@ -60,8 +60,8 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	//prueba prueba(num_points, num_hebras);
 	simpleadvdiff1d simpleadvdiff1d(num_points, num_hebras);// 1D_Simple Advection-Diffusion
 	simpleadvdiff1d_shuffle simpleadvdiff1d_shuffle(num_points, num_hebras);
-	//advdiff1d advdiff1d(num_points, num_hebras); 			// 1D Advection-Diffusion model 
-	//advdiff1d_shuffle advdiff1d(num_points, num_hebras);
+	advdiff1d advdiff1d(num_points, num_hebras); 			// 1D Advection-Diffusion model 
+	advdiff1d_shuffle advdiff1d_shuffle(num_points, num_hebras);
 	brusselator1d brusselator1d(num_points, num_hebras); 	// 1D Brusselator model 
 	brusselator1d_shuffle brusselator1d_shuffle(num_points, num_hebras); // 1D Brusselator model con shuffle
 	brusselator1d_grid brusselator1d_grid(num_points, num_hebras); // 1D Brusselator model con grid multidimensional
@@ -72,8 +72,8 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		//case 0: ptr_problema=&prueba; break;
 		case 1: ptr_problema=&simpleadvdiff1d; break;
 		case 2: ptr_problema=&simpleadvdiff1d_shuffle; break;
-		//case 3: ptr_problema=&advdiff1d; break;
-		//case 4: ptr_problema=&advdiff1d_shuffle; break;
+		case 3: ptr_problema=&advdiff1d; break;
+		case 4: ptr_problema=&advdiff1d_shuffle; break;
 		case 5: ptr_problema=&brusselator1d; break;
 		case 6: ptr_problema=&brusselator1d_shuffle; break;
 		case 7: ptr_problema=&brusselator1d_grid; break;
@@ -83,7 +83,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	}
 
 	// Objetos y puntero de los metodos de resolucion
-	const int neqn = ptr_problema->get_num_ODEs(); 					// Obtenemos el numero de ODEs del problema
+	const int neqn = ptr_problema->get_neqn(); 					// Obtenemos el numero de ODEs del problema
 	RungeKutta RungeKutta(neqn, orden_metodo, num_hebras); 						// Objeto para aplicar Runge-Kutta y sus operaciones asociadas
 	RungeKutta_graph RungeKutta_graph(neqn, orden_metodo, num_hebras, &RungeKutta); 
 	AdamsBashford AdamsBashford(neqn, orden_metodo, num_hebras, &RungeKutta); 	// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	cout << "\nProblema " << num_problema << " -> " << ptr_problema->get_name() << endl;
 	cout << "Metodo de resolucion -> " << ptr_metodo->get_name() << " de orden " << ptr_metodo->get_orden() << endl;
 	cout << "Tamaño del vector -> " << num_points << endl;
-	cout << "Numero de ecuaciones -> " << ptr_problema->get_num_ODEs() << endl;
+	cout << "Numero de ecuaciones -> " << ptr_problema->get_neqn() << endl;
 	cout << "T0 = " << t0 << " y tf = " << tf << endl;
 	cout << "Salto h=" << h << " -> " << num_iter << " iteraciones" << endl;
 	cout << "Grid de " << ptr_problema->get_grid().x << "," << ptr_problema->get_grid().y << "," << ptr_problema->get_grid().z << " bloques CUDA de ";

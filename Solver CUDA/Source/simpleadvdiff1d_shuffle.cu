@@ -17,7 +17,7 @@ __constant__ double cte_savds_t; // Constante que utilizará el graph
 void simpleadvdiff1d_shuffle::updateConstants() const {
     Params_simpleadvdiff1d aux;
 
-    aux.neqn = get_num_ODEs();
+    aux.neqn = get_neqn();
     aux.dtx_2_inv  = 1.0 / get_dtx_2();
     aux.dtx_sq_inv = 1.0 / get_dtx_sq();
     aux.a = get_a();

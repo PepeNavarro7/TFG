@@ -18,7 +18,7 @@ __constant__ double cte_savd_t; // Constante que utilizará el graph
 void simpleadvdiff1d::updateConstants() const {
     Params_simpleadvdiff1d aux;
 
-    aux.neqn = get_num_ODEs();
+    aux.neqn = get_neqn();
     aux.dtx_2_inv  = 1.0 / dtx_2;
     aux.dtx_sq_inv = 1.0 / dtx_sq;
     aux.a = a;
@@ -29,7 +29,7 @@ void simpleadvdiff1d::updateConstants() const {
 
 // Initialize stage vector Y0 with neqn components
 void simpleadvdiff1d::init(double *Y0) const {
-    for (int i=0;i<get_num_ODEs();i++) { 
+    for (int i=0;i<get_neqn();i++) { 
         double x_i=(double)(i+1)*get_dtx();
         Y0[i]=sin(2.0*get_PI()*x_i);
     }

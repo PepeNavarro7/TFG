@@ -18,7 +18,7 @@ __constant__ double cte_br1dg_t;
 void brusselator1d_grid::updateConstants() const {
     Params_brusselator1d aux;
 
-    aux.neqn = get_num_ODEs();
+    aux.neqn = get_neqn();
     aux.nx = get_nx();
     aux.A = get_A();
     aux.B = get_B();

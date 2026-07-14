@@ -34,7 +34,7 @@ public:
     virtual const void* get_t() const = 0;
 
     inline double get_PI() const {return PI; };
-    inline int get_num_ODEs() const { return neqn; };
+    inline int get_neqn() const { return neqn; };
     inline string get_name() const { return name; };
     inline double get_dtx() const { return dtx; };
     inline dim3 get_grid() const { return grid; };

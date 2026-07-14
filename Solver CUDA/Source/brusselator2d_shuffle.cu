@@ -16,7 +16,7 @@ __constant__ double cte_br2ds_t; // Constante que utilizará el graph
 void brusselator2d_shuffle::updateConstants() const {
     Params_brusselator2d aux;
 
-    aux.neqn = get_num_ODEs();
+    aux.neqn = get_neqn();
     aux.nx = get_nx();
     aux.A = get_A();
     aux.B = get_B();
