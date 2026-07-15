@@ -7,6 +7,7 @@
 
 using namespace std;
 
+// Kernels de Adams-Bashford que reutilizamos
 extern __global__ void kernel_sumatoriaAB1(double* __restrict__ Yn1, const double* __restrict__ Yn0, const double* __restrict__ Fn0);
 extern __global__ void kernel_sumatoriaAB2(double* __restrict__ Yn2, const double* __restrict__ Yn1, const double* __restrict__ Fn1, const double* __restrict__ Fn0);
 extern __global__ void kernel_sumatoriaAB3(double* __restrict__ Yn3, const double* __restrict__ Yn2, const double* __restrict__ Fn2, const double* __restrict__ Fn1, const double* __restrict__ Fn0);
@@ -90,8 +91,8 @@ void AdamsMoulton::aplicar(Problema* problema, const double &t0, const double &t
     // Constantes para los kernels, tanto de los metodos como del problema
     const double h_RK = h/100.0;
     ptr_runge->updateConstants(get_neqn(), h_RK); // RK funciona con el h pequeño
-    ptr_bashford->updateConstants(get_neqn(), h);
-    updateConstants(get_neqn(), h);
+    ptr_bashford->updateConstants(get_neqn(), h); // Kernels de AB
+    updateConstants(get_neqn(), h); // Kernels propios
     problema->updateConstants();
 
     switch(get_orden()){ // Aplicamos RK4 para obtener los primeros pasos

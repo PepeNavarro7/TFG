@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// Kernels de Adams-Bashford que utilizamos
 extern __global__ void kernel_sumatoriaAB4(double* __restrict__ Yn4, const double* __restrict__ Yn3, const double* __restrict__ Fn3, const double* __restrict__ Fn2, const double* __restrict__ Fn1, const double* __restrict__ Fn0);
 extern __global__ void kernel_sumatoriaAB3(double* __restrict__ Yn3, const double* __restrict__ Yn2, const double* __restrict__ Fn2, const double* __restrict__ Fn1, const double* __restrict__ Fn0);
 extern __global__ void kernel_sumatoriaAB2(double* __restrict__ Yn2, const double* __restrict__ Yn1, const double* __restrict__ Fn1, const double* __restrict__ Fn0);
@@ -49,7 +50,7 @@ __global__ void kernel_swapAB3(const double* __restrict__ Yn3, double* __restric
 __global__ void kernel_swapAB2(const double* __restrict__ Yn2, double* __restrict__ Yn1, const double* __restrict__ Fn2, double* __restrict__ Fn1, double* __restrict__ Fn0){
     const int thread = blockDim.x * blockIdx.x + threadIdx.x;
     if(thread<cte_ABg.neqn){
-        Yn1[thread] = Yn2[thread]; // Yn4 -> Yn3
+        Yn1[thread] = Yn2[thread]; // Yn2 -> Yn1
         Fn0[thread] = Fn1[thread]; // Fn1 -> Fn0
         Fn1[thread] = Fn2[thread]; // Fn2 -> Fn1
     }
@@ -84,31 +85,40 @@ void AdamsBashford_graph::aplicar(Problema* problema, const double &t0, const do
     // Constantes para los kernels, tanto de los metodos como del problema
     const double h_RK = h/100.0;
     get_ptr_runge()->updateConstants(get_neqn(), h_RK); // RK funciona con el h pequeño
-    ptr_bash->updateConstants(get_neqn(), h);
-    updateConstants(get_neqn(), h);
+    ptr_bash->updateConstants(get_neqn(), h); // Kernels de AB normal
+    updateConstants(get_neqn(), h); // Kernels propios
     problema->updateConstants();
     
 
-    switch(get_orden()){ // Aplicamos Runge-Kutta para obtener los primeros pasos y los feval iniciales
-        case 1: // Orden 1 no necesita RK
-            problema->feval(t0, Yn0, Fn0); // f(tn0,Yn0) -> Fn0
-        break; 
+    switch(get_orden()){ // Aplicamos Runge-Kutta para obtener los primeros pasos
+        case 1: break; // Orden 1 no necesita RK
         case 2: 
             get_ptr_runge()->aplicarUnidad(problema, t0, h_RK, Yn0, Yn1);
-            problema->feval(t0,      Yn0, Fn0); // f(tn0,Yn0) -> Fn0
-            problema->feval(t0+h_RK, Yn1, Fn1); // f(tn1,Yn1) -> Fn1
         break;
         case 3: 
             get_ptr_runge()->aplicarUnidad(problema, t0,          h_RK, Yn0, Yn1);
             get_ptr_runge()->aplicarUnidad(problema, t0+h_RK,     h_RK, Yn1, Yn2);
-            problema->feval(t0,          Yn0, Fn0); // f(tn0,Yn0) -> Fn0
-            problema->feval(t0+h_RK,     Yn1, Fn1); // f(tn1,Yn1) -> Fn1
-            problema->feval(t0+h_RK*2.0, Yn2, Fn2); // f(tn2,Yn2) -> Fn2
         break;
         case 4:
             get_ptr_runge()->aplicarUnidad(problema, t0,          h_RK, Yn0, Yn1);
             get_ptr_runge()->aplicarUnidad(problema, t0+h_RK,     h_RK, Yn1, Yn2);
             get_ptr_runge()->aplicarUnidad(problema, t0+h_RK*2.0, h_RK, Yn2, Yn3);
+        break;
+    }
+    switch(get_orden()){ // Aplicamos los feval iniciales
+        case 1:
+            problema->feval(t0, Yn0, Fn0); // f(tn0,Yn0) -> Fn0
+        break; 
+        case 2: 
+            problema->feval(t0,      Yn0, Fn0); // f(tn0,Yn0) -> Fn0
+            problema->feval(t0+h_RK, Yn1, Fn1); // f(tn1,Yn1) -> Fn1
+        break;
+        case 3: 
+            problema->feval(t0,          Yn0, Fn0); // f(tn0,Yn0) -> Fn0
+            problema->feval(t0+h_RK,     Yn1, Fn1); // f(tn1,Yn1) -> Fn1
+            problema->feval(t0+h_RK*2.0, Yn2, Fn2); // f(tn2,Yn2) -> Fn2
+        break;
+        case 4:
             problema->feval(t0,          Yn0, Fn0); // f(tn0,Yn0) -> Fn0
             problema->feval(t0+h_RK,     Yn1, Fn1); // f(tn1,Yn1) -> Fn1
             problema->feval(t0+h_RK*2.0, Yn2, Fn2); // f(tn2,Yn2) -> Fn2
@@ -151,11 +161,10 @@ void AdamsBashford_graph::aplicar(Problema* problema, const double &t0, const do
     cudaGraphInstantiate(&instance, graph, nullptr, nullptr, 0);
 
     // Aqui tenemos el bucle principal en el que lanzamos el graph
-    for (double tn = t0 + h_RK * (get_neqn()-1); tn < tf; tn += h) {
+    for (double tn = t0 + h_RK * (get_orden()-1); tn < tf; tn += h) {
         // Usamos memoria constante en device (c_t) y actualizarla antes del launch.
         cudaMemcpyToSymbolAsync(problema->get_t(), &tn, sizeof(double), 0, cudaMemcpyHostToDevice, stream);
         cudaGraphLaunch(instance, stream);
-        // Tras los swaps, Yn4 y Fn4 contienen basura y serán reescritos
     }
 
     cudaStreamSynchronize(stream);     

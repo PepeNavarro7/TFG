@@ -26,14 +26,22 @@ private:
 
 public:   
     // Constructor de la clase
-    AdamsMoulton (const int &n, const int &orden, const int &threads, const RungeKutta* runge, const AdamsBashford* bash):
-        Metodo(n, "Adams-Moulton", orden, threads),
+    AdamsMoulton (const int &neqn, const int &orden, const int &threads, const RungeKutta* runge, const AdamsBashford* bash):
+        Metodo(neqn, "Adams-Moulton", orden, threads),
         ptr_runge(runge), ptr_bashford(bash) { };
 
     void updateConstants(const int &neqn, const double &h) const override;
 
     // Aplicar Adams-Moulton el numero necesario de veces
-    void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;    
+    virtual void aplicar(Problema* problema, const double &t0, const double &tf, const double &h, const double *Y0, double *Yf) const override;
+
+protected:
+    AdamsMoulton (const int &neqn, const int &orden, const int &threads, const string&name, const RungeKutta* runge, const AdamsBashford* bash):
+        Metodo(neqn, name, orden, threads),
+        ptr_runge(runge), ptr_bashford(bash) { };
+public:
+    inline const RungeKutta* get_ptr_runge() const { return ptr_runge; };
+    inline const AdamsBashford* get_ptr_bashford() const { return ptr_bashford; };
 };
 
 #endif

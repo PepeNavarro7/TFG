@@ -70,7 +70,7 @@ void AdamsBashford::aplicar(Problema* problema, const double &t0, const double &
     // Constantes para los kernels, tanto de los metodos como del problema
     const double h_RK = h/100.0;
     ptr_runge->updateConstants(get_neqn(), h_RK); // RK funciona con el h pequeño
-    this->updateConstants(get_neqn(), h);
+    updateConstants(get_neqn(), h);
     problema->updateConstants();
 
     switch(get_orden()){ // Aplicamos orden-1 veces Runge-Kutta para obtener los primeros pasos

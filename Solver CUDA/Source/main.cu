@@ -13,6 +13,7 @@
 #include "AdamsBashford.h"
 #include "AdamsBashford_graph.h"
 #include "AdamsMoulton.h"
+#include "AdamsMoulton_graph.h"
 
 #include "Problema.h"
 #include "simpleadvdiff1d.h"
@@ -31,7 +32,7 @@ using namespace std;
 int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	if (argc != 9){
 		string texto = "./solverCUDA metodo= orden= problema= hebras= tamvector= t0= tf= salto=\n\tOrden: 1 - 2 - 3 - 4 - 5(solo AM)\n";
-		texto += "\tMetodos: 1=Runge-Kutta 2=Runge-Kutta graph 3=Adams-Bashford 4=Adams-Bashford graph 5=Adams-Moulton\n";
+		texto += "\tMetodos: 1=Runge-Kutta 2=Runge-Kutta graph 3=Adams-Bashford 4=Adams-Bashford graph 5=Adams-Moulton 6=Adams-Moulton graph\n";
 		texto += "\tProblemas: 1=simpleavdiff 2=simpleavdiff shuffle 3=advdiff1d 4=advdiff1d shuffle 5=brusselator1d";
 		texto += " 6=brusselator1d shuffle 7=brusselator1d grid 8=brusselator2d 9=brusselator2d shuffle\n";
 		texto += "\tHebras del bloque CUDA X%32==0\n\tTamaño del vector[100,10000]\n";
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 
     // Variables que usaremos en el solver
 	const int num_metodo = atoi(argv[1]), 	// Metodo a utilizar -> [1,5]
-		orden_metodo = atoi(argv[2]),		// Orden del metodo -> [1,5]
+		orden_metodo = (atoi(argv[2])==5 && num_metodo<=4) ? 4 : atoi(argv[2]),		// Orden del metodo -> [1,5]
 		num_problema = atoi(argv[3]), 		// Problema a ejecutar -> [0,9]
 		num_hebras = atoi(argv[4]),			// Numero de hebras -> X%32==0
         num_points = atoi(argv[5]),			// Tamaño del vector -> [100, 10000]
@@ -51,7 +52,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		salto = atoi(argv[8]); 				// Salto en la forma 10^-X -> [5,7]
 	const double h = pow(10,(-1*salto));	// Valor de salto h
 	const int num_iter = (tf-t0)/h; 		// Numero de iteraciones que se realizarán
-	assertm(num_metodo>=1 && num_metodo<=5, "Metodo a utilizar -> [1,5]");
+	assertm(num_metodo>=1 && num_metodo<=6, "Metodo a utilizar -> [1,6]");
 	assertm(orden_metodo>=1 && orden_metodo<=5, "Orden del metodo -> [1,5]");
 	assertm(num_problema>=0 && num_problema<=9, "Problema a ejecutar -> [0,9]");
 	assertm(num_hebras%32 == 0, "Numero de hebras -> X%32==0");
@@ -89,6 +90,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 	AdamsBashford AdamsBashford(neqn, orden_metodo, num_hebras, &RungeKutta); 	// Objeto para aplicar Adams-Bashford y sus operaciones asociadas
 	AdamsBashford_graph AdamsBashford_graph(neqn, orden_metodo, num_hebras, &RungeKutta, &AdamsBashford);
 	AdamsMoulton AdamsMoulton(neqn, orden_metodo, num_hebras, &RungeKutta, &AdamsBashford); 	// Objeto para aplicar Adams-Moulton y sus operaciones asociadas
+	AdamsMoulton_graph AdamsMoulton_graph(neqn, orden_metodo, num_hebras, &RungeKutta, &AdamsBashford, &AdamsBashford_graph, &AdamsMoulton);
 	Metodo *ptr_metodo; 											// Puntero al metodo seleccionado
 	switch(num_metodo){
 		case 1: ptr_metodo=&RungeKutta; break;
@@ -96,6 +98,7 @@ int main(int argc, char *argv[]){ // solver problema hebras tamvector salto
 		case 3: ptr_metodo=&AdamsBashford; break;
 		case 4: ptr_metodo=&AdamsBashford_graph; break;
 		case 5: ptr_metodo=&AdamsMoulton; break;
+		case 6: ptr_metodo=&AdamsMoulton_graph; break;
 		default: ptr_metodo=NULL; break;
 	}
 
