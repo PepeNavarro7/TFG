@@ -23,14 +23,13 @@ class brusselator1d:public Problema{
 private:
     const double alpha=1.0/50.0, A=1.0, B=3.0; // variables auxiliares para el calculo
     const int nx; // number of grid points at each dimension
-    const double dtx_sq; // Spatial step squared
     const double DD;
 
 public:
     // Constructor of the class 
     brusselator1d(const int &nx_points, const int &threads):
         Problema(nx_points*2.0, "Brusselator_1D", (1.0/(nx_points+1.0)), dim3( (nx_points*2.0+threads-1)/threads, 1, 1 ), dim3(threads,1,1)),
-        nx(nx_points), dtx_sq( get_dtx()*get_dtx() ), DD( alpha/(get_dtx()*get_dtx()) ) { };
+        nx(nx_points), DD( alpha/(get_dtx()*get_dtx()) ) { };
 
     // Definicion de los valores constantes para el kernel
     virtual void updateConstants() const override;
@@ -54,7 +53,7 @@ protected:
     // Constructor para las clases hijas
     brusselator1d(const int &nx_points, const int &threads, const string &name, const dim3 block):
         Problema(nx_points*2.0, name, (1.0/(nx_points+1.0)), dim3( (nx_points*2.0+threads-1)/threads, 1, 1 ), block),
-        nx(nx_points), dtx_sq( get_dtx()*get_dtx() ), DD(alpha/( get_dtx()*get_dtx() )) { };
+        nx(nx_points), DD(alpha/( get_dtx()*get_dtx() )) { };
     
     // Indexation function which maps 2D spatial coordinates (i,j) to a 1D position in a vector
     virtual inline int idx(const int &i, const int &j) const { return i * 2 + j; };
@@ -64,7 +63,6 @@ public:
     inline double get_A() const { return A; }; 
     inline double get_B() const { return B; }; 
     inline double get_nx() const { return nx; }; 
-    inline double get_dtx_sq() const { return dtx_sq; }; 
     inline double get_DD() const { return DD; }; 
 };
   
