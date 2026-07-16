@@ -1,20 +1,20 @@
-#ifndef ADAMS_BASHFORD_H
-#define ADAMS_BASHFORD_H
+#ifndef ADAMS_BASHFORD_I_H
+#define ADAMS_BASHFORD_I_H
 
 #include "Problema.h"
-#include "RungeKutta.h"
+#include "RungeKutta_i.h"
 #include "Metodo.h"
 
 using namespace std;
 
-class AdamsBashford: public Metodo{
+class AdamsBashford_i: public Metodo{
 private:
-    const RungeKutta* const ptr_runge; // Puntero constante a objeto constante
+    const RungeKutta_i* const ptr_runge; // Puntero constante a objeto constante
     
 public:   
     // Constructor de la clase
-    AdamsBashford (const int &neqn, const int &orden, const RungeKutta* runge):
-        Metodo(neqn, "Adams-Bashford", orden),
+    AdamsBashford_i (const int &neqn, const int &orden, const RungeKutta_i* runge):
+        Metodo(neqn, "Adams-Bashford version_I", orden),
         ptr_runge(runge){};
 
     // Aplicar Adams-Bashford el numero necesario de veces

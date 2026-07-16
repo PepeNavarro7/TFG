@@ -1,20 +1,20 @@
-#ifndef ADAMS_MOULTON_H
-#define ADAMS_MOULTON_H
+#ifndef ADAMS_MOULTON_I_H
+#define ADAMS_MOULTON_I_H
 
 #include "Problema.h"
 #include "Metodo.h"
-#include "RungeKutta.h"
+#include "RungeKutta_i.h"
 
 using namespace std;
 
-class AdamsMoulton: public Metodo{
+class AdamsMoulton_i: public Metodo{
 private:
-    const RungeKutta* const ptr_runge;
+    const RungeKutta_i* const ptr_runge;
 
 public:   
     // Constructor de la clase
-    AdamsMoulton (const int &neqn, const int &orden, const RungeKutta* runge):
-        Metodo(neqn, "Adams-Moulton", orden),
+    AdamsMoulton_i (const int &neqn, const int &orden, const RungeKutta_i* runge):
+        Metodo(neqn, "Adams-Moulton version_i", orden),
         ptr_runge(runge) { };
 
     // Aplicar Adams-Moulton el numero necesario de veces
