@@ -12,27 +12,25 @@ class brusselator1d:public Problema{
 private:
     const double alpha=1.0/50.0, A=1.0, B=3.0; // Variables auxiliares para el cálculo
     const int nx; // number of grid points at each dimension
-    const double dtx_squared, // Spatial step squared
-        DD;
-    
+    const double DD;
 
 public:
     // Constructor of the class 
     brusselator1d(const int &nx_points):
         Problema( (2*nx_points), "Brusselator_1D", (1.0/((double)nx_points+1.0)) ),
-        nx(nx_points), dtx_squared(dtx*dtx), DD(alpha/(dtx*dtx)) {};
+        nx(nx_points), DD(alpha/(get_dtx()*get_dtx())) {};
 
     // Initialize stage vector Y0 with neqn components
-    void init(double *Y0) const override; 
+    void init(double* __restrict Y0) const override; 
     
     // Vector system function for the nonstiff term DY=G(t,Y) + the nonstiff term DY=F(t,Y)
-    void feval (const double &t, const double *Y, double *DY) const override; 
+    void feval (const double &t, const double* __restrict Y, double* __restrict DY) const override; 
 
     // Funcion feval para un solo término
-    double feval_i (const double &t, const double *Y, const int &i) const override;
+    double feval_i (const double &t, const double* __restrict Y, const int &i) const override;
 
     // Exportar los datos a un archivo txt
-    inline void archivo(const string &filename, const double *Y) const override { archivo2(filename,Y); };
+    inline void archivo(const string &filename, const double* __restrict Y) const override { archivo2(filename,Y); };
 
 private:
     // Auxiliary function f

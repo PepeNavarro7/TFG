@@ -9,7 +9,7 @@
 using namespace std;
 
 // Exportamos al archivo los valores en dos columnas, el valor dtx y el valor correspondiente del vector
-void Problema::archivo1(const string &filename, const double *Y) const{
+void Problema::archivo1(const string &filename, const double* __restrict Y) const{
     string str = "./Datos/"+filename;
     ofstream file(str);
     if (!file) {
@@ -26,7 +26,7 @@ void Problema::archivo1(const string &filename, const double *Y) const{
 }
 
 // Exportamos al archivo los valores en 3 columnas, el valor dtx y los 2 valores correspondientes del vector
-void Problema::archivo2(const string &filename, const double *Y) const{
+void Problema::archivo2(const string &filename, const double* __restrict Y) const{
     string str = "./Datos/"+filename;
     ofstream file(str);
     if (!file) {
@@ -43,7 +43,7 @@ void Problema::archivo2(const string &filename, const double *Y) const{
 }
 
 // Exportamos al archivo los valores en 2N+1 columnas, el valor dtx y los N valores correspondientes de los 2 vectores
-void Problema::archivo3(const string &filename, const double *Y) const{
+void Problema::archivo3(const string &filename, const double* __restrict Y) const{
 	string str = "./Datos/"+filename;
 	ofstream file(str);
 	if (!file) {
