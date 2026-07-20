@@ -40,8 +40,8 @@ __global__ void kernel_simpleadvdiff1d(const double t, const double* __restrict_
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     if(i<cte_savd.neqn){
         const int ult = cte_savd.neqn-1;
-        const int i_ant = i ==  0  ? ult : i-1, // Calculamos indices vecinos
-                  i_pst = i == ult ?  0  : i+1;
+        const int i_ant =  (i==0)  ? ult : i-1, // Calculamos indices vecinos
+                  i_pst = (i==ult) ?  0  : i+1;
 
         const double v_ant = Y[i_ant], // Acceso a los indices
                      valor = Y[i],
