@@ -25,6 +25,7 @@ public:
     void archivo2(const string &filename, const double *Y) const; // Sacar vector de 2 componentes por archivo
     void archivo3(const string &filename, const double *Y) const; // Sacar vector de 3 componentes por archivo
     void archivo2v2(const string &filename, const double *Y) const; // Sacar vector de 2 componentes por archivo, reordenado
+    void tiempos(const int &metodo, const int &orden, const int &problema, const int &hebras, const int &nx, const int &salto, const double &tiempo) const; // Exportar tiempo
 
     virtual void updateConstants() const = 0; // Definicion de los valores constantes para el kernel
     virtual void init(double *Y0) const = 0;
