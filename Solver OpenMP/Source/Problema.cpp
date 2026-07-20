@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include "Problema.h"
 #include <cmath>
 
@@ -21,7 +22,7 @@ void Problema::archivo1(const string &filename, const double* __restrict Y) cons
       double x_i=(double)(i+1)*(aux);
       file << x_i << '\t' << Y[i] << endl; 
     }
-    cout << "Generado " << str << endl;
+    //cout << "Generado " << str << endl;
     file.close();
 }
 
@@ -38,7 +39,7 @@ void Problema::archivo2(const string &filename, const double* __restrict Y) cons
       double x_i=(double)(i+1)*(aux);
       file << x_i << '\t' << Y[i] << '\t' << Y[i+1] << endl; 
     }
-    cout << "Generado " << str << endl;
+    //cout << "Generado " << str << endl;
     file.close();
 }
 
@@ -59,8 +60,35 @@ void Problema::archivo3(const string &filename, const double* __restrict Y) cons
 		}
         file << endl;
 	}
-	cout << "Generado " << str << endl;
+	//cout << "Generado " << str << endl;
 	file.close();
 }
 
+// Exportamos los datos de los tiempos
+void Problema::tiempos(const int &metodo, const int &orden, const int &problema, const int &hebras, const int &nx, const int &salto, const double &tiempo) const{
+    // metodo orden problema hebras tamvector neqn salto tiempo
+    string filename = "tiempos.csv";
+    string ruta = "./Datos/"+filename;
+
+    // Detectar si el archivo ya existe
+    bool existe = filesystem::exists(ruta);
+
+    // Abrir en modo append
+    ofstream file(ruta, ios::app);
+
+    if (!file) {
+        cerr << "Error al abrir el archivo\n";
+        return;
+    }
+
+    // Si el archivo es nuevo, escribir cabecera
+    if (!existe) {
+        file << "metodo,orden,problema,hebras,tamvector,neqn,salto,tiempo\n";
+    }
+
+    // Escribir datos de esta ejecución
+    file << metodo << "," << orden << "," << problema << "," << hebras << "," << nx << "," << get_neqn() << "," << salto << "," << tiempo << "\n";
+    //cout << "Generado " << ruta << endl;
+    file.close();
+}
 #endif

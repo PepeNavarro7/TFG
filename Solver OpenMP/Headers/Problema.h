@@ -26,6 +26,7 @@ public:
     void archivo1(const string &filename, const double* __restrict Y) const; // Sacar vector de 1 componente por archivo
     void archivo2(const string &filename, const double* __restrict Y) const; // Sacar vector de 2 componentes por archivo
     void archivo3(const string &filename, const double* __restrict Y) const; // Sacar vector de 3 componentes por archivo
+    void tiempos(const int &metodo, const int &orden, const int &problema, const int &hebras, const int &nx, const int &salto, const double &tiempo) const;
 
     inline double get_PI() const { return PI; };
     inline int get_neqn() const { return neqn; };
