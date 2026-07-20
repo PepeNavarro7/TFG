@@ -34,9 +34,14 @@ ALL_DATA    := $(DIR_D)/datos0.txt   $(DIR_D)/datos1.txt
 
 CC := g++
 
-NUM_PROBS := 1 2 3 4
-NUM_HEBRAS := 1 2 4 8 16
-TAMS := 100 200 500 1000 2000 5000 10000
+NUM_METODO := 1 2 3 4 5 6
+NUM_ORDEN := 1 2 3 4 5
+NUM_PROBLEMA := 1 2 3 4
+num_prob_mod := 1 2 3
+NUM_HEBRAS := 1 4 16
+TAM_VECTOR := 100 200 500 1000
+tam_vec_mod := 100 200 500
+SALTO := 5 6 7
 
 # Creacion del ejecutable
 create: solverOMP
@@ -52,7 +57,43 @@ $(ALL_OBJ): $(DIR_O)/%.o: $(DIR_S)/%.cpp $(DIR_H)/%.h
 
 # Ejecucion de problema con las variables introducidas
 run:
-	./solverOMP $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) 
+	./solverOMP $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) $(modo)
+
+runs:
+	@./solverOMP $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) $(modo)
+
+batch:
+	@for t in $(TAM_VECTOR); do \
+		for m in $(NUM_METODO); do \
+			for p in $(num_prob_mod); do \
+				for h in $(NUM_HEBRAS); do \
+					echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=$$h tamvector=$$t salto=6"; \
+					$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=$$h tamvector=$$t t0=0.0 tf=1.0 salto=6 modo=1; \
+				done; \
+			done; \
+		done; \
+    done
+
+batch2:
+	@for t in $(tam_vec_mod); do \
+		for m in $(NUM_METODO); do \
+			for h in $(NUM_HEBRAS); do \
+				echo "Ejecutando: metodo=$$m orden=5/4 problema=4 hebras=$$h tamvector=$$t salto=6"; \
+				$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=4 hebras=$$h tamvector=$$t t0=0.0 tf=1.0 salto=6 modo=1; \
+			done; \
+		done; \
+    done
+
+background:
+	@nohup sh -c "$(MAKE) batch && $(MAKE) batch2" > background.log 2>&1 &
+
+stop:
+	@echo "Deteniendo procesos batch..."
+	@pkill -f "make batch" || true
+	@pkill -f "make batch2" || true
+	@pkill -f solverOMP || true
+	@echo "Procesos detenidos."
+
 
 #exportar con un método u otro
 exporta:
@@ -67,6 +108,7 @@ completo: create run exporta
 clean:
 	-rm $(DIR_O)/*.o
 	-rm ./solverOMP
+	-rm ./background.log
 
 mrproper: clean
 	-rm $(DIR_D)/*.txt
