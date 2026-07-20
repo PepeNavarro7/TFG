@@ -43,9 +43,16 @@ ALL_DATA    := $(DIR_D)/datos0.txt   $(DIR_D)/datos1.txt
 CC := nvcc -rdc=true
 LIBS := -L/usr/local/cuda/lib64 -lcuda -lcudart
 
-NUM_PROBS := 1 2 3 4
-NUM_HEBRAS := 128 256
-TAMS := 100 200 500 1000 2000 5000 10000
+NUM_METODO := 1 2 3 4 5 6
+NUM_ORDEN := 1 2 3 4 5
+NUM_PROBLEMA := 1 2 3 4 5 6 7 8 9
+num_prob_mod1 := 1 2 3 4 5 6 7
+num_prob_mod2 := 8 9
+NUM_HEBRAS := 256
+tam_vec_mod1 := 500 1000 2000 5000
+tam_vec_mod2 := 50 100 200 500
+tam_vec_mod3 := 100 200
+SALTO := 5 6
 
 # Creacion del ejecutable
 create: solverCUDA
@@ -61,7 +68,47 @@ $(ALL_OBJ): $(DIR_O)/%.o: $(DIR_S)/%.cu $(DIR_H)/%.h
 
 # Ejecucion de problema con las variables introducidas
 run:
-	./solverCUDA $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) 
+	./solverCUDA $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) $(modo)
+
+runs:
+	@./solverCUDA $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) $(modo)
+
+batch:
+	@for s in $(SALTO); do \
+		for t in $(tam_vec_mod1); do \
+			for m in $(NUM_METODO); do \
+				for p in $(num_prob_mod1); do \
+					echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=256 tamvector=$$t salto=$$s"; \
+					$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=256 tamvector=$$t t0=0.0 tf=1.0 salto=$$s modo=1; \
+				done; \
+			done; \
+		done; \
+    done
+
+batch2:
+	@for s in $(SALTO); do \
+		for t in $(tam_vec_mod3); do \
+			for m in $(NUM_METODO); do \
+				for p in $(num_prob_mod1); do \
+					echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=256 tamvector=$$t salto=$$s"; \
+					$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=256 tamvector=$$t t0=0.0 tf=1.0 salto=$$s modo=1; \
+				done; \
+			done; \
+		done; \
+    done
+
+background:
+	@nohup $(MAKE) batch2 > background.log 2>&1 &
+
+background_2:
+	@nohup sh -c "$(MAKE) batch && $(MAKE) batch2" > background.log 2>&1 &
+
+stop:
+	@echo "Deteniendo procesos batch..."
+	@pkill -f "make batch" || true
+	@pkill -f "make batch2" || true
+	@pkill -f solverOMP || true
+	@echo "Procesos detenidos."
 
 #exportar con un método u otro
 exporta:
@@ -76,6 +123,7 @@ completo: create run exporta
 clean:
 	-rm $(DIR_O)/*.o
 	-rm ./solverCUDA
+	-rm ./background.log
 
 mrproper: clean
 	-rm $(DIR_D)/*.txt
