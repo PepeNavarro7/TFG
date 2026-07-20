@@ -8,14 +8,14 @@
 
 using namespace std;
 
-// Aplicar Adams-Moulton el numero necesario de veces
+// Aplicar Adams-Bashford-Moulton con paralelismo de operaciones el numero necesario de veces
 void AdamsMoulton::aplicar(const Problema* problema, const double &t0, const double &tf, const double &h, const double* __restrict Y0, double* __restrict Yf) const {
     const int neqn = get_neqn();
     double *Yn0 = new double[neqn], *Yn1 = new double[neqn], *Yn2 = new double[neqn], *Yn3 = new double[neqn], *Yn4 = new double[neqn], // Vectores intermedios
-           *Fn0 = new double[neqn], *Fn1 = new double[neqn], *Fn2 = new double[neqn], *Fn3 = new double[neqn], *Fn4 = new double[neqn],// Vectores feval
+           *Fn0 = new double[neqn], *Fn1 = new double[neqn], *Fn2 = new double[neqn], *Fn3 = new double[neqn], *Fn4 = new double[neqn], // Vectores feval
            *Y_AB = new double [neqn], *F_AB = new double [neqn],    // Vectores para aproximar Yn usando Adams-Bashford
            *Y_AM = new double [neqn], *F_AM = new double [neqn],    // Vectores para aproximar Yn usando Adams-Moulton
-            *Yaux = new double[neqn]; // Vector auxiliar
+           *Yaux = new double[neqn]; // Vector auxiliar
 
     vectorCopia(Y0, Yn0);   // Definimos Yn0
     const double h_RK = h/100.0;

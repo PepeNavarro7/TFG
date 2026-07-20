@@ -14,7 +14,7 @@ private:
 public:   
     // Constructor de la clase
     AdamsBashford_i (const int &neqn, const int &orden, const RungeKutta_i* runge):
-        Metodo(neqn, "Adams-Bashford version_I", orden),
+        Metodo(neqn, "Adams-Bashford (paralelismo de elementos)", orden),
         ptr_runge(runge){};
 
     // Aplicar Adams-Bashford el numero necesario de veces

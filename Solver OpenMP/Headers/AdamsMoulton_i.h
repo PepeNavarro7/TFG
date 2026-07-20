@@ -14,7 +14,7 @@ private:
 public:   
     // Constructor de la clase
     AdamsMoulton_i (const int &neqn, const int &orden, const RungeKutta_i* runge):
-        Metodo(neqn, "Adams-Moulton version_i", orden),
+        Metodo(neqn, "Adams-Moulton (paralelismo de elementos)", orden),
         ptr_runge(runge) { };
 
     // Aplicar Adams-Moulton el numero necesario de veces

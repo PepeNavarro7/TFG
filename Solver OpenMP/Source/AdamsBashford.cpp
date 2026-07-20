@@ -7,7 +7,7 @@
 
 using namespace std;
 
-// Aplicar Adams-Bashford
+// Aplicar Adams-Bashford con paralelismo de operaciones el numero necesaorio de veces
 void AdamsBashford::aplicar(const Problema* problema, const double &t0, const double &tf, const double &h, const double* __restrict Y0, double* __restrict Yf) const {
     const int neqn = get_neqn();
     double *Yn0 = new double[neqn], *Yn1 = new double[neqn], *Yn2 = new double[neqn], *Yn3 = new double[neqn], *Yn4 = new double[neqn], // Vectores intermedios
@@ -81,7 +81,6 @@ void AdamsBashford::aplicar(const Problema* problema, const double &t0, const do
                 swap(Fn2, Fn1); // Fn2 -> Fn1
                 // Tras los cambios, Yn2 & Fn2 contienen basura y serán reescritos                    
             } // Fin del bucle for iterativo
-
         break;
         case 3:
             for(double tn = t0+h_RK*2.0; tn<tf; tn+=h){

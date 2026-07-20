@@ -8,7 +8,7 @@
 
 using namespace std;
 
-// Aplicar Adams-Moulton el numero necesario de veces
+// Aplicar Adams-Bashford-Moulton con paralelismo de elementos el numero necesario de veces
 void AdamsMoulton_i::aplicar(const Problema* problema, const double &t0, const double &tf, const double &h, const double* __restrict Y0, double* __restrict Yf) const {
     const int neqn = get_neqn();
     double *Yn0 = new double[neqn], *Yn1 = new double[neqn], *Yn2 = new double[neqn], *Yn3 = new double[neqn], *Yn4 = new double[neqn], // Vectores intermedios

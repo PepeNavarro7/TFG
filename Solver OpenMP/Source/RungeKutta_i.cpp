@@ -10,7 +10,7 @@
 
 using namespace std;
 
-// Aplicar Runge-Kutta el numero necesario de veces
+// Aplicar Runge-Kutta con paralelismo de elementos el numero necesario de veces
 void RungeKutta_i::aplicar(const Problema* problema, const double &t0, const double &tf, const double &h, const double* __restrict Y0, double* __restrict Yf) const {
     const int neqn = get_neqn();
     double *Yn = new double [neqn], // vector con la Y en cada iteracion
