@@ -43,17 +43,6 @@ ALL_DATA    := $(DIR_D)/datos0.txt   $(DIR_D)/datos1.txt
 CC := nvcc -rdc=true
 LIBS := -L/usr/local/cuda/lib64 -lcuda -lcudart
 
-NUM_METODO := 1 2 3 4 5 6
-NUM_ORDEN := 1 2 3 4 5
-NUM_PROBLEMA := 1 2 3 4 5 6 7 8 9
-num_prob_mod1 := 1 2 3 4 5 6 7
-num_prob_mod2 := 8 9
-NUM_HEBRAS := 256
-tam_vec_mod1 := 500 1000 2000 5000
-tam_vec_mod2 := 50 100 200 500
-tam_vec_mod3 := 100 200
-SALTO := 5 6
-
 # Creacion del ejecutable
 create: solverCUDA
 
@@ -73,32 +62,40 @@ run:
 runs:
 	@./solverCUDA $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) $(modo)
 
+NUM_METODO := 1 2 3 4 5 6
+num_met := 1 3 5
+NUM_ORDEN := 1 2 3 4 5
+NUM_PROBLEMA := 1 2 3 4 5 6 7 8 9
+num_prob_mod1 := 1 3 5
+num_prob_mod2 := 8
+NUM_HEBRAS := 256
+tam_vec_mod1 := 100 200 500 1000 2000 5000
+tam_vec_mod3 := 10000 20000 50000 100000 200000
+tam_vec_mod2 := 50 100 200 500
+SALTO := 5 6
+
 batch:
-	@for s in $(SALTO); do \
-		for t in $(tam_vec_mod1); do \
-			for m in $(NUM_METODO); do \
-				for p in $(num_prob_mod1); do \
-					echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=256 tamvector=$$t salto=$$s"; \
-					$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=256 tamvector=$$t t0=0.0 tf=1.0 salto=$$s modo=1; \
-				done; \
+	@for t in $(tam_vec_mod3); do \
+		for m in $(num_met); do \
+			for p in $(num_prob_mod1); do \
+				echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=256 tamvector=$$t salto=6"; \
+				$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=256 tamvector=$$t t0=0.0 tf=1.0 salto=6 modo=1; \
 			done; \
 		done; \
     done
 
 batch2:
-	@for s in $(SALTO); do \
-		for t in $(tam_vec_mod3); do \
-			for m in $(NUM_METODO); do \
-				for p in $(num_prob_mod1); do \
-					echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=256 tamvector=$$t salto=$$s"; \
-					$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=256 tamvector=$$t t0=0.0 tf=1.0 salto=$$s modo=1; \
-				done; \
+	@for t in $(tam_vec_mod2); do \
+		for m in $(num_met); do \
+			for p in $(num_prob_mod2); do \
+				echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=256 tamvector=$$t salto=7"; \
+				$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=256 tamvector=$$t t0=0.0 tf=1.0 salto=7 modo=1; \
 			done; \
 		done; \
     done
 
 background:
-	@nohup $(MAKE) batch2 > background.log 2>&1 &
+	@nohup $(MAKE) batch > background.log 2>&1 &
 
 background_2:
 	@nohup sh -c "$(MAKE) batch && $(MAKE) batch2" > background.log 2>&1 &

@@ -3,6 +3,7 @@ solverCUDA
 Datos/*.txt
 Datos/*.png
 Obj/*.o
+*.log
 
 #Plantilla
 *.i

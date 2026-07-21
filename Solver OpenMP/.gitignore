@@ -2,6 +2,7 @@
 solverOMP
 Datos/*.txt
 Datos/*.png
+*.log
 
 # Prerequisites
 *.d
