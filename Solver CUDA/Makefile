@@ -63,46 +63,40 @@ runs:
 	@./solverCUDA $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) $(modo)
 
 NUM_METODO := 1 2 3 4 5 6
-num_met := 1 3 5
 NUM_ORDEN := 1 2 3 4 5
 NUM_PROBLEMA := 1 2 3 4 5 6 7 8 9
-num_prob_mod1 := 1 3 5
-num_prob_mod2 := 8
+num_prob1 := 1 3 5
+num_prob2 := 8
 NUM_HEBRAS := 256
-tam_vec_mod1 := 100 200 500 1000 2000 5000
-tam_vec_mod3 := 10000 20000 50000 100000 200000
-tam_vec_mod2 := 50 100 200 500
-SALTO := 5 6
+tam_vec1 := 15000 20000 30000 40000 75000 125000 175000 750000 1000000
+tam_vec2 := 25 75 125 150 175 225 250 300 400 600 700
+SALTO := 5 6 7
 
-batch:
-	@for t in $(tam_vec_mod3); do \
-		for m in $(num_met); do \
-			for p in $(num_prob_mod1); do \
-				echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=256 tamvector=$$t salto=6"; \
-				$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=256 tamvector=$$t t0=0.0 tf=1.0 salto=6 modo=1; \
-			done; \
+batch1:
+	@for p in $(num_prob1); do \
+		for t in $(tam_vec1); do \
+			echo "Ejecutando: metodo=4 orden=4/5 problema=$$p hebras=256 tamvector=$$t salto=6"; \
+			$(MAKE) --no-print-directory runs metodo=4 orden=5 problema=$$p hebras=256 tamvector=$$t t0=0.0 tf=1.0 salto=6 modo=1; \
 		done; \
     done
 
 batch2:
-	@for t in $(tam_vec_mod2); do \
-		for m in $(num_met); do \
-			for p in $(num_prob_mod2); do \
-				echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=256 tamvector=$$t salto=7"; \
-				$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=256 tamvector=$$t t0=0.0 tf=1.0 salto=7 modo=1; \
-			done; \
+	@for p in $(num_prob2); do \
+		for t in $(tam_vec2); do \
+			echo "Ejecutando: metodo=4 orden=4/5 problema=$$p hebras=256 tamvector=$$t salto=6"; \
+			$(MAKE) --no-print-directory runs metodo=4 orden=5 problema=$$p hebras=256 tamvector=$$t t0=0.0 tf=1.0 salto=6 modo=1; \
 		done; \
-    done
+	done; \
 
 background:
-	@nohup $(MAKE) batch > background.log 2>&1 &
+	@nohup $(MAKE) batch1 > background.log 2>&1 &
 
-background_2:
-	@nohup sh -c "$(MAKE) batch && $(MAKE) batch2" > background.log 2>&1 &
+background_3:
+	@nohup sh -c "$(MAKE) batch1 && $(MAKE) batch2" > background.log 2>&1 &
 
 stop:
 	@echo "Deteniendo procesos batch..."
-	@pkill -f "make batch" || true
+	@pkill -f "make batch1" || true
 	@pkill -f "make batch2" || true
 	@pkill -f solverOMP || true
 	@echo "Procesos detenidos."

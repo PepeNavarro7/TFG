@@ -82,7 +82,7 @@ void Problema::archivo2v2(const string &filename, const double *Y) const {
 // Exportamos los datos de los tiempos
 void Problema::tiempos(const int &metodo, const int &orden, const int &problema, const int &hebras, const int &nx, const int &salto, const double &tiempo) const{
     // metodo orden problema hebras tamvector neqn salto tiempo
-    string filename = "tiempos.csv";
+    string filename = "tiempos_CUDA.csv";
     string ruta = "./Datos/"+filename;
 
     // Detectar si el archivo ya existe

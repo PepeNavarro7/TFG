@@ -152,7 +152,7 @@ void AdamsBashford_graph::aplicar(Problema* problema, const double &t0, const do
             kernel_sumatoriaAB4<<<get_num_blocks(), get_tam_blocks(), 0, stream>>>(Yn4, Yn3, Fn3, Fn2, Fn1, Fn0); // Yn4 = Yn3 + h/24 * (55*Fn3 - 59*Fn2 + 37*Fn1 - 9*Fn0)
             problema->feval(h, Yn4, Fn4, stream); // f(tn4,Yn4) -> Fn4
             kernel_swapAB4<<<get_num_blocks(), get_tam_blocks(), 0, stream>>>(Yn4, Yn3, Fn4, Fn3, Fn2, Fn1, Fn0);
-        break;
+            break;
     }
 
     // Finalizamos la captura del graph

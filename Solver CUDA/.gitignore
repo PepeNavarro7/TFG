@@ -4,6 +4,7 @@ Datos/*.txt
 Datos/*.png
 Obj/*.o
 *.log
+Datos/*.csv
 
 #Plantilla
 *.i
