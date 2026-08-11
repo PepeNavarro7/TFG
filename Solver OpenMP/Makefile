@@ -34,15 +34,6 @@ ALL_DATA    := $(DIR_D)/datos0.txt   $(DIR_D)/datos1.txt
 
 CC := g++
 
-NUM_METODO := 1 2 3 4 5 6
-NUM_ORDEN := 1 2 3 4 5
-NUM_PROBLEMA := 1 2 3 4
-num_prob_mod := 1 2 3
-NUM_HEBRAS := 1 4 16
-TAM_VECTOR := 100 200 500 1000
-tam_vec_mod := 100 200 500
-SALTO := 5 6 7
-
 # Creacion del ejecutable
 create: solverOMP
 
@@ -62,10 +53,20 @@ run:
 runs:
 	@./solverOMP $(metodo) $(orden) $(problema) $(hebras) $(tamvector) $(t0) $(tf) $(salto) $(modo)
 
-batch:
-	@for t in $(TAM_VECTOR); do \
-		for m in $(NUM_METODO); do \
-			for p in $(num_prob_mod); do \
+NUM_METODO := 1 2 3 4 5 6
+NUM_ORDEN := 1 2 3 4 5
+NUM_PROBLEMA := 1 2 3 4
+num_prob1 := 1 2 3
+num_prob2 := 4
+NUM_HEBRAS := 1 4 16
+tam_vec1 := 20000 25000 30000 40000 50000
+tam_vec2 := 225 250
+SALTO := 5 6 7
+
+batch1:
+	@for m in $(NUM_METODO); do \
+		for p in $(num_prob1); do \
+			for t in $(tam_vec1); do \
 				for h in $(NUM_HEBRAS); do \
 					echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=$$h tamvector=$$t salto=6"; \
 					$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=$$h tamvector=$$t t0=0.0 tf=1.0 salto=6 modo=1; \
@@ -75,21 +76,26 @@ batch:
     done
 
 batch2:
-	@for t in $(tam_vec_mod); do \
-		for m in $(NUM_METODO); do \
-			for h in $(NUM_HEBRAS); do \
-				echo "Ejecutando: metodo=$$m orden=5/4 problema=4 hebras=$$h tamvector=$$t salto=6"; \
-				$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=4 hebras=$$h tamvector=$$t t0=0.0 tf=1.0 salto=6 modo=1; \
+	@for m in $(NUM_METODO); do \
+		for p in $(num_prob2); do \
+			for t in $(tam_vec2); do \
+				for h in $(NUM_HEBRAS); do \
+					echo "Ejecutando: metodo=$$m orden=5/4 problema=$$p hebras=$$h tamvector=$$t salto=6"; \
+					$(MAKE) --no-print-directory runs metodo=$$m orden=5 problema=$$p hebras=$$h tamvector=$$t t0=0.0 tf=1.0 salto=6 modo=1; \
+				done; \
 			done; \
 		done; \
     done
 
 background:
-	@nohup sh -c "$(MAKE) batch && $(MAKE) batch2" > background.log 2>&1 &
+	@nohup $(MAKE) batch1 > background.log 2>&1 &
+
+background_2:
+	@nohup sh -c "$(MAKE) batch1 && $(MAKE) batch2" > background.log 2>&1 &
 
 stop:
 	@echo "Deteniendo procesos batch..."
-	@pkill -f "make batch" || true
+	@pkill -f "make batch1" || true
 	@pkill -f "make batch2" || true
 	@pkill -f solverOMP || true
 	@echo "Procesos detenidos."

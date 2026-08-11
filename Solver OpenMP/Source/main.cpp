@@ -100,7 +100,7 @@ int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvect
 	tiempo_m = tiempo_s/60.0;		// Calculamos el tiempo en minutos
 
 	if(silencioso){ // Exportamos el tiempo a un archivo csv
-		ptr_problema->tiempos(num_metodo, orden_metodo, num_problema, num_hebras, num_points, salto, tiempo_ms);
+		ptr_problema->tiempos(num_metodo, orden_metodo, num_problema, num_hebras, num_points, salto, tiempo_s);
 	} else{
 		ptr_problema->archivo("datos0.txt", Y0);	// Guardamos en un txt los valores iniciales
 		ptr_problema->archivo("datos1.txt", Y1);	// Guardamos en un txt los valores finales
