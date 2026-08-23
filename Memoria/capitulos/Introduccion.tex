@@ -1,61 +1,16 @@
 \creaCapitulo{Introducción}
 
-\creaSeccion{Métodos numéricos}
+Los métodos numéricos son un conjunto de técnicas y algoritmos matemáticos diseñados para encontrar soluciones aproximadas a problemas que, en muchos casos, no pueden resolverse de manera exacta mediante el análisis o su resolución sería muy costosa. Se utilizan asiduamente en diversos campos de la ciencia, ingeniería, economía y muchas otras disciplinas para resolver ecuaciones diferenciales, integrales, sistemas de ecuaciones, aproximación e interpolación, integración numérica y más. Es en el primero de estos casos en el que nos centraremos. Si bien es cierto que existen diversas técnicas para la resolución de ecuaciones diferenciales ordinarias y de sistemas de ecuaciones diferenciales, éstas solo se pueden aplicar cuando dichas ecuaciones se ajustan a un patrón concreto.
 
-Los métodos numéricos son un conjunto de técnicas y algoritmos matemáticos diseñados para encontrar soluciones aproximadas a problemas que, en muchos casos, no pueden resolverse de manera exacta mediante el análisis o su resolución sería muy costosa. Se utilizan ampliamente en diversos campos de la ciencia, ingeniería, economía y muchas otras disciplinas para resolver ecuaciones diferenciales, integrales, sistemas de ecuaciones, interpolaciones y más. Pueden utilizarse para la resolución de diversos problemas como ecuaciones no lineales, sistemas de ecuaciones lineales, interpolación y aproximación, integración numérica, y resolución de ecuaciones diferenciales. Es en este último caso en el que nos centraremos.
+En el mundo de los métodos numéricos hay infinidad de formas de resolver las EDOs, y tantas o más aplicaciones de las mismas a problemas del mundo real. Escoger el método correcto tiene que ver tanto con la exactitud de la solución, como con su coste, de potencia de computación y tiempo. 
 
-Una ecuación diferencial es una ecuación que relaciona una función ( $f(x)$ ó $y$), sus variables ($x$) y sus derivadas ( $f’(x)$, $dy/dx$ ó $y’$ ). Para resolver una ecuación diferencial se debe encontrar una función que satisfaga dicha ecuación.
-Dentro de las ecuaciones diferenciales nos encontramos las ecuaciones diferenciales ordinarias, EDOs, que contienen derivadas respecto a una sola variable independiente. Más adelante nos centraremos en este tipo en particular. En oposición a éstas estarían las ecuaciones diferenciales parciales, en las que la función $f(x)$ depende de más variables independientes. \cite{Molero2007}
+Es en este último punto en el que nos centraremos en los siguientes capítulos, ya que si bien para problemas pequeños, algo tan simple como el método de Euler explícito podría bastarnos, posteriormente plantearemos problemas mucho más complejos, que requerirán soluciones que estén a la altura. No se trata por tanto solamente de hallar una solución, sino de hacerlo rápida y eficientemente.
 
-El orden de una ecuación diferencial equivale al orden de la mayor derivada que aparece en la ecuación. Además, será lineal cuando la variable dependiente y todas sus derivadas son de primer grado (no puede haber $f(x)^2$ ), y los coeficientes de la variable dependiente y sus derivadas dependen de la variable independiente.
+Para esto, partiremos de 4 problemas cuya implementación secuencial y soluciones esperadas ya conocemos de forma previa, y aplicaremos para su resolución 3 métodos numéricos distintos, que a su vez implementaremos con dos tecnologías para paralelizar distintas, OpenMP y CUDA, es decir, paralelismo a nivel de CPU y GPU.
 
-Podemos clasificar a los métodos en tres grupos, explícitos, semiimplícitos e implícitos. Los métodos semiimplícitos son una herramienta clave para resolver eficientemente el tipo de problemas que trataremos. Un método semiimplícito es un esquema numérico para resolver ecuaciones diferenciales (EDOs) en el que se tratan algunos términos de forma implícita y otros de forma explícita. Esto es útil cuando el problema tiene términos rígidos como la difusión, que deben tratarse implícitamente para que el método sea estable incluso con pasos de tiempo grandes, y términos suaves o de comportamiento hiperbólico como la advección, que se pueden tratar explícitamente para evitar resolver sistemas grandes o no lineales.
+Nuestro objetivo será implementar de forma fiel y exacta tanto los problemas como los métodos de resolución, para posteriormente poder comparar las ganancias en tiempo de ejecución al pasar de una tecnología a otra.
 
-A modo de ejemplo simple podríamos comenzar con una ecuación diferencial ordinaria de primer orden como:
-\begin{equation*}
-	\frac{dy}{dt} = -2y \text{ , } y(0)=1
-\end{equation*}
-Donde además de la EDO, se nos está dando su valor inicial. En este caso en particular, sabemos de forma analítica que su solución exacta es $y(t) = e^{-2t}$, pero si por cualquier razón no pudiéramos resolverla analíticamente deberíamos recurrir a los métodos numéricos. Podríamos utilizar, por ejemplo, el método de Euler.
-
-Como hemos comentado, el método de Euler es uno de los métodos numéricos más simples que podemos utilizar para la resolución de EDOs. Se construye a partir de una sencilla idea geométrica: aproximar el valor de la solución en cada nodo por el valor que proporciona la recta tangente a la solución trazada desde el punto correspondiente al nodo anterior.\cite{Gallardo2018} 
-
-Con el método de Euler explícito utilizaríamos la siguiente fórmula:
-\begin{equation}
-	\label{eq:EulerExplicito}
-	y_{n+1} = y_n + \Delta t \cdot f(t_n,y_n)
-\end{equation}
-Donde $y_n$ corresponde a la aproximación numérica de $y(t_n)$, $f(t,y)$ es $-2y$ en nuestro caso, y $\Delta t$ representa la variación en el tiempo que queramos. Por tanto, tomando estos valores, con un $t_0 = 0.0$, $\Delta t = 0.1$, y $t_f = 0.5$, calcularemos los sucesivos valores para $t = 0.1$, $0.2$, $0.3$, $0.4$, y $0.5$.
-
-El primer paso sería por tanto, partiendo de los valores iniciales, calcular el $t=0.1$, a saber, $y_1 = y_0 + \Delta t \cdot f(t_0,y_0) = 1 + 0.1 \cdot (-2 \cdot 1) = 0.8 $. Si esto lo repitiéramos de forma sucesiva obtendríamos los siguientes resultados:
+La idea detrás de todo esto es relativamente simple, un algoritmo que utilice 4 o 16 hebras será mejor que uno secuencial. Y uno que utilice 256 será mejor que todos ellos. Aunque la realidad no siempre va de la mano de nuestras ideas, buscaremos conseguir las mejores ganancias aprovechando al máximo todas las herramientas que ponen a nuestra disposición tanto CUDA como OpenMP. Haremos por tanto serie de mediciones y buscaremos probar nuestra hipótesis.
 
 
 
-\begin{table}[h]
-	\begin{center}
-		\begin{tabular}{| c | c | c | c | c |}
-			\hline
-			Paso $n$ & $t_n$ & $y_n$(Euler) & $y_n$(Exacta) & Diferencia \\ \hline
-			0 & 0.0 & \multicolumn{2}{c|}{Valor Inicial = 1.0} & - \\
-			1 & 0.1 & 0.8     & 0.81873 & 0.01873 \\
-			2 & 0.2 & 0.64    & 0.67032 & 0.03032 \\
-			3 & 0.3 & 0.512   & 0.54881 & 0.03681 \\
-			4 & 0.4 & 0.4096  & 0.44933 & 0.03973 \\
-			5 & 0.5 & 0.32768 & 0.36788 & 0.04020 \\ \hline
-		\end{tabular}
-		\caption{Comparativa entre Euler y valor real}
-		\label{tab:euler}
-	\end{center}
-\end{table}
-
-Ahora que tenemos un ejemplo que nos sirva de guía podemos entrar en algo más de detalle respecto a algunos conceptos más que iremos usando. 
-
-
-
-Por otro lado, los métodos multipaso usan varios valores anteriores de la solución para calcular el siguiente paso en el tiempo, en lugar de basarse solo en el valor actual. En el ejemplo \ref{eq:EulerExplicito} que hemos tratado anteriormente, sólo teníamos en cuenta un valor, $y_n$ para hallar $y_{n+1}$ pero posteriormente trataremos con otras ecuaciones más complejas en las que necesitaremos otros como $y_{n-1}$ y $y_{n-2}$. Para problemas de gran tamaño, los métodos multipaso permiten alcanzar resultados con gran precisión y de una forma más eficiente que los métodos de un paso como el de Euler o el de Runge-Kutta.
-
-Comenzaremos a trabajar programando por el método de Runge-Kutta de órdenes 1 a 4, con el que haremos un planteamiento a la resolución de los problemas que trataremos de dos formas distintas, usando OpenMP y usando CUDA, es decir, haciendo la paralelización en las hebras de la CPU, y en la GPU, respectivamente.
-
-\creaSeccion{OpenMP}
-
-
-\creaSeccion{CUDA}

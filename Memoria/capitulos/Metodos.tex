@@ -1,4 +1,6 @@
-\creaCapitulo{Diseño}
+\creaCapitulo{Métodos de Resolución}
+\creaSeccion{Planteamiento}
+Para resolver los diferentes problemas hemos implementado tres métodos distintos, a saber: Runge-Kutta, que es explícito y utiliza pasos intermedios ($K1, K2$) para obtener los siguientes pasos; Adams-Bashford, que también es explícito y multipaso, pero utiliza pasos antiguos (como $f_{n-2}$); y Adams-Bashford-Moulton, un predictor-corrector semiimplícito basado en Adams-Moulton (inherentemente implícito) que utiliza Adams-Bashford para 
 \creaSeccion{Runge Kutta}
 
 Los métodos de Runge-Kutta se utilizan para resolver ecuaciones diferenciales no lineales, cuando encontrar una solución exacta es muy difícil o imposible. En el método de Runge-Kutta de orden 4 resolveremos diversos pasos que nos servirán para estimar de forma muy aproximada el resultado. Partiendo de un valor inicial $dy/dt = f(t,y)$, $y(t_0)=y_0$, y de un valor de salto $h>0$, calcularemos iterativamente los valores tal que:
@@ -35,7 +37,4 @@ Como podemos ver, la aplicación del algoritmo es relativamente simple, se traba
 
 \creaSeccion{Adams-Bashford}
 
-\creaSeccion{Adams-Moulton}
-
-\creaSeccion{SimpleAdvDiff}
-En primero de los programas con los que trataremos será este SimpleAdvDiff, que representa un modelo simple de Advección-Difusión en 1D. En este problema trabajaremos con un vector que estará compuesto de dos partes, una parte rígida y una no rígida, que se sumarán para dar los valores de cada una de las celdas del vector.
+\creaSeccion{Adams-Bashford-Moulton}

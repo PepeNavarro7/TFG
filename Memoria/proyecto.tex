@@ -28,6 +28,10 @@
 	\section*{#1} 
 	\addcontentsline{toc}{section}{#1} 
 }
+\newcommand{\creaSubSeccion}[1]{
+	\subsection*{#1}
+	\addcontentsline{toc}{subsection}{#1}
+}
 \decimalpoint %usar . en lugar de , para decimales
 
 
@@ -64,7 +68,10 @@
 \fancyfoot[C]{\thepage}% Numero en el centro del pie de pagina
 
 \input{capitulos/Introduccion}
-\input{capitulos/Diseño}
+\input{capitulos/Conceptos}
+\input{capitulos/Metodos}
+\input{capitulos/Problemas}
+\input{capitulos/Paralelismo}
 
 \afterpage{\blankpage} %Página en blanco
 

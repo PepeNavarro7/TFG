@@ -1,0 +1,87 @@
+\creaCapitulo{Conceptos previos}
+
+\creaSeccion{Métodos numéricos y EDOs}
+
+Una ecuación diferencial es aquella que relaciona una función ( $f(x)$ ó $y$), sus variables ($x$) y sus derivadas ( $f’(x)$, $dy/dx$ ó $y’$ ). Para resolver una ecuación diferencial se debe encontrar una función que satisfaga dicha ecuación.
+Dentro de las ecuaciones diferenciales nos encontramos las ecuaciones diferenciales ordinarias, EDOs, que contienen derivadas respecto a una sola variable independiente. Más adelante nos centraremos en este tipo en particular. En oposición a éstas estarían las ecuaciones diferenciales parciales, en las que la función $f(x)$ depende de más variables independientes. \cite{Molero2007}
+
+El orden de una ecuación diferencial equivale al orden de la mayor derivada que aparece en la ecuación. Además, será lineal cuando la variable dependiente y todas sus derivadas son de primer grado (no puede haber $f(x)^2$ ), y los coeficientes de la variable dependiente y sus derivadas dependen de la variable independiente.
+
+A modo de ejemplo simple podríamos considerar una ecuación diferencial ordinaria de primer orden como:
+
+\begin{equation*}
+	\frac{dy}{dt} = -2y \text{ , } y(0)=1
+\end{equation*}
+
+Donde además de la EDO, se nos está dando su valor inicial. En este caso en particular, sabemos de forma analítica que su solución exacta es $y(t) = e^{-2t}$, y podríamos por tanto calcular cualquier $y_n$ que deseemos, pero si por cualquier razón no pudiéramos resolverla analíticamente deberíamos recurrir a los métodos numéricos. A través de ellos, y partiendo del valor $y_n$ que se nos proporciona, calcularíamos de forma iterativa $y_{n+1}$ hasta llegar al valor $n$ que busquemos. 
+
+Podríamos utilizar, por ejemplo, el método de Euler, del que hablaremos más adelante. Antes de ello podemos entrar en algo más de detalle respecto a algunos otros conceptos que iremos usando. 
+
+
+\creaSeccion{Tipos de métodos numéricos}
+
+Podemos dividir a los métodos en tres grupos, explícitos, implícitos y semiimplícitos. La división se hará en función de cómo se consigue el siguiente paso, es decir, de cómo obtenemos $y_{n+1}$ a partir de $y_n$; de si aparecen valores futuros o no en la fórmula que lo calcula. Tendremos como expresión general la siguiente: \cite{Molero2007}
+
+\begin{equation}
+	\label{eq:ExpresionGeneralMetodosUnPaso}
+	y_{n+1} = y_n + \Delta t \cdot \Phi (x_n, y_n, y_{n+1}, \Delta t)
+\end{equation}
+
+En la cual será la función incremento $\Phi$ la que dirima a cuál de los grupos pertenece el método con el que estemos trabajando.
+
+Los métodos explícitos son aquellos en los que siguiente término se puede obtener directamente, sólo haciendo cálculos con datos de los que ya se dispone. Dicho de otra forma, son aquellos en los que $y_{n+1}$ no aparece en $\Phi$, sólo aparece en la parte izquierda de la ecuación. Entre ellos nos encontraremos el Euler explícito, Runge-Kutta, o Adams-Bashford, los tres los veremos posteriormente. Los métodos explícitos suelen ser más fáciles de implementar, ya que no requieren resolver ecuaciones, y suelen ser más rápidos. Por otro lado, tienden a ser menos estables, especialmente en problemas rígidos (\textit{stiff}).
+
+Al otro lado del espectro nos encontraríamos a los métodos implícitos, que son aquellos en los que $y_{n+1}$ sí aparece en la parte de la derecha de la igualdad, lo cuál nos obligaría a resolver una ecuación que podrá ser, o no, lineal. Estos métodos son muy estables, y son más adecuados para reolver problemas rígidos (\textit{stiff}). Como parte negativa tienen que requieren resolver ecuaciones en cada paso, y a veces de forma iterativa, lo que los acaba haciendo mucho más costosos computacionalmente. Entre ellos nos encontramos algunos métodos como el Euler implícito, Adams-Moulton, o los métodos BDF. 
+
+Como tercer grupo tendríamos los métodos semiimplícitos. Éstos representan una especie de "solución" a los diferentes problemas que traen consigo los métodos explícitos e implícitos. En este grupo, aunque existe una parte implícita, ésta es más simple, ya que o bien la ecuación a resolver es lineal, o bien se separa la parte rígida para tratarla implícitamente y el resto se trata de forma explícita. Esto es útil cuando el problema tiene términos rígidos (\textit{stiff}) como la difusión, que deben tratarse implícitamente para que el método sea estable incluso con pasos de tiempo grandes, y términos suaves o de comportamiento hiperbólico como la advección, que se pueden tratar explícitamente para evitar resolver sistemas grandes o no lineales.
+Los métodos semiimplícitos representan un compromiso entre la estabilidad de los explícitos y la velocidad de los implícitos. Como hemos mencionado, podremos dividir a la EDO en dos partes:
+
+\begin{equation}
+	\label{eq:EcuacionSemiimplicita}
+	y' = f(x,y) = f_E(x,y) + f_I(x,y)
+\end{equation}
+
+En este ejemplo $f_E$ es la parte explícita, suave (no \textit{stiff}), y $f_I$ es la parte que queremos tratar implícitamente. Algunos métodos semiimplícitos son los métodos IMEX (\textit{implicit-explicit}), los métodos linealmente implícitos Runge-Kutta (\textit{LIRK}), o el método Adams-Bashford-Moulton (AB-AM predictor-corrector). Es con este último con el que trabajaremos.
+
+Otra categorización con la que trabajaremos serán los métodos de un solo paso, y los métodos multipaso.
+En los métodos de un solo paso, para obtener el siguiente valor con el que se tratará, el siguiente paso, sólo se utiliza información relativa al paso anterior. Es decir, como podemos ver en \ref{eq:ExpresionGeneralMetodosUnPaso}, para obtener $y_{n+1}$ sólo se utilizaría $y_n$.
+
+Sin embargo, los métodos multipaso usan varios valores anteriores de la solución para calcular el siguiente paso en el tiempo, en lugar de basarse solo en el valor actual. Es decir, que para obtener $y_{n+1}$ se podrían tomar pasos intermedios que posteriormente se desechen (como en Runge-Kutta), o utilizar pasos más antiguos como $y_{n-1}$ o $y_{n-2}$. Para problemas de gran tamaño, los métodos multipaso permiten alcanzar resultados con gran precisión y de una forma más eficiente que los métodos de un paso como el de Euler o el de Runge-Kutta.
+
+
+\creaSeccion{Método de Euler}
+
+Como hemos comentado, el método de Euler es uno de los métodos numéricos más simples de los que disponemos para la resolución de EDOs. Se trata de un método explícito de un solo paso que se construye a partir de una sencilla idea geométrica: aproximar el valor de la solución en cada nodo por el valor que proporciona la recta tangente a la solución trazada desde el punto correspondiente al nodo anterior.\cite{Gallardo2018} 
+
+Emplearíamos la siguiente fórmula:
+\begin{equation}
+	\label{eq:EulerExplicito}
+	y_{n+1} = y_n + \Delta t \cdot f(t_n,y_n)
+\end{equation}
+Aplicando la misma al ejemplo de valor inicial que mencionamos antes, $\frac{dy}{dt} = -2y \text{ , } y(0)=1$, sabemos que $y_n$ corresponde a la aproximación numérica de $y(t_n)$, y $\Delta t$ representa la variación en el tiempo paso a paso que estemos considerando. Además, en nuestro caso, $f(t_n,y_n)$ sería $-2 \cdot y_n$, y se nos da el valor inicial $t_0 = 0.0$. Por tanto, tomando estos valores, con un $\Delta t = 0.1$, y $t_f = 1.0$, calcularemos los sucesivos valores para $t = 0.1, 0.2, ..., 1.0$.
+
+El primer paso sería por tanto, partiendo de los valores iniciales, calcular el $t=0.1$, a saber, $y_1 = y_0 + \Delta t \cdot f(t_0,y_0) = 1 + 0.1 \cdot (-2 \cdot 1) = 0.8 $. Si esto lo repitiéramos de forma sucesiva obtendríamos los siguientes resultados:
+
+\begin{table}[H]
+	\begin{center}
+		\begin{tabular}{| c | c | c | c | c | c |}
+			\hline
+			Paso $n$ & $t_n$ & $y_n$(Euler) & $y_n$(Exacta) & Diferencia & $Dif/y_n$ \\ \hline
+			0  & 0.0 & \multicolumn{2}{c|}{Valor Inicial = 1.0} & - & - \\
+			1  & 0.1 & 0.8     & 0.81873 & 0.01873 & 0.022 \\
+			2  & 0.2 & 0.64    & 0.67032 & 0.03032 & 0.045 \\
+			3  & 0.3 & 0.512   & 0.54881 & 0.03681 & 0.067 \\
+			4  & 0.4 & 0.4096  & 0.44933 & 0.03973 & 0.088 \\
+			5  & 0.5 & 0.32768 & 0.36788 & 0.04020 & 0.109 \\
+			6  & 0.6 & 0.26214 & 0.30119 & 0.03905 & 0.130 \\
+			7  & 0.7 & 0.20972 & 0.24660 & 0.03688 & 0.150 \\
+			8  & 0.8 & 0.16777 & 0.20190 & 0.03412 & 0.169 \\
+			9  & 0.9 & 0.13422 & 0.16530 & 0.03108 & 0.188 \\
+			10 & 1.0 & 0.10737 & 0.13533 & 0.02796 & 0.207 \\ \hline
+		\end{tabular}
+		\caption{Comparativa entre Euler y valor real}
+		\label{tab:EjemploEuler}
+	\end{center}
+\end{table}
+
+Como podemos observar en la tabla, el error que cometemos en la aproximación se mantiene relativamente estable en términos absolutos, pero porcentualmente hablando repecto al valor real aumenta con cada iteración. Esto nos indica que para este problema, quizás el método que hemos utilizado o el $\Delta t$ que hemos considerado no son los más indicados. 
