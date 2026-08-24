@@ -1,7 +1,7 @@
 \documentclass[oneside,a4paper,11pt]{book}
 
 % Packages que usamos
-\usepackage[utf8]{inputenc} %idioima
+\usepackage[utf8]{inputenc} %idioma
 \usepackage[spanish]{babel} %idioma
 \usepackage{amsmath} % funciones matemáticas
 \usepackage{graphicx} % la portada
@@ -12,6 +12,8 @@
 \usepackage{algorithm} %incluir pseudocodigo
 \usepackage{algpseudocode} %incluir pseudocodigo
 \usepackage{float} % para que los algorithm se coloquen bien
+\usepackage[colorlinks=false,pdfborder={0 0 0},hidelinks]{hyperref} % Las referencias te llevan a ellas
+
 
 % Comando para añadir una página en blanco
 \newcommand\blankpage{ \null
@@ -28,11 +30,11 @@
 	\section*{#1} 
 	\addcontentsline{toc}{section}{#1} 
 }
-\newcommand{\creaSubSeccion}[1]{
-	\subsection*{#1}
-	\addcontentsline{toc}{subsection}{#1}
-}
 \decimalpoint %usar . en lugar de , para decimales
+
+\addto\captionsspanish{ %Llamar tabla a las "table"
+	\renewcommand{\tablename}{Tabla}
+}
 
 
 % Re-usable information
@@ -46,9 +48,15 @@
 \newcommand{\myDepartment}{Departamento de Lenguajes y Sistemas Informáticos}
 \newcommand{\myUni}{Universidad de Granada}
 
-\addto\captionsspanish{ \renewcommand{\contentsname}{Índice} }
-\addto\captionsspanish{ \renewcommand{\listtablename}{Glosario de Tablas} }
-\addto\captionsspanish{ \renewcommand{\listfigurename}{Glosario de Imágenes} }
+\addto\captionsspanish{ % Renombrar una serie de conceptos
+	\renewcommand{\tablename}{Tabla}
+	\renewcommand{\contentsname}{Índice}
+	\renewcommand{\listtablename}{Glosario de Tablas}
+	\renewcommand{\listfigurename}{Glosario de Imágenes}
+}
+\floatname{algorithm}{Algoritmo}
+
+
 
 \begin{document}
 
