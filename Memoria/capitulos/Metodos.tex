@@ -80,6 +80,7 @@ Aplicado en un contexto de programación, tendremos una clase $RungeKutta$ con u
 Como podemos ver, la aplicación del algoritmo es relativamente fácil de entender, se trabaja con 4 vectores auxiliares en los que hacemos los cálculos intermedios, que luego se suman ponderadamente. Como cada evaluación K depende de la anterior, no podremos hacer una operación vectorial en la que se evalúen los cuatro K en paralelo, sino que será en las otras operaciones, las evaluaciones de cada miembro, las sumas, y las multiplicaciones de cada vector, en las que podremos entrar a trabajar el paralelismo para mejorar la eficiencia de nuestro código. 
 
 \creaSeccion{Adams-Bashford}
+
 A diferencia de Runge-Kutta, donde sólo considerábamos un valor $y_n$ para obtener $y_{n+1}$, en los métodos de Adams-Bashford, al ser multipaso, sí tendremos en cuenta más puntos, como $y_{n-1}$ o $y_{n-3}$. En este proyecto nos hemos centrado en los métodos de paso fijo, es decir, que la diferencia entre $y_n$ y $y_{n-1}$ es constante (e igual a $\Delta t$). Si bien existen otros métodos de paso variable, no serán tratados.
 
 De forma general, tenemos que un método lineal de $k$ pasos viene determinado por una expresión tal que: \cite{Molero2007}
@@ -104,25 +105,25 @@ La expresión general de un método de Adams-Bashford de k pasos es:\cite{Molero
 Aplicando la anterior ecuación \ref{eq:ExpresionGeneralAdamsBashford}, obtendríamos los distintos órdenes con los que trabajaremos. Al igual que con Runge-Kutta, el Adams-Bashford de orden 1 coincide con Euler explícito (ecuación \ref{eq:EulerExplicito}). De igual manera, obtendríamos Adams-Bashford de 2 pasos:
 
 \begin{equation}
-	\label{eq:Adams-Bashford2}
+	\label{eq:AdamsBashford2}
 	y_{n+1} = y_n + h/2 \cdot (3f_n - f_{n-1})
 \end{equation}
 
 Este será el primer caso en el que vemos aplicada la teoría de los métodos multipaso, ya que, para obtener el paso $y_2$, por ejemplo, deberíamos tener de antemano $f_1$ y $f_0$, para los que a su vez necesitaríamos (a través del arranque con Runge-Kutta) $y_1$ y $y_0$. Una vez hecho el arranque inicial para obtener $y_2$, ya sí podríamos operar iterativamente sólo con Adams-Bashford. El de orden 3 sería:
 
 \begin{equation}
-	\label{eq:Adams-Bashford3}
+	\label{eq:AdamsBashford3}
 	y_{n+1} = y_n + h/12 \cdot (23f_n - 16f_{n-1} + 5f_{n-2})
 \end{equation}
 
 Y por último tendríamos la expresión de orden 4, que será con la que principalmente trabajaremos:
 
 \begin{equation}
-	\label{eq:Adams-Bashford4}
+	\label{eq:AdamsBashford4}
 	y_{n+1} = y_n + h/24 \cdot (55f_n - 59f_{n-1} + 37f_{n-2} - 9f_{n-3})
 \end{equation}
 
-Llevándonos este método a la programación, tendremos una clase $AdamsBashford$ con una función $aplicar$ que se encargará de, primero, realizar un arranque con Runge-Kutta de orden 4(algoritmo \ref{alg:RungeKutta4}) y posteriormente poner en funcionamiento un bucle que ejecute la expresión tantas veces como esté establecido. En función del lenguaje utilizado y del tipo de paralelismo, las operaciones vectoriales funcionarán de una forma u otra, pero el planteamiento será el mismo, con llamadas a a la evaluación de cada problema en cuestión ($feval$).
+Llevándonos este método a la programación, tendremos una clase \textit{AdamsBashford} con una función $aplicar$ que se encargará de, primero, realizar un arranque con Runge-Kutta de orden 4(algoritmo \ref{alg:RungeKutta4}) y posteriormente poner en funcionamiento un bucle que ejecute la expresión tantas veces como esté establecido. En función del lenguaje utilizado y del tipo de paralelismo, las operaciones vectoriales funcionarán de una forma u otra, pero el planteamiento será el mismo, con llamadas a a la evaluación de cada problema en cuestión ($feval$).
 El algoritmo para aplicar el método, siendo $k$ el orden del mismo, será:
 \begin{algorithm}[H] %Le ponemos la H para que se coloque entre los dos párrafos, y no se mueva libremente
 	\begin{algorithmic}
@@ -130,7 +131,7 @@ El algoritmo para aplicar el método, siendo $k$ el orden del mismo, será:
 		\State $f_n \gets feval(y_n)$ \Comment{$0 \leq n < k$}
 		\State $t_n \gets t_0 + (k-1) \cdot h$ 
 		\While{$t_n < t_f$}
-		\State $y_k \gets y_{k-1} + h \cdot [AB_k]$ \Comment{Aplicar orden correspondiente}
+		\State $y_k \gets AdamsBashford_k(y_{k-1},f_{n})$ \Comment{Aplicar orden correspondiente}
 		\State $f_k \gets feval(y_k)$
 		\State $swap(y_k,y_{k-1})$
 		\State $swap(f_n,f_{n-1})$ \Comment{$0 \leq n < k$}
@@ -138,12 +139,83 @@ El algoritmo para aplicar el método, siendo $k$ el orden del mismo, será:
 		\EndWhile
 		\State $y_f \gets y_{k-1}$
 	\end{algorithmic}
-	\caption{Adams-Bashford generalizado}
-	\label{alg:AdamsBashford4}
+	\caption{Adams-Bashford general}
+	\label{alg:AdamsBashford}
 \end{algorithm}
 
-La idea detrás del algoritmo es, tras el arranque de los k-1 vectores ``$y$'', y la evaluación de los k vectores ``$f$'', donde k es igual al orden de A-B que estemos aplicando, entrar en el bucle iterativo. En él, iteraremos sobre 2 vectores ``$y$'', a saber, $y_k$ y $y_{k-1}$, y sobre k+1 vectores ``$f$''. 
+La idea detrás del algoritmo es que, tras el arranque de los $k-1$ vectores $y_n$, y la evaluación de los k vectores $f_n$, donde k es igual al orden de A-B que estemos aplicando, entrar en el bucle iterativo. En él, iteraremos sobre 2 vectores $y_n$, a saber, $y_k$ y $y_{k-1}$, y sobre $k+1$ vectores $f_n$. 
 
 Una vez en el bucle, calculamos el nuevo valor de $y_k$, y con él, $f_k$. Posteriormente se hará un swap de vectores tal que $y_k$ pasa a ser $y_{k-1}$, y todos los vectores $f_n$ pasan a ser $f_{n-1}$. Así tendremos los datos preparados para la siguiente iteración.
 
 \creaSeccion{Adams-Bashford-Moulton}
+Los métodos de Adams-Moulton tienen un funcionamiento similar a los de Adams-Bashford, con la salvedad de que estos son implícitos. Esto quiere decir que para calcular $y_{n+1}$ se hace uso de $f(t_{n+1},y_{n+1})$. Para resolver este problema utilizaremos un sistema Predictor-Corrector dándonos un método semiimplícito.
+
+La expresión general de un método Adams-Moulton puro de k pasos es: \cite{Molero2007}
+\begin{equation}
+	\label{eq:ExpresionGeneralAdamsMoulton}
+	\begin{split}
+		z_{n+1} &= z_n + h \cdot ( \gamma_0 \cdot \nabla^0 + \gamma_1 \cdot \nabla^1 + \text{ ... } + \gamma_k \cdot \nabla^k )f_{n+1} \\
+		\text{ donde } \\
+		\gamma_0 &= 0 \text{ y } \gamma_i = \frac{1}{i!h^{i+1}} \int_{x_n}^{x_{n+1}} (x-x_{n+1}) \text{ ... } (x - x_{n-i+2}) \cdot dx
+	\end{split}
+\end{equation}
+
+
+Y por tanto, las ecuaciones correspondientes a los mismos son las siguientes:\cite{Segarra2020}
+
+Adams-Moulton orden 0 (AM1)
+\begin{equation}
+	\label{eq:AdamsMoulton1}
+	y_n = y_{n-1} + h \cdot f_n
+\end{equation}
+
+Adams-Moulton orden 1 (AM2)
+\begin{equation}
+	\label{eq:AdamsMoulton2}
+	y_{n+1} = y_n + h/2 \cdot (f_{n+1} + f_n)
+\end{equation}
+
+Adams-Moulton orden 2 (AM3)
+\begin{equation}
+	\label{eq:AdamsMoulton3}
+	y_{n+1} = y_n + h/12 \cdot (5f_{n+1} + 8f_n - f{n-1})
+\end{equation}
+
+Adams-Moulton orden 3 (AM4)
+\begin{equation}
+	\label{eq:AdamsMoulton4}
+	y_{n+1} = y_n + h/24 \cdot (9f_{n+1} + 19f_n - 5f{n-1} + f{n-2})
+\end{equation}
+
+Adams-Moulton orden 4 (AM5)
+\begin{equation}
+	\label{eq:AdamsMoulton5}
+	y_{n+1} = y_n + h/720 \cdot (251f_{n+1} + 646f_n - 264f{n-1} + 106f{n-2} + 19f_{n-3})
+\end{equation}
+Será en el AM5 en el que nos centraremos principalmente.
+
+Es intuitivamente obvio que llegados a este punto no podríamos resolver estos métodos con las herramientas de las que disponemos. ¿Cómo llegamos a $f{n+1}$ sin disponer todavía de $y{n+1}$ Para resolver este problema, empleamos un sistema Predictor-Corrector mediante el cual utilizamos Adams-Bashford para hacer una primera aproximación de $f_{n+1}$, y la evaluamos para posteriormente hacer una segunda aproximación usando Adams-Moulton. El esquema será el siguiente, donde $k$ es igual al orden:
+
+\begin{algorithm}[H] %Le ponemos la H para que se coloque entre los dos párrafos, y no se mueva libremente
+	\begin{algorithmic}
+		\State $y_n \gets arranqueRK4(y_{n-1})$ \Comment{$1 \leq n < k$}
+		\State $f_n \gets feval(y_n)$ \Comment{$0 \leq n < k$}
+		\State $t_n \gets t_0 + (k-1) \cdot h$ 
+		\While{$t_n < t_f$}
+		\State $y_{pred} \gets AdamsBashford_k(y_{k-1},f_{n})$ \Comment{Aplicar orden k}
+		\State $f_{pred} \gets feval(y_{pred})$
+		\State $y_{corr} \gets AdamsMoulton_k(y_{k-1},f_{pred})$ \Comment{Aplicar orden k}
+		\State $f_{corr} \gets feval(y_{corr})$
+		\State $y_k \gets AdamsMoulton_k(y_{k-1},f_{corr})$ \Comment{Aplicar orden k}
+		\State $f_k \gets feval(y_k)$
+		\State $swap(y_k,y_{k-1})$
+		\State $swap(f_n,f_{n-1})$ \Comment{$0 \leq n < k$}
+		\State $t_n \gets t_n + h$
+		\EndWhile
+		\State $y_f \gets y_{k-1}$
+	\end{algorithmic}
+	\caption{Adams-Bashford-Moulton general}
+	\label{alg:AdamsBashfordMoulton}
+\end{algorithm}
+
+El funcionamiento del algoritmo acaba siendo muy similar al esquema de Adams-Bashford, en tanto que hacemos el arranque con Runge-Kutta y posteriormente iteramos sobre los vectores $y_n$ y $f_n$. En este caso, añadimos además los vectores predictor y corrector, que nos permiten aplicar la idea central de este método, manteniendo una buena eficiencia pero con resultados más precisos.
