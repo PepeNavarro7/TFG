@@ -4,13 +4,13 @@ Los métodos numéricos son un conjunto de técnicas y algoritmos matemáticos d
 
 En el mundo de los métodos numéricos hay infinidad de formas de resolver las EDOs, y tantas o más aplicaciones de las mismas a problemas del mundo real. Escoger el método correcto tiene que ver tanto con la exactitud de la solución, como con su coste, de potencia de computación y tiempo. 
 
-Es en este último punto en el que nos centraremos en los siguientes capítulos, ya que si bien para problemas pequeños, algo tan simple como el método de Euler explícito podría bastarnos, posteriormente plantearemos problemas mucho más complejos, que requerirán soluciones que estén a la altura. No se trata por tanto solamente de hallar una solución, sino de hacerlo rápida y eficientemente.
+Es en este último punto en el que nos centraremos en los siguientes capítulos, ya que si bien para problemas pequeños, algo tan simple como el método de Euler explícito podría bastarnos, posteriormente plantearemos problemas mucho más complejos, que requerirán soluciones que estén a la altura. Por tanto, no se trata solamente de hallar una solución, sino de hacerlo rápida y eficientemente.
 
 Para esto, partiremos de 4 problemas cuya implementación secuencial y soluciones esperadas ya conocemos de forma previa, y aplicaremos para su resolución 3 métodos numéricos distintos, que a su vez implementaremos con dos tecnologías para paralelizar distintas, OpenMP y CUDA, es decir, paralelismo a nivel de CPU y GPU.
 
 Nuestro objetivo será implementar de forma fiel y exacta tanto los problemas como los métodos de resolución, para posteriormente poder comparar las ganancias en tiempo de ejecución al pasar de una tecnología a otra.
 
-La idea detrás de todo esto es relativamente simple, un algoritmo que utilice 4 o 16 hebras será mejor que uno secuencial. Y uno que utilice 256 será mejor que todos ellos. Aunque la realidad no siempre va de la mano de nuestras ideas, buscaremos conseguir las mejores ganancias aprovechando al máximo todas las herramientas que ponen a nuestra disposición tanto CUDA como OpenMP. Haremos por tanto serie de mediciones y buscaremos probar nuestra hipótesis.
+La idea detrás de todo esto es relativamente simple; un algoritmo que utilice 4 o 16 hebras será mejor que uno secuencial. Y uno que utilice 256 será mejor que todos ellos. Aunque la realidad no siempre va de la mano de nuestras ideas, buscaremos conseguir las mayores ganancias aprovechando al máximo todas las herramientas que ponen a nuestra disposición tanto CUDA como OpenMP. Haremos por tanto una serie de mediciones y buscaremos probar nuestra hipótesis.
 
 
 

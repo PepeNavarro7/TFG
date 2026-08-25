@@ -219,3 +219,17 @@ Es intuitivamente obvio que llegados a este punto no podríamos resolver estos m
 \end{algorithm}
 
 El funcionamiento del algoritmo acaba siendo muy similar al esquema de Adams-Bashford, en tanto que hacemos el arranque con Runge-Kutta y posteriormente iteramos sobre los vectores $y_n$ y $f_n$. En este caso, añadimos además los vectores predictor y corrector, que nos permiten aplicar la idea central de este método, manteniendo una buena eficiencia pero con resultados más precisos.
+
+\creaSeccion{Problemas}
+
+Para poner en funcionamiento la implementación de estos métodos y de la paralelización de la que hablaremos a continuación, hemos tomado cuatro problemas distintos que nos permitan probar extensivamente ambas tecnologías, tanto OpenMP como CUDA.
+Los problemas en cuestión son:
+
+SimpleAdvDiff
+
+AdvDiff1D
+
+Brusselator1D, el modelo brusselator es un tipo de modelo de reacción-difusión que fue desarrollado por la Brussels School. Este sistema está diseñado para analizar el comportamiento de sistemas químicos que presentan oscilación no linear. \cite{Hunsdorfer2003}
+
+
+Brusselator2D, este modelo es similar a su versión unidimensional, pero incorpora una componente extra reactiva. Además, está discretizado uniformemente en una malla de NxN puntos.
