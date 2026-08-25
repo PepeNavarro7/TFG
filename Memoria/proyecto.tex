@@ -32,10 +32,6 @@
 }
 \decimalpoint %usar . en lugar de , para decimales
 
-\addto\captionsspanish{ %Llamar tabla a las "table"
-	\renewcommand{\tablename}{Tabla}
-}
-
 
 % Re-usable information
 \newcommand{\myTitle}{Estudio e implementación paralela de métodos semiimplícitos multipaso}
@@ -54,7 +50,12 @@
 	\renewcommand{\listtablename}{Glosario de Tablas}
 	\renewcommand{\listfigurename}{Glosario de Imágenes}
 }
-\floatname{algorithm}{Algoritmo}
+\floatname{algorithm}{Algoritmo} %Renombra los algorithm
+\newcommand{\MyComment}[1]{\hspace{0.5cm}\(\triangleright\)\,#1} %Pegar los comment al codigo en el pseudocodigo
+\newcommand{\MidComment}[1]{\hspace{2cm}\(\triangleright\)\,#1}
+\newcommand{\BelowComment}[1]{\State \hspace{1cm}\textit{#1}}
+
+
 
 
 

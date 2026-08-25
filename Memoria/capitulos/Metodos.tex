@@ -10,7 +10,7 @@ En cada uno de los órdenes de Runge-Kutta resolveremos una serie de pasos inter
 
 Para ilustrar este punto, procedemos a pasar a la fórmula de segundo orden, en el que buscaremos encontrar constantes o parámetros $w_1, w_2, \alpha, \beta$ tal que la fórmula concuerda con un polinomio de Taylor de grado 2. \cite{Zill2009}
 \begin{equation}
-	\label{eq:Runge-Kutta2Inicial}
+	\label{eq:RungeKutta2Inicial}
 	\begin{split}
 		y_{n+1} &= y_n + h \cdot (w_1 k_1 + w_2 k_2)\\
 			k_1 &= f(x_n, y_n)\\
@@ -26,7 +26,7 @@ Para el uso que haremos en este proyecto, basta decir que esto se puede hacer si
 \end{equation*}
 Este es un sistema algebraico que posee tres ecuaciones y cuatro incógnitas, lo cual implica un número infinito de soluciones, donde $w_2 \neq 0$, y para nuestra aplicación práctica tomaremos $w_1 = w_2 = \frac{1}{2}$ y $\alpha = \beta = 1$, formando por tanto:
 \begin{equation}
-	\label{eq:Runge-Kutta2}
+	\label{eq:RungeKutta2}
 	\begin{split}
 		y_{n+1} &= y_n + h/2 \cdot (k_1 + k_2)\\
 		k_1 &= f(t_n, y_n)\\
@@ -36,7 +36,7 @@ Este es un sistema algebraico que posee tres ecuaciones y cuatro incógnitas, lo
 
 De forma análoga, obtendremos el tercer orden:
 \begin{equation}
-	\label{eq:Runge-Kutta3}
+	\label{eq:RungeKutta3}
 	\begin{split}
 		y_{n+1} &= y_n + h/6 \cdot (k_1 +4k_2 + k_3)\\
 		k_1 &= f(t_n, y_n)\\
@@ -47,7 +47,7 @@ De forma análoga, obtendremos el tercer orden:
 
 En el método de Runge-Kutta de orden 4 resolveremos diversos pasos que nos servirán para estimar de forma muy aproximada el resultado. Será en éste en el que nos centraremos a la hora de las mediciones. Partiendo de un valor inicial $dy/dt = f(t,y)$, $y(t_0)=y_0$, y de un valor de salto $h>0$, calcularemos iterativamente los valores tal que:
 \begin{equation}
-	\label{eq:Runge-Kutta4}
+	\label{eq:RungeKutta4}
 	\begin{split}
 		y_{n+1} &= y_n + h/6 \cdot (k_1 +2k_2 + 2k_3 + k_4)\\
 		k_1 &= f(t_n, y_n)\\
@@ -68,9 +68,10 @@ Aplicado en un contexto de programación, tendremos una clase $RungeKutta$ con u
 		\State $K2 \gets feval(t_n+h/2, Y_n + K1\cdot h/2)$
 		\State $K3 \gets feval(t_n+h/2, Y_n + K2\cdot h/2)$
 		\State $K4 \gets feval(t_n+h, Y_n + K3\cdot h)$
-		\State $Y_n \gets Y_n + h/6 \cdot (K1 + 2 \cdot K2 + 2 \cdot K3 + K4)$
+		\State $y_n \gets y_n + h/6 \cdot (K1 + 2 \cdot K2 + 2 \cdot K3 + K4)$
 		\State $t_n \gets t_n + h$
 		\EndWhile
+		\State $y_f \gets y_n$
 	\end{algorithmic}
 	\caption{Runge-Kutta de Orden 4}
 	\label{alg:RungeKutta4}
@@ -81,10 +82,68 @@ Como podemos ver, la aplicación del algoritmo es relativamente fácil de entend
 \creaSeccion{Adams-Bashford}
 A diferencia de Runge-Kutta, donde sólo considerábamos un valor $y_n$ para obtener $y_{n+1}$, en los métodos de Adams-Bashford, al ser multipaso, sí tendremos en cuenta más puntos, como $y_{n-1}$ o $y_{n-3}$. En este proyecto nos hemos centrado en los métodos de paso fijo, es decir, que la diferencia entre $y_n$ y $y_{n-1}$ es constante (e igual a $\Delta t$). Si bien existen otros métodos de paso variable, no serán tratados.
 
-De forma general, tenemos que un método lineal de k pasos viene determinado por una expresión de la forma: \cite{Molero2007}
+De forma general, tenemos que un método lineal de $k$ pasos viene determinado por una expresión tal que: \cite{Molero2007}
 \begin{equation}
 	\label{eq:MetodoLinealKPasos}
-	\sum_{j=0}^{k} \alpha_j \cdot z_{n+j} = h \cdot \sum_{j=0}^{k} \beta_j \cdot f(x_{n+j} , z_{n+j}) , n\geq 0
+	\sum_{j=0}^{k} \alpha_j \cdot z_{n+j} = h \cdot \sum_{j=0}^{k} \beta_j \cdot f(x_{n+j} , z_{n+j}) \text{ , } n \geq 0
 \end{equation}
+
+Para poder aplicar esta fórmula necesitaremos unos valores de arranque, que serán iguales al valor de $k$. Como en los problemas de valor inicial sólo se proporciona el primero de ellos $y_0$, los valores restantes deberemos conseguirlos aplicando otro método (que no sea multipaso), como por ejemplo, Runge-Kutta. 
+
+La expresión general de un método de Adams-Bashford de k pasos es:\cite{Molero2007}
+
+\begin{equation}
+	\label{eq:ExpresionGeneralAdamsBashford}
+	\begin{split}
+		z_{n+1} &= z_n + h \cdot ( \gamma_0 \cdot \nabla^0 + \gamma_1 \cdot \nabla^1 + \text{ ... } + \gamma_{k-1} \cdot \nabla^{k-1} )f_n \\
+		\text{ donde } \\
+		\gamma_i &= \frac{1}{i!h^{i+1}} \int_{x_n}^{x_{n+1}} (x-x_n) \text{ ... } (x - x_{n-i+1}) \cdot dx
+	\end{split}
+\end{equation}
+
+Aplicando la anterior ecuación \ref{eq:ExpresionGeneralAdamsBashford}, obtendríamos los distintos órdenes con los que trabajaremos. Al igual que con Runge-Kutta, el Adams-Bashford de orden 1 coincide con Euler explícito (ecuación \ref{eq:EulerExplicito}). De igual manera, obtendríamos Adams-Bashford de 2 pasos:
+
+\begin{equation}
+	\label{eq:Adams-Bashford2}
+	y_{n+1} = y_n + h/2 \cdot (3f_n - f_{n-1})
+\end{equation}
+
+Este será el primer caso en el que vemos aplicada la teoría de los métodos multipaso, ya que, para obtener el paso $y_2$, por ejemplo, deberíamos tener de antemano $f_1$ y $f_0$, para los que a su vez necesitaríamos (a través del arranque con Runge-Kutta) $y_1$ y $y_0$. Una vez hecho el arranque inicial para obtener $y_2$, ya sí podríamos operar iterativamente sólo con Adams-Bashford. El de orden 3 sería:
+
+\begin{equation}
+	\label{eq:Adams-Bashford3}
+	y_{n+1} = y_n + h/12 \cdot (23f_n - 16f_{n-1} + 5f_{n-2})
+\end{equation}
+
+Y por último tendríamos la expresión de orden 4, que será con la que principalmente trabajaremos:
+
+\begin{equation}
+	\label{eq:Adams-Bashford4}
+	y_{n+1} = y_n + h/24 \cdot (55f_n - 59f_{n-1} + 37f_{n-2} - 9f_{n-3})
+\end{equation}
+
+Llevándonos este método a la programación, tendremos una clase $AdamsBashford$ con una función $aplicar$ que se encargará de, primero, realizar un arranque con Runge-Kutta de orden 4(algoritmo \ref{alg:RungeKutta4}) y posteriormente poner en funcionamiento un bucle que ejecute la expresión tantas veces como esté establecido. En función del lenguaje utilizado y del tipo de paralelismo, las operaciones vectoriales funcionarán de una forma u otra, pero el planteamiento será el mismo, con llamadas a a la evaluación de cada problema en cuestión ($feval$).
+El algoritmo para aplicar el método, siendo $k$ el orden del mismo, será:
+\begin{algorithm}[H] %Le ponemos la H para que se coloque entre los dos párrafos, y no se mueva libremente
+	\begin{algorithmic}
+		\State $y_n \gets arranqueRK4(y_{n-1})$ \Comment{$1 \leq n < k$}
+		\State $f_n \gets feval(y_n)$ \Comment{$0 \leq n < k$}
+		\State $t_n \gets t_0 + (k-1) \cdot h$ 
+		\While{$t_n < t_f$}
+		\State $y_k \gets y_{k-1} + h \cdot [AB_k]$ \Comment{Aplicar orden correspondiente}
+		\State $f_k \gets feval(y_k)$
+		\State $swap(y_k,y_{k-1})$
+		\State $swap(f_n,f_{n-1})$ \Comment{$0 \leq n < k$}
+		\State $t_n \gets t_n + h$
+		\EndWhile
+		\State $y_f \gets y_{k-1}$
+	\end{algorithmic}
+	\caption{Adams-Bashford generalizado}
+	\label{alg:AdamsBashford4}
+\end{algorithm}
+
+La idea detrás del algoritmo es, tras el arranque de los k-1 vectores ``$y$'', y la evaluación de los k vectores ``$f$'', donde k es igual al orden de A-B que estemos aplicando, entrar en el bucle iterativo. En él, iteraremos sobre 2 vectores ``$y$'', a saber, $y_k$ y $y_{k-1}$, y sobre k+1 vectores ``$f$''. 
+
+Una vez en el bucle, calculamos el nuevo valor de $y_k$, y con él, $f_k$. Posteriormente se hará un swap de vectores tal que $y_k$ pasa a ser $y_{k-1}$, y todos los vectores $f_n$ pasan a ser $f_{n-1}$. Así tendremos los datos preparados para la siguiente iteración.
 
 \creaSeccion{Adams-Bashford-Moulton}
