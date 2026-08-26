@@ -41,7 +41,7 @@ Los métodos semiimplícitos representan un compromiso entre la estabilidad de l
 	y' = f(x,y) = f_E(x,y) + f_I(x,y)
 \end{equation}
 
-En este ejemplo $f_E$ es la parte explícita, suave (no \textit{stiff}), y $f_I$ es la parte que queremos tratar implícitamente. Algunos métodos semiimplícitos son los métodos IMEX (\textit{implicit-explicit}), los métodos linealmente implícitos Runge-Kutta (\textit{LIRK}), o el método Adams-Bashford-Moulton (AB-AM predictor-corrector). Es con este último con el que trabajaremos.
+En este ejemplo $f_E$ es la parte explícita, suave (no \textit{stiff}), y $f_I$ es la parte que queremos tratar implícitamente. Algunos métodos semiimplícitos son los métodos IMEX (\textit{implicit-explicit}), los métodos linealmente implícitos Runge-Kutta (\textit{LIRK}),\cite{Hairer1993} o el método Adams-Bashford-Moulton (AB-AM predictor-corrector). Es con este último con el que trabajaremos. 
 
 Otra categorización con la que trabajaremos serán los métodos de un solo paso, y los métodos multipaso.
 En los métodos de un solo paso, para obtener el siguiente valor con el que se tratará, el siguiente paso, sólo se utiliza información relativa al paso anterior. Es decir, como podemos ver en \ref{eq:ExpresionGeneralMetodosUnPaso}, para obtener $y_{n+1}$ sólo se utilizaría $y_n$.
@@ -91,3 +91,40 @@ El primer paso sería por tanto, partiendo de los valores iniciales, calcular el
 \end{figure}
 
 Como podemos observar en la tabla \ref{tab:EjemploEuler} y en la figura \ref{fig:EjemploEuler}, los valores que obtenemos con el Euler explícito son próximos a los reales (eje Y izquierdo); el error absoluto se mantiene estable por debajo de 0.05, e incluso disminuye. Sin embargo, el error relativo (eje Y derecho) aumenta de forma lineal con cada iteración, y para la última alcanza un preocupante 20\%. Esto nos indica que para este problema, quizás el método numérico que hemos utilizado o el $\Delta t$ que hemos considerado no son los más indicados. 
+
+\creaSeccion{Paralelismo}
+Las dos tecnologías que vamos a utilizar para introducir el paralelismo en nuestro código y las mejoras que trae consigo son OpenMP y CUDA.
+
+Por muy rápida que sea nuestra CPU, siempre llegaremos a un punto en que, bien por la complejidad de los problemas, bien por el tamaño que se maneje, una sola CPU con un código secuencial no va a ser suficiente. Es aquí donde entra el paralelismo, y es aquí donde nos centraremos.
+
+La programación paralela es el conjunto de técnicas, modelos y arquitecturas que permiten ejecutar múltiples operaciones de forma simultánea, explotando el hardware moderno (CPU multicore, GPU masivamente paralelas, aceleradores, clústeres). Su objetivo es reducir el tiempo de ejecución, aumentar el rendimiento y permitir resolver problemas que, como hemos comentado, serían inviables en código secuencial.
+
+El paralelismo surge cuando un problema puede descomponerse en subtareas independientes que pueden ejecutarse al mismo tiempo. En términos formales, un programa es paralelizable si existe una partición de su espacio de trabajo en unidades que no presentan dependencias de datos que impidan su ejecución concurrente. Esto implica analizar dependencias de datos, localidad y acceso a memoria, granularidad de las tareas, y coste de sincronización.
+
+Si quisiéramos clasificar los distintos modelos de paralelismo nos podríamos encontrar, por un lado con el paralelismo de datos, que consiste en aplicar la misma operación a múltiples elementos de un conjunto, a travñes de la vectorización, de bucles paralelos, o de operaciones \textit{element-wise}. Dentro de esta categoría nos encontraríamos a OpenMP, CUDA, OpenCL, o AVX, entre otros.
+
+Por otro lado tendríamos el paralelismo de tareas, que consiste en ejecutar tareas heterogéneas en paralelo, como pipelines, árboles de tareas, o grafos de dependencias. Este modelo es usado por frameworks como TBB, Cilk, OpenMP tasks o runtimes de grafos. Por último el paralelismo híbrido combina ambos, buscando el paralelismo de tareas, con paralelismo de datos dentro de cada tarea.
+
+Algunos conceptos muy importantes que nos encontraremos son la concurrencia y el paralelismo. La concurrencia hace referencia a que varias tareas pueden ocurrir a la vez, o que ocurren simultáneamente de forma lógica. Una CPU \textit{single-core} puede cambiar rápidamente de una tarea a otra si no tienen dependencia entre ellas y son concurrentes. Mientras que el paralelismo trata sobre ejecutar físicamente varias tareas al mismo tiempo, por ejemplo a través de varios núcleos (como en OpenMP) o de varias hebras (como en CUDA).
+
+El speedup será la forma en la que mediremos las mejoras en la ejecución conforme aumenta el paralelismo. En nuestro caso, lo calcularemos dividiendo el tiempo de ejecución del programa secuencial, entre el paralelizado. Como todo código por bien optimizado que esté va a tener una parte secuencial que no pueda paralelizarse, buscaremos que el speedup aumente tanto como sea posible. Por ejemplo, pasando de un código secuencial a uno con 4 hebras OpenMP, el speedup ideal sería de 4, aunque entendemos que no será posible conseguirlo, pero sí acercarse lo suficiente. \cite{Schryen2024} Otro concepto relacionado sería el de la eficiencia, que sería el cociente entre speedup y el número de cores, o de hebras, empleado para obtener ese speedup. La eficiencia estará entre 0 y 1 (o entre 0\% y 100\%), y medirá cuánto se están aprovechando los recursos paralelos.
+
+Al hilo de esto último, la Ley de Amdahl \cite{Amdahl1967} nos indica que, con un tamaño de problema constante y aumentando el número de procesadores, la parte no paralelizable del programa va a limitar nuestro speedup. Podemos ilustrarla tal que:
+
+\begin{equation}
+	\label{eq:LeyAmdahl}
+	S(p) = \frac{1}{ (1-f) + f/p }
+\end{equation}
+
+Siendo $p$ el numero de procesadores, $f$ la fracción paralelizable del programa, $1-f$ por tanto sería la parte secuencial, y $S(p)$ sería el speedup máximo teórico. La interpretación que podemos hacer es que cuando aumentan los hilos, la parte no paralelizable satura el speedup. Por ejemplo, con un 95\% del programa paralelizable, e infinitos procesadores, el speedup nunca superará 20. Trayendo esto a un contexto más realista, lo que se nos indica es que, aunque obviamente aumentar los núcleos o los hilos es efectivo, y reduciremos los tiempos de ejecución, llegará un número a partir del cual ya no merezca la pena.
+
+También debemos mencionar la Ley de Gustafson \cite{Gustafson1988}, que parte de una premisa distinta, aumentar el tamaño del problema cuando tenemos más procesadores. A saber:
+
+\begin{equation}
+	\label{eq:LeyGustafson}
+	S(p) = p - (1-f) \cdot (p-1)
+\end{equation}
+
+Aquí la interpretación que hacemos es que al aumentar el tamaño del problema, aumentamos la parte paralelizable, mientras que la secuencial se mantiene estable. Esto juega a nuestro favor, ya que trataremos grandes cantidades de datos. La ley de Gustafson aporta un punto de vista más optimista al binomio procesadores-eficiencia, ya que nos dice que aunque la eficiencia no pueda ser perfecta, a medida que el problema y los hilos crezcan, podrá acercarse mucho.
+
+Otro concepto importante será el de la sincronización. Cuando hilos diferentes deban compartir algún dato entre ellos, o necesiten que haya terminado cierta tarea antes de empezar la siguiente, deberá haber una barrera en la que los hilos se esperen entre ellos. Estas barreras ralentizan mucho la ejecución y se deberá intentar reducirlas tanto como sea posible.
