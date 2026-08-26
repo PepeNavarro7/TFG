@@ -1,9 +1,23 @@
 \creaCapitulo{Implementacion}
 
-Comenzaremos a partir de la implementación secuencial de los problemas. \cite{Mantas2024} Como comentamos anteriormente, no nos centraremos en la resolución de los problemas per se, puesto que ésta se nos da ya hecha y corregida, sino que nuestros esfuerzos irán en implementar los métodos de resolución en ambas formas de paralelismo, y buscar la máxima eficiencia.
+\creaSeccion{Secuencial}
 
-El primer paso, por tanto, será realizar una implementación secuencial de los métodos partiendo de los algoritmos que previamente hemos comentado, Runge-Kutta, Adams-Bashford, y Adamd-Bashford-Moulton, a saber, algoritmos \ref{alg:RungeKutta4}, \ref{alg:AdamsBashford}, y \ref{alg:AdamsBashfordMoulton}, respectivamente.
+Comenzaremos a partir de la implementación secuencial de los problemas. \cite{Mantas2024} Como comentamos anteriormente, no nos centraremos en la resolución de los problemas \textit{per se}, puesto que ésta se nos da ya hecha y corregida, sino que nuestros esfuerzos irán en implementar los métodos de resolución en ambas formas de paralelismo, y buscar la máxima eficiencia. Para facilitar la implementación y la cohesión del código, definimos una clase abstracta \textit{Problema} que aúne todo el comportamiento común a los cuatro problemas.
 
-\creaSeccion{Implementación en OpenMP}
-\creaSeccion{Implementación en CUDA}
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/DiagramaClasesProblemas.jpg}
+	\caption{Diagrama de los problemas}
+	\label{fig:DiagramaProblemas}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/DiagramaClasesProblemas2.png}
+	\caption{Diagrama de los problemas2}
+	\label{fig:DiagramaProblemas2}
+\end{figure}
+
+El siguiente paso, por tanto, será realizar una implementación secuencial de los problemas y los métodos, partiendo estos últimos de los algoritmos que previamente hemos comentado, Runge-Kutta, Adams-Bashford, y Adamd-Bashford-Moulton, a saber, algoritmos \ref{alg:RungeKutta4}, \ref{alg:AdamsBashford}, y \ref{alg:AdamsBashfordMoulton}, respectivamente. El lenguaje elegido será C++, para luego poder añadir la parte de OpenMP.
+
+\creaSeccion{OpenMP}
+\creaSeccion{CUDA}
 \creaSeccion{Mediciones}
