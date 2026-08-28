@@ -61,17 +61,17 @@ Aplicado en un contexto de programación, tendremos una clase $RungeKutta$ con u
 
 \begin{algorithm}[H] %Le ponemos la H para que se coloque entre los dos párrafos, y no se mueva libremente
 	\begin{algorithmic}
-		\State $y_n \gets y_0$
+		\State $Y_n \gets Y_0$
 		\State $t_n \gets t_0$
 		\While{$t_n < t_f$}
 		\State $K1 \gets feval(t_n, Y_n)$
 		\State $K2 \gets feval(t_n+h/2, Y_n + K1\cdot h/2)$
 		\State $K3 \gets feval(t_n+h/2, Y_n + K2\cdot h/2)$
 		\State $K4 \gets feval(t_n+h, Y_n + K3\cdot h)$
-		\State $y_n \gets y_n + h/6 \cdot (K1 + 2 \cdot K2 + 2 \cdot K3 + K4)$
+		\State $Y_n \gets Y_n + h/6 \cdot (K1 + 2 \cdot K2 + 2 \cdot K3 + K4)$
 		\State $t_n \gets t_n + h$
 		\EndWhile
-		\State $y_f \gets y_n$
+		\State $Y_f \gets Y_n$
 	\end{algorithmic}
 	\caption{Runge-Kutta de Orden 4}
 	\label{alg:RungeKutta4}
@@ -127,17 +127,17 @@ Llevándonos este método a la programación, tendremos una clase \textit{AdamsB
 El algoritmo para aplicar el método, siendo $k$ el orden del mismo, será:
 \begin{algorithm}[H] %Le ponemos la H para que se coloque entre los dos párrafos, y no se mueva libremente
 	\begin{algorithmic}
-		\State $y_n \gets arranqueRK4(y_{n-1})$ \Comment{$1 \leq n < k$}
-		\State $f_n \gets feval(y_n)$ \Comment{$0 \leq n < k$}
+		\State $Y_n \gets arranqueRK4(y_{n-1})$ \Comment{$1 \leq n < k$}
+		\State $F_n \gets feval(Y_n)$ \Comment{$0 \leq n < k$}
 		\State $t_n \gets t_0 + (k-1) \cdot h$ 
 		\While{$t_n < t_f$}
-		\State $y_k \gets AdamsBashford_k(y_{k-1},f_{n})$ \Comment{Aplicar orden correspondiente}
-		\State $f_k \gets feval(y_k)$
-		\State $swap(y_k,y_{k-1})$
-		\State $swap(f_n,f_{n-1})$ \Comment{$0 \leq n < k$}
+		\State $Y_k \gets AdamsBashford\text{-}K(Y_{k-1}\text{, }F_{n})$ \Comment{$0 \leq n < k$}
+		\State $F_k \gets feval(Y_k)$
+		\State $swap(Y_k\text{, }Y_{k-1})$
+		\State $swap(F_n\text{, }F_{n-1})$ \Comment{$1 \leq n \leq k$}
 		\State $t_n \gets t_n + h$
 		\EndWhile
-		\State $y_f \gets y_{k-1}$
+		\State $Y_f \gets Y_{k-1}$
 	\end{algorithmic}
 	\caption{Adams-Bashford general}
 	\label{alg:AdamsBashford}
@@ -198,27 +198,31 @@ Es intuitivamente obvio que llegados a este punto no podríamos resolver estos m
 
 \begin{algorithm}[H] %Le ponemos la H para que se coloque entre los dos párrafos, y no se mueva libremente
 	\begin{algorithmic}
-		\State $y_n \gets arranqueRK4(y_{n-1})$ \Comment{$1 \leq n < k$}
-		\State $f_n \gets feval(y_n)$ \Comment{$0 \leq n < k$}
+		\State $Y_n \gets arranqueRK4(Y_{n-1})$ \Comment{$1 \leq n < k$}
+		\State $F_n \gets feval(Y_n)$ \Comment{$0 \leq n < k$}
 		\State $t_n \gets t_0 + (k-1) \cdot h$ 
 		\While{$t_n < t_f$}
-		\State $y_{pred} \gets AdamsBashford_k(y_{k-1},f_{n})$ \Comment{Aplicar orden k}
-		\State $f_{pred} \gets feval(y_{pred})$
-		\State $y_{corr} \gets AdamsMoulton_k(y_{k-1},f_{pred})$ \Comment{Aplicar orden k}
-		\State $f_{corr} \gets feval(y_{corr})$
-		\State $y_k \gets AdamsMoulton_k(y_{k-1},f_{corr})$ \Comment{Aplicar orden k}
-		\State $f_k \gets feval(y_k)$
-		\State $swap(y_k,y_{k-1})$
-		\State $swap(f_n,f_{n-1})$ \Comment{$0 \leq n < k$}
-		\State $t_n \gets t_n + h$
+		
+			\State $Y_{pred} \gets AdamsBashford\text{-}K( Y_{k-1} \text{, } F_{k-1} )$ \Comment{Aplicar orden k}
+			\State $F_{pred} \gets feval(t_{n+h} \text{, } Y_{pred})$
+			
+			\State $Y_{corr} \gets AdamsMoulton\text{-}K(Y_{k-1} \text{, } F_{pred})$ \Comment{Aplicar orden k}
+			\State $F_{corr} \gets feval(t_{n+h} \text{, } Y_{corr})$
+			
+			\State $Y_k \gets AdamsMoulton\text{-}K(Y_{k-1} \text{, } F_{corr})$ \Comment{Aplicar orden k}
+			\State $F_k \gets feval(t_{n+h} \text{, } Y_k)$
+			
+			\State $swap(y_k \text{, } y_{k-1})$
+			\State $swap(f_n \text{, } f_{n-1})$ \Comment{$1 \leq n \leq k$}
+			\State $t_n \gets t_n + h$
 		\EndWhile
-		\State $y_f \gets y_{k-1}$
+		\State $Y_f \gets Y_{k-1}$
 	\end{algorithmic}
 	\caption{Adams-Bashford-Moulton general}
 	\label{alg:AdamsBashfordMoulton}
 \end{algorithm}
 
-El funcionamiento del algoritmo acaba siendo muy similar al esquema de Adams-Bashford, en tanto que hacemos el arranque con Runge-Kutta y posteriormente iteramos sobre los vectores $y_n$ y $f_n$. En este caso, añadimos además los vectores predictor y corrector, que nos permiten aplicar la idea central de este método, manteniendo una buena eficiencia pero con resultados más precisos.
+El funcionamiento del algoritmo acaba siendo muy similar al esquema de Adams-Bashford, en tanto que hacemos el arranque con Runge-Kutta y posteriormente iteramos sobre los vectores $Y_n$ y $F_n$. En este caso, añadimos además los vectores predictor y corrector, $Y_{pred}$ y $F_{corr}$, que nos permiten aplicar la idea central de este método, manteniendo una buena eficiencia pero con resultados más precisos.
 
 \creaSeccion{Problemas}
 
