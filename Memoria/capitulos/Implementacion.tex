@@ -74,7 +74,7 @@ Como podemos ver, para hacer el cálculo propio de Adams-Bashford de orden 4 (ec
 		
 	\end{algorithmic}
 	\caption{Implementación de Función Auxiliar}
-	\label{alg:FuncionAuxiliar}
+	\label{alg:VectorCopia}
 \end{algorithm}
 
 Esta estrategia trae consigo ventajas como la modularidad, ya que cada operación vectorial es independiente y autocontenida, lo cual facilita la depuración y la legibilidad del código.
@@ -118,11 +118,11 @@ Esto quiere decir que se creará un único equipo de hilos al entrar en el \text
 
 La idea principal detrás de esta estrategia es reducir el \textit{overhead} provocado por tener demasiadas barreras de sincronización, y mejorar el uso de la caché. Para mejorar la implementación hacemos uso de directivas como \textit{schedule (static)}, con la que indicamos cómo deben repartirse las iteraciones entre los hilos. En este caso, se divide el rango de iteraciones en bloques contiguos y de tamaño fijo, y se asigna cada bloque a un hilo antes de empezar la ejecución del bucle. Esto es práctico cuando sabemos de antemano que todas las iteraciones van a costar lo mismo, y no va haber ramas pesadas o irregulares.
 
-Algunas de las desventajas que tendremos es que el código es más complejo, pues no se puede reutilizar el \textit{feval()} secuencial, sino que hay que hacer una versión específica para los componentes. De igual manera, no se pueden utilizar las funciones auxiliares, porque están diseñadas para tratar los vectores completos, no elementos individuales.
+Algunas de las desventajas que tendremos es que el código es más complejo, pues no se puede reutilizar el \textit{feval()} secuencial (que sí lo aprovechábamos en el paralelismo por operaciones), sino que hay que hacer una versión específica para los componentes. De igual manera, no se pueden utilizar las funciones auxiliares, porque están diseñadas para tratar los vectores completos, no elementos individuales.
 
 \creaSubSeccion{Mediciones}
 
-Ante la pregunta de qué estrategia es mejor, al respuesta sería, como casi siempre en informática, que depende.
+Ante la pregunta de qué estrategia es mejor, la respuesta sería, como casi siempre en informática, que depende.
 
 En un primer planteamiento, parece que el paralelismo por componentes debería ser mejor. Reduce la creación y destrucción repetitiva de las hebras, y reduce las barreras de sincronización.
 
@@ -130,9 +130,168 @@ Un matiz importante que debemos hacer es que, aunque hablemos de creación y des
 
 Existe un concepto llamado \textit{thread pooling}, que describe que el entorno de ejecución podrá devolver los hilos a la \textit{pool} en lugar de destruirlos, y así ahorrarse crearlos posteriormente. \cite{Barlas2023} Esto eliminaría la principal desventaja del paralelismo por operaciones. 
 
-De forma análoga, el \textit{runtime} no siempre mantiene los hilos activos (como pudiera parecer), aunque no haya finalizado el bloque \textit{parallel}, ya que si el trabajo dentro de cada \textit{omp for} es pequeño, el compilador puede decidir dormir los hilos para ahorrar energía. Esto puede provocar pérdida de tiempo al tener que despertar los hilos, y latencias de sincronización más altas.
+De forma análoga, el \textit{runtime} no siempre mantiene los hilos activos (como pudiera parecer), aunque no haya finalizado el bloque \textit{parallel}, ya que si el trabajo dentro de cada bloque \textit{omp for} es pequeño, el compilador puede decidir dormir los hilos para ahorrar energía. Esto puede provocar pérdida de tiempo al tener que despertar los hilos, y latencias de sincronización más altas.
 
-Otro dato a tener en cuenta, es que en el planteamiento de nuestros problemas, las llamadas a \textit{feval\_i()} son muy baratas, y el trabajo por iteración es pequeño, mientras que \textit{feval()} es más pesado, y en cierta forma se amortiza el \textit{overhead}.
+Otro dato a tener en cuenta, es que en el planteamiento de nuestros problemas, las llamadas a \textit{feval\_i()} son muy baratas, y el trabajo por iteración es pequeño, mientras que \textit{feval()} es más pesado, y en cierta forma se amortiza el \textit{overhead} al hacerse  una única llamada en lugar de \textit{neqn} llamadas.
+
+Podemos comenzar, por ejemplo, comparando los tiempos al resolver el problema \textit{Brusselator1D} con 100.000 ecuaciones.
+\begin{table}[H]
+	\begin{center}
+		\begin{tabular}{| c | c | c | c |}
+			\hline
+			\textbf{Solver} & \textbf{Hebras} & \textbf{Estrategia} & \textbf{T (s)} \\
+			\hline
+			
+			% ---------------- RUNGE KUTTA ----------------
+			\multirow{6}{*}{Runge-Kutta}
+			& \multirow{2}{*}{1}  & OMP Componentes   & 2501.84 \\
+			\cline{3-4}
+			&                     & OMP Operaciones & 1544.87 \\
+			\cline{2-4}
+			& \multirow{2}{*}{4}  & OMP Componentes   & 670.504 \\
+			\cline{3-4}
+			&                     & OMP Operaciones & 371.93 \\
+			\cline{2-4}
+			& \multirow{2}{*}{16} & OMP Componentes   & 197.065 \\
+			\cline{3-4}
+			&                     & OMP Operaciones & 180.327 \\
+			\hline
+			
+			% ---------------- ADAMS BASHFORD ----------------
+			\multirow{6}{*}{Adams-Bashford}
+			& \multirow{2}{*}{1}  & OMP Componentes   & 707.634 \\
+			\cline{3-4}
+			&                     & OMP Operaciones & 556.051 \\
+			\cline{2-4}
+			& \multirow{2}{*}{4}  & OMP Componentes   & 179.559 \\
+			\cline{3-4}
+			&                     & OMP Operaciones & 130.993 \\
+			\cline{2-4}
+			& \multirow{2}{*}{16} & OMP Componentes   & 56.5174 \\
+			\cline{3-4}
+			&                     & OMP Operaciones & 66.1485 \\
+			\cline{3-4}
+			\hline
+			
+			% ---------------- ADAMS BASHFORD MOULTON ----------------
+			\multirow{6}{*}{Adams-Bashford-Moulton}
+			& \multirow{2}{*}{1}  & OMP Componentes   & 2914.04 \\
+			\cline{3-4}
+			&                     & OMP Operaciones & 1772.73 \\
+			
+			\cline{2-4}
+			& \multirow{2}{*}{4}  & OMP Componentes   & 785.555 \\
+			\cline{3-4}
+			&                     & OMP Operaciones & 438.018 \\
+			
+			\cline{2-4}
+			& \multirow{2}{*}{16} & OMP Componentes   & 237.236 \\
+			\cline{3-4}
+			&                     & OMP Operaciones & 219.918 \\
+			
+			\hline
+			
+		\end{tabular}
+		\caption{Tiempos de Brusselator1D con 100000 ecuaciones}
+		\label{tab:Brusselator1D-100K}
+	\end{center}
+\end{table}
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/Brusselator1D-100K.png}
+	\caption{Brusselator1D 100.000 ecuaciones}
+	\label{fig:Brusselator1D-100K}
+\end{figure}
+
+Como podemos ver, hay una mejora sustancial del tiempo al pasar de 1 a 4 y a 16 hebras, con ambas estrategias de paralelismo, y con los 3 métodos numéricos. Además, se aprecia que la resolución con Adams-Bashford es más rápida que Runge-Kutta, ya que es más directa y no requiere de los pasos intermedios (K1, K2, K3, K4), y también es mucho más veloz que el predictor-corrector Adams-Bashford-Moulton, ya que éste último llama a Adams-Bashford dentro de su bucle de ejecución. Además, podemos ver que para este tipo y tamaño de problema, el paralelismo por operaciones es más eficiente.
+
+Podemos probar por ejemplo, con el problema más complejo (\textit{Brusselator2D}), y el método que más tarda (\textit{ABM4}), y podemos comparar la evolución del tiempo conforme aumenta el tamaño del problema, a saber, con un número de ecuaciones igual a 45000, 80000 y 125000.
+
+\begin{table}[H]
+	\begin{center}
+		\begin{tabular}{| c | c | c | c | c | c |}
+			\hline
+			\textbf{neqn} & \textbf{Hebras} & \textbf{Estrategia} & \textbf{T (s)} & \textbf{Speedup} & \textbf{Eficiencia} \\
+			\hline
+			
+			% ---------------- 45000 ----------------
+			\multirow{6}{*}{45000}
+			& \multirow{2}{*}{1}  & Operaciones & 976.061 & \multirow{2}{*}{1} & \multirow{2}{*}{100} \\
+			\cline{3-4}
+			&                     & Componentes & 2151.79 &                   &                    \\
+			\cline{2-6}
+			& \multirow{2}{*}{4}  & Operaciones & 263.081 & 3.710115896 & 92.7528974 \\
+			\cline{3-6}
+			&                     & Componentes & 569.693 & 3.777104511 & 94.4276128 \\
+			\cline{2-6}
+			& \multirow{2}{*}{16} & Operaciones & 180.662 & 5.402691213 & 33.7668201 \\
+			\cline{3-6}
+			&                     & Componentes & 206.744 & 10.40799249 & 65.0499531 \\
+			\hline
+			
+			% ---------------- 80000 ----------------
+			\multirow{6}{*}{80000}
+			& \multirow{2}{*}{1}  & Operaciones & 1825.86 & \multirow{2}{*}{1} & \multirow{2}{*}{100} \\
+			\cline{3-4}
+			&                     & Componentes & 3970.37 &                   &                    \\
+			\cline{2-6}
+			& \multirow{2}{*}{4}  & Operaciones & 466.282 & 3.915784868 & 97.8946217 \\
+			\cline{3-6}
+			&                     & Componentes & 1049.35 & 3.78364702 & 94.5911755 \\
+			\cline{2-6}
+			& \multirow{2}{*}{16} & Operaciones & 214.67 & 8.505426934 & 53.1589183 \\
+			\cline{3-6}
+			&                     & Componentes & 331.809 & 11.96582974 & 74.7864359 \\
+			\hline
+			
+			% ---------------- 125000 ----------------
+			\multirow{6}{*}{125000}
+			& \multirow{2}{*}{1}  & Operaciones & 2692.79 & \multirow{2}{*}{1} & \multirow{2}{*}{100} \\
+			\cline{3-4}
+			&                     & Componentes & 5982.94 &                   &                    \\
+			\cline{2-6}
+			& \multirow{2}{*}{4}  & Operaciones & 675.123 & 3.988591708 & 99.7147927 \\
+			\cline{3-6}
+			&                     & Componentes & 1593.61 & 3.754331361 & 93.8582840 \\
+			\cline{2-6}
+			& \multirow{2}{*}{16} & Operaciones & 264.402 & 10.18445398 & 63.6528373 \\
+			\cline{3-6}
+			&                     & Componentes & 445.081 & 13.44236218 & 84.0147636 \\
+			\hline
+			
+		\end{tabular}
+		\caption{Brusselator2D con ABM4}
+		\label{tab:Brusselator2D-ABM4}
+	\end{center}
+\end{table}
+
+
+
+
+
+
+Más allá de lo obvio, que conforme aumenta el tamaño del problema, aumentan los tiempos, es cuanto menos destacable la variación en los speedups que se alcanzan en función del aumento de las hebras, en una estrategia y otra.
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/Brusselator2D-ABM.png}
+	\caption{ABM4 resolviendo Brusselator2D}
+	\label{fig:Brusselator2D-ABM4}
+\end{figure}
+
+
+Partiendo de los mismos datos, pero tomando ahora solo el speedup y la eficiencia, y filtrando por la estrategia de las operaciones (que es la más eficiente), tendríamos estas gráficas:
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/OMP-Speedup-Eficiencia.png}
+	\caption{Speedup y Eficiencia}
+	\label{fig:OMP-Speedup-Eficiencia}
+\end{figure}
+
+Tenemos en azul y alieadas con el eje Y izquierdo las barras del speedup, y en naranja y con el eje Y derecho, la eficiencia en valores porcentuales. Obviamente, para 1 hebra siempre tendremos un speedup de 1, y una eficiencia de 100\%.
+
+Más allá de eso, podemos ver varias ideas en juego a la vez. Si nos centramos en cualquiera de los 3 tamaños, podemos ver la Ley de Amdahl \cite{Amdahl1967} en funcionamiento; con un mismo tamaño de problema, conforme aumenta el número de hilos, disminuye el speedup, ya que siempre queda una parte secuencial que no se puede paralelizar.
+
+En paralelo a esto, si nos fijamos ahora en las columnas de la eficiencia, podemos ver que, si bien la eficiencia disminuye dentro de un mismo grupo de tamaño (algo esperable), conforme aumenta el tamaño de problema, la eficiencia sí aumenta con él, pasando de un 33\%, a un 53\% y un 63\%, cuando observamos los datos relativos a las 16 hebras. Esto coincide con la ley de Gustafson \cite{Gustafson1988}, ya que al aumentar el tamaño del problema, crece la parte del programa que es paralelizable, y por lo tanto se pueden usar las hebras de forma más eficiente.
+
 
 \creaSeccion{CUDA}
 \creaSeccion{Mediciones}
