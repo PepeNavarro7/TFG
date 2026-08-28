@@ -1,23 +1,138 @@
-\creaCapitulo{Implementacion}
+\creaCapitulo{Implementación}
 
 \creaSeccion{Secuencial}
 
-Comenzaremos a partir de la implementación secuencial de los problemas. \cite{Mantas2024} Como comentamos anteriormente, no nos centraremos en la resolución de los problemas \textit{per se}, puesto que ésta se nos da ya hecha y corregida, sino que nuestros esfuerzos irán en implementar los métodos de resolución en ambas formas de paralelismo, y buscar la máxima eficiencia. Para facilitar la implementación y la cohesión del código, definimos una clase abstracta \textit{Problema} que aúne todo el comportamiento común a los cuatro problemas.
+Comenzaremos a partir de la implementación secuencial de los problemas. \cite{Mantas2024} 
 
 \begin{figure}[H]
-	\includegraphics[width=\linewidth]{imagenes/DiagramaClasesProblemas.jpg}
-	\caption{Diagrama de los problemas}
+	\includegraphics[width=\linewidth]{imagenes/DiagramaClasesProblemas.png}
+	\caption{Diagrama de Clases de los problemas}
 	\label{fig:DiagramaProblemas}
 \end{figure}
 
+Como comentamos anteriormente, no nos centraremos en la resolución de los problemas \textit{per se}, puesto que ésta se nos da ya hecha y corregida, sino que nuestros esfuerzos irán en implementar los métodos de resolución en ambas formas de paralelismo, y buscar la máxima eficiencia. Para facilitar la implementación y la cohesión del código, definimos una clase abstracta \textit{Problema} que aúne todo el comportamiento común a los cuatro problemas.
+
+El siguiente paso, por tanto, será realizar una implementación secuencial de los métodos, partiendo de los algoritmos que previamente hemos comentado, Runge-Kutta, Adams-Bashford, y Adamd-Bashford-Moulton, a saber, algoritmos \ref{alg:RungeKutta4}, \ref{alg:AdamsBashford}, y \ref{alg:AdamsBashfordMoulton}, respectivamente. El lenguaje elegido será C++, para luego poder añadir la parte de OpenMP o CUDA.
+
 \begin{figure}[H]
-	\includegraphics[width=\linewidth]{imagenes/DiagramaClasesProblemas2.png}
-	\caption{Diagrama de los problemas2}
-	\label{fig:DiagramaProblemas2}
+	\includegraphics[width=\linewidth]{imagenes/DiagramaClasesMetodos.png}
+	\caption{Diagrama de Clases de los métodos}
+	\label{fig:DiagramaMetodos}
 \end{figure}
 
-El siguiente paso, por tanto, será realizar una implementación secuencial de los problemas y los métodos, partiendo estos últimos de los algoritmos que previamente hemos comentado, Runge-Kutta, Adams-Bashford, y Adamd-Bashford-Moulton, a saber, algoritmos \ref{alg:RungeKutta4}, \ref{alg:AdamsBashford}, y \ref{alg:AdamsBashfordMoulton}, respectivamente. El lenguaje elegido será C++, para luego poder añadir la parte de OpenMP.
+El planteamiento que se hace con los métodos es similar al de los problemas, una clase abstracta padre de la cual puedan heredar los métodos. Además, en la clase padre \textit{Metodo} hemos implementado diversas funciones auxiliares que nos van a facilitar el trabajar con vectores. Con este diseño, a través de la herencia y el polimorfismo, podríamos aumentar el alcance de nuestro proyecto añadiendo nuevos métodos o más problemas sin dificultad ninguna.
+
+Ahora que tenemos una primera maqueta funcional (aunque poco eficiente), podremos comenzar con el trabajo en paralelo.
 
 \creaSeccion{OpenMP}
+
+OpenMP es un modelo de programación paralela para arquitecturas de memoria compartida, diseñado para proporcionar una interfaz portable, escalable y de alto nivel que permita explotar el paralelismo en CPUs multinúcleo sin recurrir a APIs de hilos de bajo nivel. Su diseño se basa en directivas de compilador, rutinas de biblioteca y variables de entorno, y sigue el modelo de ejecución \textit{fork–join}, donde un hilo maestro crea y sincroniza equipos de hilos que ejecutan regiones paralelas. \cite{Jin1997}
+
+OpenMP surge en 1997, cuando Intel impulsa la creación del OpenMP Architecture Review Board (ARB), un consorcio formado por fabricantes de hardware y software (Intel, IBM, AMD, HP, NEC, Cray, Fujitsu, Nvidia, Oracle, entre otros) con el objetivo de definir un estándar común para paralelismo en memoria compartida. La última versión de OpenMP, la 6.0, data de 2024.
+
+OpenMP implementa paralelismo mediante \textit{multithreading}. El funcionamiento es relativamente simple, el programa comienza con un comportamiento secuencial y un hilo maestro. Cuando este hilo se encuentra una región paralela con \textit{\#pragma omp parallel}, se crea un equipo de hilos \cite{Arb2024}. Los hilos ejecutan el bloque paralelo de forma concurrente, y al finalizar, los hilos se unen y el control vuelve al maestro.
+
+OpenMP se compone de varios elementos principales, el primero de los cuales sería las directivas de compilador, como \textit{\#pragma omp parallel}, \textit{\#pragma omp for}, o \textit{\#pragma omp single}, y sus cláusulas como \textit{schedule}, \textit{shared}, o \textit{default}. Otros elementos importantes son las funciones de biblioteca, como \textit{omp\_set\_num\_threads()} o \textit{omp\_get\_wtime()}, y las variables de entorno, como \textit{OMP\_NUM\_THREADS}, \textit{OMP\_SCHEDULE}, o \textit{OMP\_DYNAMIC}. \cite{Arb2024}
+
+Como hemos comentado, OpenMP opera sobre un modelo de memoria compartida en la que todos los hilos ven el mismo espacio de direcciones, en el que las variables pueden ser visibles por todos los hilos ($shared$), o cada hilo tiene su propia copia ($private$). Este modelo evita la necesidad de comunicación explícita entre procesos (como en MPI), simplificando el desarrollo. \cite{Jin1997}
+
+De cara a nuestro proyecto, lo primero que debemos tener en cuenta es que no podemos simplemente paralelizar el bucle principal con el que trabajamos (e.g. el bucle while en el algoritmo \ref{alg:AdamsBashford}) porque cada iteración necesita de la anterior para calcular el siguiente paso. Deberemos buscar por tanto otras formas de atacar el problema. En el caso de OpenMP hemos planteado dos formas, paralelismo por operaciones, y por elementos.
+
+\creaSubSeccion{Paralelismo por Operaciones}
+
+En esta estrategia buscamos que cada función paralelice su propio trabajo. Eso quiere decir que cada operación vectorial, como el \textit{feval()}, o \textit{escalarPorVector}, tiene su propio \textit{\#pragma omp parallel}, crea un equipo de hilos, reparte el trabajo, y lo sincroniza.
+
+De forma simplificada, veamos un ejemplo de Adams-Bashford 4:
+
+\begin{algorithm}[H]
+	\begin{algorithmic}
+		\State $ Y_{n0} \gets Y_0 $
+		\State $ Y_n \gets arranqueRK4(Y_{n-1})$ \Comment{$ n = \{1, 2, 3\} $}
+		\State $ F_n \gets feval(t_n\text{, }Y_n)$ \Comment{$ n = \{0, 1, 2, 3\} $}
+		\For{ $ t_n \text{=} t_0 \text{+} 3h \text{; }t_n < t_f\text{; }t_n \text{+=}h $ }
+			\State $ escalar2Mult(37.0\text{, }F_{n1}\text{, -}9.0\text{, }F_{n0}\text{, }Y_{aux}) $
+			\State $ escalarSuma2Mult( Y_{aux}\text{, }55.0\text{, }F_{n3}\text{, -}59.0\text{, }F_{n2}\text{, }Y_{aux} ) $
+			\State $ escalarSumaMult( Y_{n3}\text{, }h/24.0\text{, }Y_{aux}\text{, }Y_{n4} ) $
+			\State $ F_{n4} \gets feval(t_n+h\text{, }Y_{n4}) $
+			
+			\State $ swap(Y_{n4}\text{, }Y_{n3}) $
+			\State $ swap(F_n\text{, }F_{n-1}) $ \Comment{$ n = \{1, 2, 3, 4\} $}
+		\EndFor
+		\State $Y_f \gets Y_{n3}$
+	\end{algorithmic}
+	\caption{Implementación de AB4 con Paralelismo por Operaciones}
+	\label{alg:AB4ParalelismoOperaciones}
+\end{algorithm}
+
+Como podemos ver, para hacer el cálculo propio de Adams-Bashford de orden 4 (ecuación \ref{eq:AdamsBashford4}) la hemos divido en 3 partes utilizando las funciones auxiliares de la clase abstracta \textit{Metodo} de las que ya disponíamos. Dentro de cada una de ellas se creará el grupo de hilos, se repartirá el trabajo (cada hilo tendrá un "trozo" de vector sobre el que trabajar), y una vez finalicen se sincronizará para retornar a la función principal. Por ejemplo, \textit{vectorCopia()}:
+\begin{algorithm}[H]
+	\begin{algorithmic}
+		\State $ \text{\#pragma omp parallel for schedule(static)} $
+		\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
+			\State $ Y[i] \gets X[i] $
+		\EndFor
+		
+	\end{algorithmic}
+	\caption{Implementación de Función Auxiliar}
+	\label{alg:FuncionAuxiliar}
+\end{algorithm}
+
+Esta estrategia trae consigo ventajas como la modularidad, ya que cada operación vectorial es independiente y autocontenida, lo cual facilita la depuración y la legibilidad del código.
+
+El principal punto negativo de esta estrategia es que trae consigo un \textit{overhead} alto, ya que cada función tiene una barrera implícita al acabar un \textit{parallel for}, en cada iteración del bucle hay varias llamadas a funciones, y el bucle itera un elevado número de veces. Esto equivale a más paradas de las que serían deseadas, además de que los hilos entran y salen de regiones paralelas constantemente.
+
+\creaSubSeccion{Paralelismo por Componentes}
+
+Frente al paralelismo de operaciones, tenemos el paralelismo por componentes (o por elementos), en el que sólo tenemos una gran región \textit{parallel} dentro de la cual ocurre todo el paralelismo, y cada hebra calcula su parte de los vectores.
+
+Esto quiere decir que se creará un único equipo de hilos al entrar en el \textit{parallel}, y todos los hilos permanecerán activos e iterarán en el bucle, paso a paso. Dentro del bucle iterativo, habrá diversos \textit{\#pragma omp for} que repartirán los índices entre los hilos. Esto además nos permitirá reducir las barreras de sincronización. Para poder comparar con la anterior implementación \ref{alg:AB4ParalelismoOperaciones}, describimos el mismo algoritmo (\ref{eq:AdamsBashford4}) pero con esta estrategia:
+
+\begin{algorithm}[H]
+	\begin{algorithmic}
+		\State $ Y_{n0} \gets Y_0 $
+		\State $ Y_n \gets arranqueRK4(Y_{n-1})$ \Comment{$ n = \{1, 2, 3\} $}
+		\State $ \text{\#pragma omp parallel for schedule(static)} $
+		\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
+			\State $ F_n[i] \gets feval\_i(t_n\text{, }Y_n\text{, }i)$ \Comment{$ n = \{0, 1, 2, 3\} $}
+		\EndFor
+		
+		\State $ \text{\#pragma omp parallel} $
+		\For{ $ t_n \text{=} t_0 \text{+} 3h \text{; }t_n < t_f\text{; }t_n \text{+=}h $ }
+			\State $ \text{\#pragma omp for schedule(static)} $
+			\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
+				\State $ Y_4[i] = Y_3[i] + h/24 * ( 55F_3[i] - 59F_2[i] + 37F_1[i] -9F_0[i]) $
+			\EndFor
+			\State $ \text{\#pragma omp for schedule(static)} $
+			\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
+				\State $ F_4[i] \gets feval\_i(t_n+h\text{, }Y_4\text{, }i)$
+			\EndFor
+			\State $ \text{\#pragma omp single} $
+			\State $ swap(Y_{n4}\text{, }Y_{n3}) $
+			\State $ swap(F_n\text{, }F_{n-1}) $ \Comment{$ n = \{1, 2, 3, 4\} $}
+		\EndFor
+		\State $Y_f \gets Y_{n3}$
+	\end{algorithmic}
+	\caption{Implementación de AB4 con Paralelismo por Componentes}
+	\label{alg:AB4ParalelismoComponentes}
+\end{algorithm}
+
+La idea principal detrás de esta estrategia es reducir el \textit{overhead} provocado por tener demasiadas barreras de sincronización, y mejorar el uso de la caché. Para mejorar la implementación hacemos uso de directivas como \textit{schedule (static)}, con la que indicamos cómo deben repartirse las iteraciones entre los hilos. En este caso, se divide el rango de iteraciones en bloques contiguos y de tamaño fijo, y se asigna cada bloque a un hilo antes de empezar la ejecución del bucle. Esto es práctico cuando sabemos de antemano que todas las iteraciones van a costar lo mismo, y no va haber ramas pesadas o irregulares.
+
+Algunas de las desventajas que tendremos es que el código es más complejo, pues no se puede reutilizar el \textit{feval()} secuencial, sino que hay que hacer una versión específica para los componentes. De igual manera, no se pueden utilizar las funciones auxiliares, porque están diseñadas para tratar los vectores completos, no elementos individuales.
+
+\creaSubSeccion{Mediciones}
+
+Ante la pregunta de qué estrategia es mejor, al respuesta sería, como casi siempre en informática, que depende.
+
+En un primer planteamiento, parece que el paralelismo por componentes debería ser mejor. Reduce la creación y destrucción repetitiva de las hebras, y reduce las barreras de sincronización.
+
+Un matiz importante que debemos hacer es que, aunque hablemos de creación y destrucción de hilos iterativa, no siempre ha de ocurrir así. Es cierto que, de forma lógica, el modelo \textit{fork-join} de OpenMP describe de esa forma el comportamiento de los hilos; se crean, se usan, se destruyen. \cite{Jin1997} Sin embargo, esto no siempre ocurre así (ya que sería muy costoso).
+
+Existe un concepto llamado \textit{thread pooling}, que describe que el entorno de ejecución podrá devolver los hilos a la \textit{pool} en lugar de destruirlos, y así ahorrarse crearlos posteriormente. \cite{Barlas2023} Esto eliminaría la principal desventaja del paralelismo por operaciones. 
+
+De forma análoga, el \textit{runtime} no siempre mantiene los hilos activos (como pudiera parecer), aunque no haya finalizado el bloque \textit{parallel}, ya que si el trabajo dentro de cada \textit{omp for} es pequeño, el compilador puede decidir dormir los hilos para ahorrar energía. Esto puede provocar pérdida de tiempo al tener que despertar los hilos, y latencias de sincronización más altas.
+
+Otro dato a tener en cuenta, es que en el planteamiento de nuestros problemas, las llamadas a \textit{feval\_i()} son muy baratas, y el trabajo por iteración es pequeño, mientras que \textit{feval()} es más pesado, y en cierta forma se amortiza el \textit{overhead}.
+
 \creaSeccion{CUDA}
 \creaSeccion{Mediciones}
