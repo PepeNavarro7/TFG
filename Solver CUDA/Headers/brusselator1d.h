@@ -46,10 +46,7 @@ public:
 
     virtual inline const void* get_t() const override { return (const void*)&cte_br1d_t; };
 
-protected:
-    // Auxiliary function f
-    //inline double f(const double &y) const { return( ((y-0.7)*(y-1.3)) / ((y-0.7)*(y-1.3)+0.1) ); };
-    
+protected:    
     // Constructor para las clases hijas
     brusselator1d(const int &nx_points, const int &threads, const string &name, const dim3 block):
         Problema(nx_points*2.0, name, (1.0/(nx_points+1.0)), dim3( (nx_points*2.0+threads-1)/threads, 1, 1 ), block),
