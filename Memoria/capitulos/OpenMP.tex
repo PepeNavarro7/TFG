@@ -1,8 +1,18 @@
-\creaCapitulo{Implementación}
+\creaCapitulo{OpenMP}
 
-\creaSeccion{Secuencial}
+OpenMP es un modelo de programación paralela para arquitecturas de memoria compartida, diseñado para proporcionar una interfaz portable, escalable y de alto nivel que permita explotar el paralelismo en CPUs multinúcleo sin recurrir a APIs de hilos de bajo nivel. Su diseño se basa en directivas de compilador, rutinas de biblioteca y variables de entorno, y sigue el modelo de ejecución \textit{fork–join}, donde un hilo maestro crea y sincroniza equipos de hilos que ejecutan regiones paralelas. \cite{Jin1997}
 
-Comenzaremos a partir de la implementación secuencial de los problemas. \cite{Mantas2024} 
+Surge en 1997, cuando Intel impulsa la creación del OpenMP Architecture Review Board (ARB), un consorcio formado por fabricantes de hardware y software (Intel, IBM, AMD, HP, Nvidia, Oracle, entre otros) con el objetivo de definir un estándar común para paralelismo en memoria compartida. La última versión de OpenMP, la 6.0, data de 2024.
+
+OpenMP implementa paralelismo mediante \textit{multithreading}. El funcionamiento es relativamente simple, el programa comienza con un comportamiento secuencial y un hilo maestro. Cuando este hilo se encuentra una región paralela con \textit{\#pragma omp parallel}, se crea un equipo de hilos \cite{Arb2024}. Los hilos ejecutan el bloque paralelo de forma concurrente, y al finalizar, los hilos se unen y el control vuelve al maestro.
+
+Podemos identificar se compone de varios elementos principales, el primero de los cuales sería las directivas de compilador, como \textit{\#pragma omp parallel}, \textit{\#pragma omp for}, o \textit{\#pragma omp single}, y sus cláusulas como \textit{schedule}, \textit{shared}, o \textit{default}. Otros elementos importantes son las funciones de biblioteca, como \textit{omp\_set\_num\_threads()} o \textit{omp\_get\_wtime()}, y las variables de entorno, como \textit{OMP\_NUM\_THREADS}, \textit{OMP\_SCHEDULE}, o \textit{OMP\_DYNAMIC}. \cite{Arb2024}
+
+Como hemos comentado, OpenMP opera sobre un modelo de memoria compartida en la que todos los hilos ven el mismo espacio de direcciones, en el que las variables pueden ser visibles por todos los hilos ($shared$), o cada hilo tiene su propia copia ($private$). Este modelo evita la necesidad de comunicación explícita entre procesos (como en MPI), simplificando el desarrollo. \cite{Jin1997}
+
+\creaSeccion{Implementación Secuencial}
+
+Tomaremos como punto de partida la implementación secuencial de los problemas \cite{Mantas2024}, de la cual ya disponemos.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/DiagramaClasesProblemas.png}
@@ -10,7 +20,7 @@ Comenzaremos a partir de la implementación secuencial de los problemas. \cite{M
 	\label{fig:DiagramaProblemas}
 \end{figure}
 
-Como comentamos anteriormente, no nos centraremos en la resolución de los problemas \textit{per se}, puesto que ésta se nos da ya hecha y corregida, sino que nuestros esfuerzos irán en implementar los métodos de resolución en ambas formas de paralelismo, y buscar la máxima eficiencia. Para facilitar la implementación y la cohesión del código, definimos una clase abstracta \textit{Problema} que aúne todo el comportamiento común a los cuatro problemas.
+Como comentamos anteriormente, no nos centraremos en la resolución de los problemas \textit{per se}, puesto que ésta se nos da ya hecha y corregida, sino que nuestros esfuerzos irán en implementar los métodos de resolución en ambas formas de paralelismo, y buscar la máxima eficiencia. Para facilitar la implementación y la cohesión del código, definimos una clase abstracta \textit{Problema} de la cual heredarán los cuatro problemas.
 
 El siguiente paso, por tanto, será realizar una implementación secuencial de los métodos, partiendo de los algoritmos que previamente hemos comentado, Runge-Kutta, Adams-Bashford, y Adamd-Bashford-Moulton, a saber, algoritmos \ref{alg:RungeKutta4}, \ref{alg:AdamsBashford}, y \ref{alg:AdamsBashfordMoulton}, respectivamente. El lenguaje elegido será C++, para luego poder añadir la parte de OpenMP o CUDA.
 
@@ -22,23 +32,9 @@ El siguiente paso, por tanto, será realizar una implementación secuencial de l
 
 El planteamiento que se hace con los métodos es similar al de los problemas, una clase abstracta padre de la cual puedan heredar los métodos. Además, en la clase padre \textit{Metodo} hemos implementado diversas funciones auxiliares que nos van a facilitar el trabajar con vectores. Con este diseño, a través de la herencia y el polimorfismo, podríamos aumentar el alcance de nuestro proyecto añadiendo nuevos métodos o más problemas sin dificultad ninguna.
 
-Ahora que tenemos una primera maqueta funcional (aunque poco eficiente), podremos comenzar con el trabajo en paralelo.
+Ahora que tenemos una primera maqueta funcional (aunque poco eficiente), podremos comenzar con el trabajo en paralelo. De cara a nuestro proyecto, lo primero que debemos tener en cuenta es que no podemos simplemente paralelizar el bucle principal con el que trabajamos (e.g. el bucle while en el algoritmo \ref{alg:AdamsBashford}) porque cada iteración necesita de la anterior para calcular el siguiente paso. Deberemos buscar por tanto otras formas de atacar el problema. En el caso de OpenMP hemos planteado dos formas, paralelismo por operaciones, y por elementos.
 
-\creaSeccion{OpenMP}
-
-OpenMP es un modelo de programación paralela para arquitecturas de memoria compartida, diseñado para proporcionar una interfaz portable, escalable y de alto nivel que permita explotar el paralelismo en CPUs multinúcleo sin recurrir a APIs de hilos de bajo nivel. Su diseño se basa en directivas de compilador, rutinas de biblioteca y variables de entorno, y sigue el modelo de ejecución \textit{fork–join}, donde un hilo maestro crea y sincroniza equipos de hilos que ejecutan regiones paralelas. \cite{Jin1997}
-
-OpenMP surge en 1997, cuando Intel impulsa la creación del OpenMP Architecture Review Board (ARB), un consorcio formado por fabricantes de hardware y software (Intel, IBM, AMD, HP, NEC, Cray, Fujitsu, Nvidia, Oracle, entre otros) con el objetivo de definir un estándar común para paralelismo en memoria compartida. La última versión de OpenMP, la 6.0, data de 2024.
-
-OpenMP implementa paralelismo mediante \textit{multithreading}. El funcionamiento es relativamente simple, el programa comienza con un comportamiento secuencial y un hilo maestro. Cuando este hilo se encuentra una región paralela con \textit{\#pragma omp parallel}, se crea un equipo de hilos \cite{Arb2024}. Los hilos ejecutan el bloque paralelo de forma concurrente, y al finalizar, los hilos se unen y el control vuelve al maestro.
-
-OpenMP se compone de varios elementos principales, el primero de los cuales sería las directivas de compilador, como \textit{\#pragma omp parallel}, \textit{\#pragma omp for}, o \textit{\#pragma omp single}, y sus cláusulas como \textit{schedule}, \textit{shared}, o \textit{default}. Otros elementos importantes son las funciones de biblioteca, como \textit{omp\_set\_num\_threads()} o \textit{omp\_get\_wtime()}, y las variables de entorno, como \textit{OMP\_NUM\_THREADS}, \textit{OMP\_SCHEDULE}, o \textit{OMP\_DYNAMIC}. \cite{Arb2024}
-
-Como hemos comentado, OpenMP opera sobre un modelo de memoria compartida en la que todos los hilos ven el mismo espacio de direcciones, en el que las variables pueden ser visibles por todos los hilos ($shared$), o cada hilo tiene su propia copia ($private$). Este modelo evita la necesidad de comunicación explícita entre procesos (como en MPI), simplificando el desarrollo. \cite{Jin1997}
-
-De cara a nuestro proyecto, lo primero que debemos tener en cuenta es que no podemos simplemente paralelizar el bucle principal con el que trabajamos (e.g. el bucle while en el algoritmo \ref{alg:AdamsBashford}) porque cada iteración necesita de la anterior para calcular el siguiente paso. Deberemos buscar por tanto otras formas de atacar el problema. En el caso de OpenMP hemos planteado dos formas, paralelismo por operaciones, y por elementos.
-
-\creaSubSeccion{Paralelismo por Operaciones}
+\creaSeccion{Paralelismo por Operaciones}
 
 En esta estrategia buscamos que cada función paralelice su propio trabajo. Eso quiere decir que cada operación vectorial, como el \textit{feval()}, o \textit{escalarPorVector}, tiene su propio \textit{\#pragma omp parallel}, crea un equipo de hilos, reparte el trabajo, y lo sincroniza.
 
@@ -81,7 +77,7 @@ Esta estrategia trae consigo ventajas como la modularidad, ya que cada operació
 
 El principal punto negativo de esta estrategia es que trae consigo un \textit{overhead} alto, ya que cada función tiene una barrera implícita al acabar un \textit{parallel for}, en cada iteración del bucle hay varias llamadas a funciones, y el bucle itera un elevado número de veces. Esto equivale a más paradas de las que serían deseadas, además de que los hilos entran y salen de regiones paralelas constantemente.
 
-\creaSubSeccion{Paralelismo por Componentes}
+\creaSeccion{Paralelismo por Componentes}
 
 Frente al paralelismo de operaciones, tenemos el paralelismo por componentes (o por elementos), en el que sólo tenemos una gran región \textit{parallel} dentro de la cual ocurre todo el paralelismo, y cada hebra calcula su parte de los vectores.
 
@@ -120,7 +116,7 @@ La idea principal detrás de esta estrategia es reducir el \textit{overhead} pro
 
 Algunas de las desventajas que tendremos es que el código es más complejo, pues no se puede reutilizar el \textit{feval()} secuencial (que sí lo aprovechábamos en el paralelismo por operaciones), sino que hay que hacer una versión específica para los componentes. De igual manera, no se pueden utilizar las funciones auxiliares, porque están diseñadas para tratar los vectores completos, no elementos individuales.
 
-\creaSubSeccion{Mediciones}
+\creaSeccion{Mediciones}
 
 Ante la pregunta de qué estrategia es mejor, la respuesta sería, como casi siempre en informática, que depende.
 
@@ -203,7 +199,7 @@ Podemos comenzar, por ejemplo, comparando los tiempos al resolver el problema \t
 	\label{fig:Brusselator1D-100K}
 \end{figure}
 
-Como podemos ver, hay una mejora sustancial del tiempo al pasar de 1 a 4 y a 16 hebras, con ambas estrategias de paralelismo, y con los 3 métodos numéricos. Además, se aprecia que la resolución con Adams-Bashford es más rápida que Runge-Kutta, ya que es más directa y no requiere de los pasos intermedios (K1, K2, K3, K4), y también es mucho más veloz que el predictor-corrector Adams-Bashford-Moulton, ya que éste último llama a Adams-Bashford dentro de su bucle de ejecución. Además, podemos ver que para este tipo y tamaño de problema, el paralelismo por operaciones es más eficiente.
+Como podemos ver, hay una mejora sustancial del tiempo al pasar de 1 a 4 y a 16 hebras, con ambas estrategias de paralelismo, y con los 3 métodos numéricos. Además, se aprecia que la resolución con Adams-Bashford es más rápida que Runge-Kutta, ya que es más directa y no requiere de los pasos intermedios (K1, K2, K3, K4), y también es mucho más veloz que el predictor-corrector Adams-Bashford-Moulton, ya que éste último llama a Adams-Bashford dentro de su bucle de ejecución. Además, podemos ver que para este tipo y tamaño de problema, el paralelismo por operaciones es más eficiente para 4 hebras, pero ambos se equiparan cuando se alcanzan las 16.
 
 Podemos probar por ejemplo, con el problema más complejo (\textit{Brusselator2D}), y el método que más tarda (\textit{ABM4}), y podemos comparar la evolución del tiempo conforme aumenta el tamaño del problema, a saber, con un número de ecuaciones igual a 45000, 80000 y 125000.
 
@@ -265,33 +261,24 @@ Podemos probar por ejemplo, con el problema más complejo (\textit{Brusselator2D
 	\end{center}
 \end{table}
 
+Para calcular el speedup y la eficiencia, hemos comparado los valores de mismo tamaño y estrategia, para que la comparación sea más justa. Más allá de lo obvio, que conforme aumenta el tamaño del problema, aumentan los tiempos, es cuanto menos destacable la variación en los speedups que se alcanzan en función del aumento de las hebras, en una estrategia y otra.
 
-
-
-
-
-Más allá de lo obvio, que conforme aumenta el tamaño del problema, aumentan los tiempos, es cuanto menos destacable la variación en los speedups que se alcanzan en función del aumento de las hebras, en una estrategia y otra.
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/Brusselator2D-ABM.png}
 	\caption{ABM4 resolviendo Brusselator2D}
 	\label{fig:Brusselator2D-ABM4}
 \end{figure}
 
-
-Partiendo de los mismos datos, pero tomando ahora solo el speedup y la eficiencia, y filtrando por la estrategia de las operaciones (que es la más eficiente), tendríamos estas gráficas:
+Partiendo de los mismos datos, pero tomando ahora solo el speedup y la eficiencia, y quedándonos con paralelismo de operaciones, tendríamos estas métricas:
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/OMP-Speedup-Eficiencia.png}
-	\caption{Speedup y Eficiencia}
-	\label{fig:OMP-Speedup-Eficiencia}
+	\caption{Speedup y Eficiencia - ABM4 Brusselator2D}
+	\label{fig:Spd-Eff-ABM4-Br2D}
 \end{figure}
 
-Tenemos en azul y alieadas con el eje Y izquierdo las barras del speedup, y en naranja y con el eje Y derecho, la eficiencia en valores porcentuales. Obviamente, para 1 hebra siempre tendremos un speedup de 1, y una eficiencia de 100\%.
+Tenemos la barras del speedup en azul y alineadas con el eje Y izquierdo, y en naranja y con el eje Y derecho la eficiencia en valores porcentuales. Obviamente, para 1 hebra siempre tendremos un speedup de 1, y una eficiencia de 100\%.
 
-Más allá de eso, podemos ver varias ideas en juego a la vez. Si nos centramos en cualquiera de los 3 tamaños, podemos ver la Ley de Amdahl \cite{Amdahl1967} en funcionamiento; con un mismo tamaño de problema, conforme aumenta el número de hilos, disminuye el speedup, ya que siempre queda una parte secuencial que no se puede paralelizar.
+Más allá de eso, podemos ver varias ideas en juego a la vez. Si nos centramos en cualquiera de los 3 tamaños, podemos ver la Ley de Amdahl \cite{Amdahl1967} en funcionamiento; con un mismo tamaño de problema, conforme crece el número de hilos, aumenta el speedup pero disminuye la eficiencia, ya que siempre queda una parte secuencial que no se puede paralelizar.
 
-En paralelo a esto, si nos fijamos ahora en las columnas de la eficiencia, podemos ver que, si bien la eficiencia disminuye dentro de un mismo grupo de tamaño (algo esperable), conforme aumenta el tamaño de problema, la eficiencia sí aumenta con él, pasando de un 33\%, a un 53\% y un 63\%, cuando observamos los datos relativos a las 16 hebras. Esto coincide con la ley de Gustafson \cite{Gustafson1988}, ya que al aumentar el tamaño del problema, crece la parte del programa que es paralelizable, y por lo tanto se pueden usar las hebras de forma más eficiente.
-
-
-\creaSeccion{CUDA}
-\creaSeccion{Mediciones}
+Análogo a esto, si nos fijamos ahora en las columnas de la eficiencia, podemos ver que, para un mismo número de hebras, conforme aumenta el tamaño de problema, la eficiencia lo hace con él, pasando de un 33\%, a un 53\%, y a un 63\%, cuando observamos los datos relativos a las 16 hebras por ejemplo. Esto coincide con la ley de Gustafson \cite{Gustafson1988}, ya que al aumentar el tamaño del problema, crece la parte del programa que es paralelizable, y por lo tanto la eficiencia aumenta también.
