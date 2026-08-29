@@ -41,7 +41,7 @@ Los métodos semiimplícitos representan un compromiso entre la estabilidad de l
 	y' = f(x,y) = f_E(x,y) + f_I(x,y)
 \end{equation}
 
-En este ejemplo $f_E$ es la parte explícita, suave (no \textit{stiff}), y $f_I$ es la parte que queremos tratar implícitamente. Algunos métodos semiimplícitos son los métodos IMEX (\textit{implicit-explicit}), los métodos linealmente implícitos Runge-Kutta (\textit{LIRK}),\cite{Hairer1993} o el método Adams-Bashford-Moulton (AB-AM predictor-corrector). Es con este último con el que trabajaremos. 
+En este ejemplo $f_E$ es la parte explícita, suave (no \textit{stiff}), y $f_I$ es la parte que queremos tratar implícitamente. Algunos métodos semiimplícitos son los métodos IMEX (\textit{implicit-explicit})\cite{Ascher1995}, los métodos linealmente implícitos Runge-Kutta (\textit{LIRK})\cite{Calvo2001}, o el método Adams-Bashford-Moulton (AB-AM predictor-corrector). Es con este último con el que trabajaremos. 
 
 Otra categorización con la que trabajaremos serán los métodos de un solo paso, y los métodos multipaso.
 En los métodos de un solo paso, para obtener el siguiente valor con el que se tratará, el siguiente paso, sólo se utiliza información relativa al paso anterior. Es decir, como podemos ver en \ref{eq:ExpresionGeneralMetodosUnPaso}, para obtener $y_{n+1}$ sólo se utilizaría $y_n$.
@@ -107,7 +107,7 @@ Por otro lado tendríamos el paralelismo de tareas, que consiste en ejecutar tar
 
 Algunos conceptos muy importantes que nos encontraremos son la concurrencia y el paralelismo. La concurrencia hace referencia a que varias tareas pueden ocurrir a la vez, o que ocurren simultáneamente de forma lógica. Una CPU \textit{single-core} puede cambiar rápidamente de una tarea a otra si no tienen dependencia entre ellas y son concurrentes. Mientras que el paralelismo trata sobre ejecutar físicamente varias tareas al mismo tiempo, por ejemplo a través de varios núcleos (como en OpenMP) o de varias hebras (como en CUDA).
 
-El speedup será la forma en la que mediremos las mejoras en la ejecución conforme aumenta el paralelismo. En nuestro caso, lo calcularemos dividiendo el tiempo de ejecución del programa secuencial, entre el paralelizado. Como todo código por bien optimizado que esté va a tener una parte secuencial que no pueda paralelizarse, buscaremos que el speedup aumente tanto como sea posible. Por ejemplo, pasando de un código secuencial a uno con 4 hebras OpenMP, el speedup ideal sería de 4, aunque entendemos que no será posible conseguirlo, pero sí acercarse lo suficiente. \cite{Schryen2024} 
+El speedup será la forma en la que mediremos las mejoras en la ejecución conforme aumenta el paralelismo. En nuestro caso, lo calcularemos dividiendo el tiempo de ejecución del programa secuencial, entre el paralelizado.\cite{Schryen2024} Como todo código por bien optimizado que esté va a tener una parte secuencial que no pueda paralelizarse, buscaremos que el speedup aumente tanto como sea posible. Por ejemplo, pasando de un código secuencial a uno con 4 hebras OpenMP, el speedup ideal sería de 4, aunque entendemos que no será posible conseguirlo, pero sí acercarse lo suficiente. 
 
 Otro concepto relacionado sería el de la eficiencia, que sería el cociente entre speedup y el número de cores, o de hebras, empleado para obtener ese speedup. La eficiencia estará entre 0 y 1 (o entre 0\% y 100\%), y medirá cuánto se están aprovechando los recursos paralelos.
 

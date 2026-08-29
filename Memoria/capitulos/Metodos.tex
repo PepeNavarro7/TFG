@@ -4,7 +4,7 @@ Para resolver los diferentes problemas hemos implementado tres métodos distinto
 
 \creaSeccion{Runge-Kutta}
 
-Ahora que hemos tratado el método de Euler, podremos dar el siguiente paso hacia Runge-Kutta. Aunque técnicamente ya lo hemos estado viendo, ya que los métodos de Runge-Kutta son generalizaciones de la fórmula básica de Euler. \cite{Segarra2020} Por esta razón, se dice que el método de Euler es un método de Runge-Kutta de primer orden.
+Ahora que hemos tratado el método de Euler, podremos dar el siguiente paso hacia Runge-Kutta. Aunque técnicamente ya lo hemos estado viendo, ya que los métodos de Runge-Kutta son generalizaciones de la fórmula básica de Euler. \cite{Segarra-Escandon2020} Por esta razón, se dice que el método de Euler es un método de Runge-Kutta de primer orden.
 
 En cada uno de los órdenes de Runge-Kutta resolveremos una serie de pasos intermedios para hallar el valor final. El de orden 1, como hemos mencionado, coincidiría con Euler, como se puede ver en la ecuación \ref{eq:EulerExplicito}.
 
@@ -161,7 +161,7 @@ La expresión general de un método Adams-Moulton puro de k pasos es: \cite{Mole
 \end{equation}
 
 
-Y por tanto, las ecuaciones correspondientes a los mismos son las siguientes:\cite{Segarra2020}
+Y por tanto, las ecuaciones correspondientes a los mismos son las siguientes:\cite{Segarra-Escandon2020}
 
 Adams-Moulton orden 0 (AM1)
 \begin{equation}
@@ -231,6 +231,6 @@ Los problemas en cuestión son:
 
 SimpleAdvDiff y AdvDiff1D son problemas unidimensionales de advección - difusión en los que se trabajará con vectores que tendrán un número de EDOs igual al tamaño del vector y estarán formados por dos partes, una rígida (\textit{stiff}) y una no rígida. Si bien servirán para establecer las bases del proyecto, nos centraremos más en los otros dos problemas.
 
-Brusselator1D, el modelo brusselator es un tipo de modelo de reacción-difusión que fue desarrollado por la Brussels School. Este sistema está diseñado para analizar el comportamiento de sistemas químicos que presentan oscilación no linear. \cite{Hunsdorfer2003} Este problema tendrá 2 componentes, y por tanto el número de EDOs será el doble del tamaño que se elija.
+Brusselator1D, el modelo brusselator es un tipo de modelo de reacción-difusión que fue desarrollado por la Brussels School. Este sistema está diseñado para analizar el comportamiento de sistemas químicos que presentan oscilación no linear. \cite{Marabeh2024} Este problema tendrá 2 componentes, y por tanto el número de EDOs será el doble del tamaño que se elija.
 
 Brusselator2D, este modelo es similar a su versión unidimensional, pero incorpora una componente extra reactiva. \cite{Marabeh2024} Además, está discretizado uniformemente en una malla de NxN puntos, por lo tanto, su número de EDOs será el doble del cuadrado del tamaño de problema. 

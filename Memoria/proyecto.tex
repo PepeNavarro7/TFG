@@ -12,7 +12,15 @@
 \usepackage{algorithm} %incluir pseudocodigo
 \usepackage{algpseudocode} %incluir pseudocodigo
 \usepackage{float} % para que los algorithm se coloquen bien
-\usepackage[colorlinks=false,pdfborder={0 0 0},hidelinks]{hyperref} % Las referencias te llevan a ellas
+%\usepackage[colorlinks=false,pdfborder={0 0 0},hidelinks]{hyperref} % Las referencias te llevan a ellas
+\usepackage[
+colorlinks=true,
+linkcolor=red,      % citas y referencias internas
+urlcolor=green,       % URLs
+citecolor=blue,    % citas bibliográficas
+pdfborder={0 0 0}
+]{hyperref}
+
 \usepackage{multirow} %Para las tablas que fusionan celdas
 
 
@@ -62,8 +70,6 @@
 
 \begin{document}
 
-
-
 \frontmatter
 \input{prefacios/portada}
 \input{prefacios/prefacio}	
@@ -85,7 +91,7 @@
 
 \afterpage{\blankpage} %Página en blanco
 
-\bibliography{library/library}{}
+\bibliography{library/referencias}
 \bibliographystyle{apalike}
 \listoftables
 \listoffigures
