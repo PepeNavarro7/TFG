@@ -91,39 +91,6 @@ __global__ void graph_advdiff1d(const double offset, const double* __restrict__ 
     }
 }
 
-// Version del Kernel en la que usamos shuffle
-__global__ void kernel2_advdiff1d(const double t, const double* __restrict__ Y, double* __restrict__ DY){
-    const int thread = blockDim.x * blockIdx.x + threadIdx.x,
-        ult = cte_avd1.neqn-1, // Ultimo valor
-        lane = threadIdx.x & 31; // Posicion en el warp -> th%32
-
-    if(thread<cte_avd1.neqn){
-        const unsigned mask = 0xFFFFFFFF;
-        const double valor = Y[thread];
-
-        // Hacemos los shuffles con todos los hilos, incluidos los erroneos
-        double val_ant = __shfl_up_sync  (mask, valor, 1), // th(n-1) -> th(n)
-               val_pst = __shfl_down_sync(mask, valor, 1); // th(n) <- th(n+1)
-
-        // Corregimos los shuffles erróneos & los valores frontera
-        if(lane==0 || thread==0)
-            val_ant =  thread==0  ? Y[ult] : Y[thread-1];
-        if(lane==31 || thread==ult)
-            val_pst = thread==ult ?  Y[0]  : Y[thread+1]; 
-        
-        DY[thread] = cte_avd1.d * (val_pst -    2.0 * valor    + val_ant) * cte_avd1.dtx_sq_inv
-                   - cte_avd1.a * (val_pst * val_pst - val_ant * val_ant) * cte_avd1.dtx_4_inv;
-
-        const double x = (thread+1) * cte_avd1.dtx;
-        const double pi2xpt = 2.0 * cte_avd1.PI * x + t;
-        const double c=cos(pi2xpt), s=sin(pi2xpt); 
-        const double res = c + 2.0 * cte_avd1.a * cte_avd1.PI * s * c 
-                         + 4.0 * cte_avd1.d * cte_avd1.PI * cte_avd1.PI * s - s;
-
-        DY[thread] += Y[thread] + res;
-    }
-}
-
 void advdiff1d::feval (const double &t, const double *Y, double *DY) const {
     kernel_advdiff1d<<<get_grid(), get_block()>>>(t, Y, DY);
 }
