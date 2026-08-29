@@ -49,9 +49,6 @@ public:
     virtual inline const void* get_t() const override{ return (const void*)&cte_br2d_t; }
 
 protected:
-    // Auxiliary function f
-    //double f(const int &i, const int &j, const double &t) const;
-
     // Indexation function which maps 2D spatial coordinates (i,j) to a 1D position in a vector
     virtual inline int idx(const int &i, const int &j, const int &k) const { return 2 * (i * ny + j) + k; } 
 
