@@ -15,9 +15,9 @@ Como hemos comentado, OpenMP opera sobre un modelo de memoria compartida en la q
 Tomaremos como punto de partida la implementación secuencial de los problemas \cite{Mantas2024}, de la cual ya disponemos.
 
 \begin{figure}[H]
-	\includegraphics[width=\linewidth]{imagenes/DiagramaClasesProblemas.png}
-	\caption{Diagrama de Clases de los problemas}
-	\label{fig:DiagramaProblemas}
+	\includegraphics[width=\linewidth]{imagenes/Diagrama-Clases-Problemas.png}
+	\caption{Diagrama de Clases de los problemas OMP}
+	\label{fig:OMP-Diagrama-Problemas}
 \end{figure}
 
 Como comentamos anteriormente, no nos centraremos en la resolución de los problemas \textit{per se}, puesto que ésta se nos da ya hecha y corregida, sino que nuestros esfuerzos irán en implementar los métodos de resolución en ambas formas de paralelismo, y buscar la máxima eficiencia. Para facilitar la implementación y la cohesión del código, definimos una clase abstracta \textit{Problema} de la cual heredarán los cuatro problemas.
@@ -25,14 +25,14 @@ Como comentamos anteriormente, no nos centraremos en la resolución de los probl
 El siguiente paso, por tanto, será realizar una implementación secuencial de los métodos, partiendo de los algoritmos que previamente hemos comentado, Runge-Kutta, Adams-Bashford, y Adamd-Bashford-Moulton, a saber, algoritmos \ref{alg:RungeKutta4}, \ref{alg:AdamsBashford}, y \ref{alg:AdamsBashfordMoulton}, respectivamente. El lenguaje elegido será C++, para luego poder añadir la parte de OpenMP o CUDA.
 
 \begin{figure}[H]
-	\includegraphics[width=\linewidth]{imagenes/DiagramaClasesMetodos.png}
-	\caption{Diagrama de Clases de los métodos}
-	\label{fig:DiagramaMetodos}
+	\includegraphics[width=\linewidth]{imagenes/Diagrama-Clases-Metodos.png}
+	\caption{Diagrama de Clases de los métodos OMP}
+	\label{fig:OMP-Diagrama-Metodos}
 \end{figure}
 
 El planteamiento que se hace con los métodos es similar al de los problemas, una clase abstracta padre de la cual puedan heredar los métodos. Además, en la clase padre \textit{Metodo} hemos implementado diversas funciones auxiliares que nos van a facilitar el trabajar con vectores. Con este diseño, a través de la herencia y el polimorfismo, podríamos aumentar el alcance de nuestro proyecto añadiendo nuevos métodos o más problemas sin dificultad ninguna.
 
-Ahora que tenemos una primera maqueta funcional (aunque poco eficiente), podremos comenzar con el trabajo en paralelo. De cara a nuestro proyecto, lo primero que debemos tener en cuenta es que no podemos simplemente paralelizar el bucle principal con el que trabajamos (e.g. el bucle while en el algoritmo \ref{alg:AdamsBashford}) porque cada iteración necesita de la anterior para calcular el siguiente paso. Deberemos buscar por tanto otras formas de atacar el problema. En el caso de OpenMP hemos planteado dos formas, paralelismo por operaciones, y por elementos.
+Ahora que tenemos una primera maqueta funcional (aunque poco eficiente), podremos comenzar con el trabajo en paralelo. De cara a nuestro proyecto, lo primero que debemos tener en cuenta es que no podemos simplemente paralelizar el bucle principal con el que trabajamos (e.g. el bucle while en el algoritmo \ref{alg:AdamsBashford}) porque cada iteración necesita de la anterior para calcular el siguiente paso. Deberemos buscar por tanto otras formas de atacar el problema. En el caso de OpenMP hemos planteado dos formas, paralelismo por operaciones, y por componentes.
 
 \creaSeccion{Paralelismo por Operaciones}
 
