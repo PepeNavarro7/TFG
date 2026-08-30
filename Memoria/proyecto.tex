@@ -61,7 +61,7 @@ pdfborder={0 0 0}
 	\renewcommand{\tablename}{Tabla}
 	\renewcommand{\contentsname}{Índice}
 	\renewcommand{\listtablename}{Listado de Tablas}
-	\renewcommand{\listfigurename}{Listado de Imágenes}
+	\renewcommand{\listfigurename}{Listado de Figuras}
 	\renewcommand{\listalgorithmname}{Listado de Algoritmos}
 }
 
@@ -72,7 +72,7 @@ pdfborder={0 0 0}
 
 \frontmatter
 \input{prefacios/portada}
-\input{prefacios/prefacio}	
+\input{prefacios/prefacio}
 %\newpage
 \tableofcontents %tabla de contenidos
 \thispagestyle{empty}
@@ -89,13 +89,43 @@ pdfborder={0 0 0}
 \input{capitulos/OpenMP}
 \input{capitulos/CUDA}
 
-\afterpage{\blankpage} %Página en blanco
+%\afterpage{\blankpage} %Página en blanco
+%\bibliography{library/referencias}
+%\bibliographystyle{apalike}
+%\listofalgorithms
+%\listoffigures
+%\listoftables
 
-\bibliography{library/referencias}
+% Página en blanco numerada
+\clearpage
+\thispagestyle{plain}
+\null
+\newpage
+
+% Bibliografía
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliografía}
 \bibliographystyle{apalike}
-\listoftables
-\listoffigures
+\bibliography{library/referencias}
+
+% Listado de algoritmos
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Listado de Algoritmos}
 \listofalgorithms
+
+% Listado de figuras
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Listado de Figuras}
+\listoffigures
+
+% Listado de tablas
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Listado de Tablas}
+\listoftables
+
 
 
 \end{document}
