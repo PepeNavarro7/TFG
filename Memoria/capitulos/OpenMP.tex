@@ -15,7 +15,7 @@ Como hemos comentado, OpenMP opera sobre un modelo de memoria compartida en la q
 Tomaremos como punto de partida la implementación secuencial de los problemas \cite{Mantas2024}, de la cual ya disponemos.
 
 \begin{figure}[H]
-	\includegraphics[width=\linewidth]{imagenes/Diagrama-Clases-Problemas.png}
+	\includegraphics[width=\linewidth]{imagenes/OMP-Diagrama-Problemas.png}
 	\caption{Diagrama de Clases de los problemas OMP}
 	\label{fig:OMP-Diagrama-Problemas}
 \end{figure}
@@ -25,7 +25,7 @@ Como comentamos anteriormente, no nos centraremos en la resolución de los probl
 El siguiente paso, por tanto, será realizar una implementación secuencial de los métodos, partiendo de los algoritmos que previamente hemos comentado, Runge-Kutta, Adams-Bashford, y Adamd-Bashford-Moulton, a saber, algoritmos \ref{alg:RungeKutta4}, \ref{alg:AdamsBashford}, y \ref{alg:AdamsBashfordMoulton}, respectivamente. El lenguaje elegido será C++, para luego poder añadir la parte de OpenMP o CUDA.
 
 \begin{figure}[H]
-	\includegraphics[width=\linewidth]{imagenes/Diagrama-Clases-Metodos.png}
+	\includegraphics[width=\linewidth]{imagenes/OMP-Diagrama-Metodos.png}
 	\caption{Diagrama de Clases de los métodos OMP}
 	\label{fig:OMP-Diagrama-Metodos}
 \end{figure}
@@ -63,7 +63,7 @@ De forma simplificada, veamos un ejemplo de Adams-Bashford 4:
 Como podemos ver, para hacer el cálculo propio de Adams-Bashford de orden 4 (ecuación \ref{eq:AdamsBashford4}) la hemos divido en 3 partes utilizando las funciones auxiliares de la clase abstracta \textit{Metodo} de las que ya disponíamos. Dentro de cada una de ellas se creará el grupo de hilos, se repartirá el trabajo (cada hilo tendrá un "trozo" de vector sobre el que trabajar), y una vez finalicen se sincronizará para retornar a la función principal. Por ejemplo, \textit{vectorCopia()}:
 \begin{algorithm}[H]
 	\begin{algorithmic}
-		\State $ \text{\#pragma omp parallel for schedule(static)} $
+		\State \verb|#pragma omp parallel for schedule(static)|
 		\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
 			\State $ Y[i] \gets X[i] $
 		\EndFor
@@ -87,22 +87,22 @@ Esto quiere decir que se creará un único equipo de hilos al entrar en el \text
 	\begin{algorithmic}
 		\State $ Y_{n0} \gets Y_0 $
 		\State $ Y_n \gets arranqueRK4(Y_{n-1})$ \Comment{$ n = \{1, 2, 3\} $}
-		\State $ \text{\#pragma omp parallel for schedule(static)} $
+		\State \verb|#pragma omp parallel for schedule(static)|
 		\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
 			\State $ F_n[i] \gets feval\_i(t_n\text{, }Y_n\text{, }i)$ \Comment{$ n = \{0, 1, 2, 3\} $}
 		\EndFor
 		
-		\State $ \text{\#pragma omp parallel} $
+		\State \verb|#pragma omp parallel|
 		\For{ $ t_n \text{=} t_0 \text{+} 3h \text{; }t_n < t_f\text{; }t_n \text{+=}h $ }
-			\State $ \text{\#pragma omp for schedule(static)} $
+			\State \verb|#pragma omp for schedule(static)|
 			\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
 				\State $ Y_4[i] = Y_3[i] + h/24 * ( 55F_3[i] - 59F_2[i] + 37F_1[i] -9F_0[i]) $
 			\EndFor
-			\State $ \text{\#pragma omp for schedule(static)} $
+			\State \verb|#pragma omp for schedule(static)|
 			\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
 				\State $ F_4[i] \gets feval\_i(t_n+h\text{, }Y_4\text{, }i)$
 			\EndFor
-			\State $ \text{\#pragma omp single} $
+			\State \verb|#pragma omp single|
 			\State $ swap(Y_{n4}\text{, }Y_{n3}) $
 			\State $ swap(F_n\text{, }F_{n-1}) $ \Comment{$ n = \{1, 2, 3, 4\} $}
 		\EndFor
