@@ -404,10 +404,12 @@ Para poner esto en práctica, se crea una clase hija llamada \textit{problema\_g
 En la implementación original, los datos se almacenaban en bloques unidimensionales formando un Array of Structures.
 \begin{equation}
 	\label{eq:ArrayOfStructures}
-	[0_u, 0_v, 1_u, 1_v, ..., (n-1)_u, (n-1)_v]
+	[0_u, 0_v, 1_u, 1_v, ..., (n-2)_u, (n-2)_v, (n-1)_u, (n-1)_v]
 \end{equation}
 Mientras que en esta implementación cambiamos el paradigma a bloques bidimensionales que forman un Structure of Arrays.
 \begin{equation}
 	\label{eq:StructureOfArrays}
-	[0_u, 1_u, ..., (n-1)_u, 0_v, 1_v, ..., (n-1)_v]
+	[0_u, 1_u, ..., (n-2)_u, (n-1)_u, 0_v, 1_v, ..., (n-2)_v, (n-1)_v]
 \end{equation}
+
+\textbf{GRÁFICA COMPARANDO}
