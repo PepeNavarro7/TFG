@@ -257,10 +257,9 @@ O de forma gráfica, con el tiempo total en azul y en el eje Y logarítmico, y e
 	\label{fig:CUDA-Br1D-Tams}
 \end{figure}
 
-Aquí podemos apreciar dos dinámicas distintas interactuando entre ellas. Por un lado, observando la línea del tiempo vemos como para tamaños pequeños, la parte secuencial del problema domina la ejecución, y el tiempo total prácticamente no varía (o incluso disminuye) con respecto al aumento de tamaño. Esto coincide con lo esperado.
+Aquí podemos apreciar dos dinámicas distintas interactuando entre ellas. Por un lado, observando la línea del tiempo (azul) vemos como para tamaños pequeños, la parte secuencial del problema domina la ejecución, y el tiempo paralelo es casi cero, lo que implica que el total prácticamente no varía (o incluso disminuye) con respecto al aumento de tamaño hasta llegar a un tamaño en torno a 100K ecuaciones. A partir de esa cifra es cuando CUDA puede empezar a trabajar realmente, y el tiempo aumenta de forma lineal. Esto coincide con lo esperado.
 
-Por otro lado, si observamos la curva naranja, de tiempo por ecuación (en milisegundos), vemos el efecto contrario. Conforme aumenta el tamaño del problema y CUDA puede trabajar con más ecuaciones, este cociente se reduce. Sin embargo, a partir de cierto punto se estabiliza, ya no podría ser más eficiente.
-
+Por otro lado, si observamos la curva naranja, de tiempo por ecuación (en milisegundos), vemos el efecto contrario. Conforme aumenta el tamaño del problema y CUDA puede trabajar con más ecuaciones, este cociente se reduce conforme aumenta el tamaño. Sin embargo, a partir de cierto punto se estabiliza, que será cuando se alcanza la eficiencia máxima.
 
 \creaSeccion{Graphs}
 Tras ver el bucle de ejecución de la función miembro \textit{aplicar()}, salta a la vista que se llama a uno o varios kernel de forma repetitiva y con los mismos datos, con los mismos vectores, y sólo varía la variable del tiempo. A raíz de esto se decide implementar una nueva versión de las clases métodos, que utilice los \textit{Graph}. 
@@ -310,7 +309,7 @@ Por otro lado, también se modificaron los \textit{feval()} de los problemas par
 	\label{tab:CUDA-Graph}
 \end{table}
 
-Sin embargo, como podemos ver en los resultados de nuestras mediciones, la introducción de los \textit{Graph} no solo no representó una mejora en los tiempos, sino que conforme aumentaban los tamaños, se establecía en un 20\% más lenta que la versión sin \textit{Graph}.
+Sin embargo, como podemos ver en los resultados de nuestras mediciones, la introducción de los \textit{Graph} no solo no representó una mejora en los tiempos, sino que conforme aumentaban los tamaños, se estabilizaba en quedar un 20\% más lenta que la versión sin \textit{Graph}.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Graph.png}
@@ -318,7 +317,7 @@ Sin embargo, como podemos ver en los resultados de nuestras mediciones, la intro
 	\label{fig:CUDA-Graph}
 \end{figure}
 
-Esto puede deberse a que el uso de CUDA Graphs solo acelera la ejecución cuando el overhead de lanzamiento de kernels es significativo respecto al coste del kernel, como por ejemplo cuando los kernels son muy rápidos y el lanzamiento es costoso, pero como los nuestros son relativamente pesados (principalmente por sus múltiples accesos a memoria global), pues se da el caso de que el \textit{Graph} cuesta más de lo que ahorra.
+Esto puede deberse a que el uso de CUDA Graphs sólo acelera la ejecución cuando el overhead de lanzamiento de kernels es significativo respecto al coste del kernel, como por ejemplo cuando los kernels son muy rápidos y el lanzamiento es costoso, pero como los nuestros son relativamente pesados (principalmente por sus múltiples accesos a memoria global), pues se da el caso de que el \textit{Graph} cuesta más de lo que ahorra.
 
 \creaSeccion{Shuffles y Grids multidimensionales}
 
@@ -326,7 +325,7 @@ Para intentar minimizar los accesos a memoria dentro de lo posible, se hace uso 
 
 Cada hilo llama a la misma función, pero puede recibir el valor de otro hilo del warp según el patrón especificado. A nivel de hardware, esto se implementa mediante una red de interconexión interna del warp (warp crossbar) que mueve datos entre registros sin tener que pasar por la memoria global, lo cual reduce los accesos, y por tanto el tiempo de ejecución del kernel.
 
-Aunque el programador define a través del \textit{blocksize} el tamaño de los bloques que forman el grid, por ejemplo un tamaño usual sería un bloque unidimensional de 256 hebras, a nivel de hardware cuda se organiza en warps de 32 hilos consecutivos que se mueven al unísono, y es entre ellos donde ocurre la comunicación que permiten los \textit{shuffle}.
+Aunque el programador define a través del \textit{blocksize} el tamaño de los bloques que forman el grid (por ejemplo, un tamaño habitual sería un bloque unidimensional de 256 hebras), a nivel de hardware CUDA se organiza en warps de 32 hilos consecutivos que se mueven al unísono, y es entre ellos donde ocurre la comunicación que permiten los \textit{shuffle}.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/ShuffleDown.png}
@@ -334,7 +333,9 @@ Aunque el programador define a través del \textit{blocksize} el tamaño de los 
 	\label{fig:Shuffle-Down}
 \end{figure}
 
-Si los hilos crean una variable local, podrán accederse entre ellos a esas variables. Esto resulta útil en implementaciones como el algoritmo \ref{alg:KernelAdvDiff1d}, en el que un mismo thread hace varios accesos a memoria global, y esto podríamos sustituirlo por un único acceso a memoria global, y varios shuffle entre hilos.
+La imagen ilustra un ejemplo de shuffle. Los hilos crean una variable local ($i$), en este caso su propio identificador dentro del warp, y a través del shuffle podrán accederse entre ellos a esa variable. En este caso, cada hilo accede a esa variable $i$ de los vecinos situados dos hilos por encima, y copia el contenido de la variable del vecino en una nueva propia ($j$). 
+
+Esto resulta útil en implementaciones como el algoritmo \ref{alg:KernelAdvDiff1d}, en el que un mismo thread hace varios accesos a memoria global, y esto podríamos sustituirlo por un único acceso a memoria global, y varios shuffle entre hilos.
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
