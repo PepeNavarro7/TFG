@@ -412,4 +412,42 @@ Mientras que en esta implementación cambiamos el paradigma a bloques bidimensio
 	[0_u, 1_u, ..., (n-2)_u, (n-1)_u, 0_v, 1_v, ..., (n-2)_v, (n-1)_v]
 \end{equation}
 
-\textbf{GRÁFICA COMPARANDO}
+Sin embargo, yendo a las mediciones podemos ver que no ocurren cambios significativos con ninguna de las dos nuevas implementaciones frente a la anterior "estándar".
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{| c | c | c | c || c | c | c | c |}
+		\hline
+		\multirow{2}{*}{\textbf{neqn}} & \multicolumn{3}{c||}{\textbf{T (s) de implementación}} & 
+		\multirow{2}{*}{\textbf{neqn}} & \multicolumn{3}{c|}{\textbf{T (s) de implementación}} \\
+		\cline{2-4} \cline{6-8}
+		 & \textbf{Estándar} & \textbf{Shuffle} & \textbf{Grid} &
+		 & \textbf{Estándar} & \textbf{Shuffle} & \textbf{Grid} \\
+		\hline
+		
+		200      & 4.25118  & 4.27395  & 4.40917  & 300000   & 49.0773  & 47.6186  & 47.1094 \\
+		400      & 4.38250  & 4.47631  & 4.42845  & 400000   & 64.3164  & 64.0661  & 62.2658 \\
+		1000     & 4.42428  & 4.48073  & 4.45638  & 500000   & 78.4998  & 79.2419  & 79.3901 \\
+		2000     & 4.47256  & 4.49739  & 4.55980  & 600000   & 92.2143  & 93.8084  & 94.2763 \\
+		4000     & 4.50782  & 4.55148  & 4.52020  & 700000   & 108.716  & 108.272  & 108.879 \\
+		10000    & 4.64262  & 4.71993  & 4.68111  & 800000   & 123.306  & 122.247  & 122.502 \\
+		20000    & 6.07753  & 6.19400  & 6.26689  & 900000   & 137.599  & 136.730  & 137.174 \\
+		40000    & 7.65326  & 7.71357  & 7.82265  & 1000000  & 152.187  & 151.235  & 151.697 \\
+		80000    & 10.92320 & 10.54850 & 10.69110 & 1200000  & 180.576  & 179.841  & 180.080 \\
+		100000   & 13.19100 & 12.06130 & 12.23360 & 1400000  & 209.347  & 208.619  & 209.053 \\
+		150000   & 23.07470 & 21.85070 & 22.02480 & 1600000  & 238.003  & 237.406  & 237.448 \\
+		200000   & 30.91270 & 29.03480 & 29.69920 & 1800000  & 267.296  & 266.385  & 266.490 \\
+		250000   & 41.32400 & 37.76580 & 38.72750 & 2000000  & 296.847  & 294.948  & 295.242 \\
+		\hline
+	\end{tabular}
+	\caption{Tiempos de AB4 en Brusselator1D estándar, Shuffle y Grid}
+	\label{tab:Shuffle-Grid}
+\end{table}
+
+Estos resultados concuerdan con lo esperado, teniendo en cuenta la naturaleza de los problemas con los que hemos trabajado y los cambios implementados. Si bien con otro tipo de problemas podrían ser beneficiosos cambios de ésta índole, en los nuestros las mejoras de tiempo de computación están limitadas por el ancho de banda de memoria global, la latencia de VRAM, y la coalescencia de accesos.
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/Shuffle-Grid.png}
+	\caption{Tiempos de AB4 en Brusselator1D estándar, Shuffle y Grid}
+	\label{fig:Shuffle-Grid}
+\end{figure}
