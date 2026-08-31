@@ -12,14 +12,7 @@
 \usepackage{algorithm} %incluir pseudocodigo
 \usepackage{algpseudocode} %incluir pseudocodigo
 \usepackage{float} % para que los algorithm se coloquen bien
-%\usepackage[colorlinks=false,pdfborder={0 0 0},hidelinks]{hyperref} % Las referencias te llevan a ellas
-\usepackage[
-colorlinks=true,
-linkcolor=red,      % citas y referencias internas
-urlcolor=green,       % URLs
-citecolor=blue,    % citas bibliográficas
-pdfborder={0 0 0}
-]{hyperref}
+\usepackage[colorlinks=false,pdfborder={0 0 0},hidelinks]{hyperref} % Las referencias te llevan a ellas
 
 \usepackage{multirow} % Para las tablas que fusionan celdas
 
@@ -39,15 +32,11 @@ pdfborder={0 0 0}
 	\section*{#1} 
 	\addcontentsline{toc}{section}{#1} 
 }
-\newcommand{\creaSubSeccion}[1]{ 
-	\subsection*{#1} 
-	\addcontentsline{toc}{subsection}{#1} 
-}
 \decimalpoint % usar . en lugar de , para decimales
 
 
 % Re-usable information
-\newcommand{\myTitle}{Estudio e implementación paralela de métodos semiimplícitos multipaso}
+\newcommand{\myTitle}{Estudio e implementación paralela de métodos explícitos multipaso}
 \newcommand{\mySubTitle}{Resolución de Ecuaciones de Advección-Reacción-Difusión}
 \newcommand{\myDegree}{Grado en Ingeniería Informática}
 \newcommand{\myName}{José Manuel Navarro Cuartero}
@@ -88,42 +77,13 @@ pdfborder={0 0 0}
 \input{capitulos/Metodos}
 \input{capitulos/OpenMP}
 \input{capitulos/CUDA}
+\input{capitulos/Final}
 
 %\afterpage{\blankpage} %Página en blanco
-%\bibliography{library/referencias}
-%\bibliographystyle{apalike}
-%\listofalgorithms
-%\listoffigures
-%\listoftables
-
-% Página en blanco numerada
-\clearpage
-\thispagestyle{plain}
-\null
-\newpage
-
-% Bibliografía
-\phantomsection
-\addcontentsline{toc}{chapter}{Bibliografía}
-\bibliographystyle{apalike}
 \bibliography{library/referencias}
-
-% Listado de algoritmos
-\clearpage
-\phantomsection
-\addcontentsline{toc}{chapter}{Listado de Algoritmos}
+\bibliographystyle{apalike}
 \listofalgorithms
-
-% Listado de figuras
-\clearpage
-\phantomsection
-\addcontentsline{toc}{chapter}{Listado de Figuras}
 \listoffigures
-
-% Listado de tablas
-\clearpage
-\phantomsection
-\addcontentsline{toc}{chapter}{Listado de Tablas}
 \listoftables
 
 
