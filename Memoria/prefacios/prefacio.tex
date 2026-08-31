@@ -19,12 +19,18 @@
 \end{center}
 
 %\vspace{0.7cm}
-\noindent{\textbf{Palabras clave}: palabra\_clave1, palabra\_clave2, palabra\_clave3, ......}\\
-
+\vspace{0.7cm}
+\noindent\textbf{Palabras clave}: {\sloppy Métodos Numéricos, Ecuaciones Diferenciales Ordinarias, Paralelismo, Runge-Kutta, Adams-Bashford, Adams-Bashford-Moulton, CUDA, OpenMP\par}
 \vspace{0.7cm}
 \noindent{\textbf{Resumen}}\\
 
-Poner aquí el resumen.
+En este Trabajo de Fin de Grado se realiza una investigación en el mundo de las ecuaciones diferenciales ordinarias y los métodos numéricos que se utilizan para alcanzar soluciones aproximadas de las mismas a través de la computación.
+
+Para este fin, se estudian tres métodos de resolución distintos, Runge-Kutta, Adams-Bashford, y Adams-Bashford-Moulton, y se implementan. A partir de este punto, se plantean dos tecnologías diferentes que permiten paralelizar el código en busca de una ganancia en tiempo. 
+
+La primera de éstas es OpenMP, que trabaja el paralelismo en CPUs multinúcleo, en el cual se implementan y se comparan dos estrategias de paralelismo opuestas. Y la segunda es CUDA, que aprovecha el cómputo masivo y paralelo de las tarjetas gráficas modernas. 
+
+Partiendo de una serie de problemas secuenciales, se implementan y paralelizan con ambas tecnologías, y se realizan mediciones en el tiempo.
 \cleardoublepage
 
 
@@ -32,28 +38,32 @@ Poner aquí el resumen.
 
 
 \begin{center}
-{\large\bfseries Project Title: Project Subtitle}\\
+{\large\bfseries Study and parallel implementation of multistep semi\text{-}implicit methods: Solving advection-reaction-diffusion equations}\\
 \end{center}
 \begin{center}
-First name, Family name (student)\\
+José Manuel Navarro Cuartero\\
 \end{center}
 
 %\vspace{0.7cm}
-\noindent{\textbf{Keywords}: Keyword1, Keyword2, Keyword3, ....}\\
+\noindent\textbf{Keywords}: {\sloppy Numerical Methods, Ordinary Differential Equations, Parallelism, Runge-Kutta, Adams-Bashford, Adams-Bashford-Moulton, CUDA, OpenMP\par}
 
 \vspace{0.7cm}
 \noindent{\textbf{Abstract}}\\
 
-Write here the abstract in English.
+In this Bachelor's Thesis, an investigation is carried out into the field of ordinary differential equations and the numerical methods used to obtain approximate solutions to them through computation.
+
+To this end, three different solution methods—Runge–Kutta, Adams–Bashforth, and Adams–Bashforth–Moulton—are studied and implemented. From this point, two different technologies are introduced to parallelize the code in pursuit of performance gains.
+
+The first of these is OpenMP, which enables parallelism on multicore CPUs and in which two opposing parallelization strategies are implemented and compared. The second is CUDA, which leverages the massive parallel computing capabilities of modern GPUs.
+
+Starting from a series of sequential problems, the methods are implemented and parallelized using both technologies, and execution time measurements are performed.
 
 \chapter*{}
 \thispagestyle{empty}
 
 %\noindent\rule[-1ex]{\textwidth}{2pt}\\[4.5ex]
 
-Yo, \textbf{ \myName }, alumno de la titulación \textbf{\myDegree} de la \textbf{ {\myFaculty} de la {\myUni} }, con DNI 75896777C, autorizo la
-ubicación de la siguiente copia de mi Trabajo Fin de Grado en la biblioteca del centro para que pueda ser
-consultada por las personas que lo deseen.
+Yo, \textbf{\myName}, alumno de la titulación \textbf{\myDegree} de la \textbf{{\myFaculty} de la {\myUni}}, con DNI 75896777C, autorizo la ubicación de la siguiente copia de mi Trabajo Fin de Grado en la biblioteca del centro para que pueda ser consultada por las personas que lo deseen.
 
 \vspace{6cm}
 
@@ -62,7 +72,7 @@ consultada por las personas que lo deseen.
 \vspace{2cm}
 
 \begin{flushright}
-Granada a X de Septiembre de 2026.
+Granada a 4 de Septiembre de 2026.
 \end{flushright}
 
 
@@ -71,7 +81,7 @@ Granada a X de Septiembre de 2026.
 
 %\noindent\rule[-1ex]{\textwidth}{2pt}\\[4.5ex]
 
-D. \textbf{\myProf}, Profesor del Área de XXXX del {\myDepartment} de la {\myUni}.
+D. \textbf{\myProf}, Profesor del {\myDepartment} de la {\myUni}.
 
 \vspace{0.5cm}
 
@@ -79,13 +89,11 @@ D. \textbf{\myProf}, Profesor del Área de XXXX del {\myDepartment} de la {\myUn
 
 \vspace{0.5cm}
 
-Que el presente trabajo, titulado\textbf{ \myTitle , \mySubTitle },
-ha sido realizado bajo su supervisión por \textbf{\myName}, y autorizo la defensa de dicho trabajo ante el tribunal
-que corresponda.
+Que el presente trabajo, titulado \textbf{\myTitle, \mySubTitle}, ha sido realizado bajo su supervisión por \textbf{\myName}, y autorizo la defensa de dicho trabajo ante el tribunal que corresponda.
 
 \vspace{0.5cm}
 
-Y para que conste, expide y firma el presente informe en Granada a X de Septiembre de 2026.
+Y para que conste, expide y firma el presente informe en Granada a 4 de Septiembre de 2026.
 
 \vspace{1cm}
 
@@ -100,5 +108,5 @@ Y para que conste, expide y firma el presente informe en Granada a X de Septiemb
 \vspace{1cm}
 
 
-Poner aquí agradecimientos...
+Quiero agradecer a mi tutor su guía y su paciencia a lo largo de este largo camino. También a mi familia y mis amigos, por haberme acompañado de Cádiz a Granada y vuelta. Y a mi pareja, sin la cual no estaría aquí hoy día.
 
