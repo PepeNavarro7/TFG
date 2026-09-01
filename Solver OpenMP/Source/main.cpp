@@ -10,8 +10,8 @@
 #include "Metodo.h"
 #include "RungeKutta.h"
 #include "RungeKutta_i.h"
-#include "AdamsBashford.h"
-#include "AdamsBashford_i.h"
+#include "AdamsBashforth.h"
+#include "AdamsBashforth_i.h"
 #include "AdamsMoulton.h"
 #include "AdamsMoulton_i.h"
 
@@ -23,14 +23,17 @@
 
 using namespace std;
 
-int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvector t0 tf salto modo
+int main(int argc, char *argv[]){ // solver metodo= orden= problema= hebras= tamvector= t0= tf= salto= modo=
 	if (argc != 10){
-		string texto = "./solverOMP metodo= orden= problema= hebras= tamvector= t0= tf= salto= salida=";
-		texto += "\tMetodos: 1=Runge-Kutta (paralelismo de operaciones) 2=RungeKutta (paralelismo de elementos) 3=Adams-Bashford (paralelismo de operaciones)";
-		texto += "4=Adams-Bashford (paralelismo de elementos) 5=Adams-Bashford-Moulton (paralelismo de operaciones) 6=Adams-Basford-Moulton (paralelismo de elementos)\n";
-		texto += "\n\tOrden: 1 - 2 - 3 - 4 - 5(solo ABM)\n\tProblemas: 1=simpleavdiff 2=advdiff1d 3=brusselator1d 4=brusselator2d\n";
-		texto += "\tHebras OpenMP (1, 4, 16)\n\tTamaño del vector{100, 200, 500, 1000}\n\tTiempo inicial t0\n\tTiempo final tf\n";
-		texto += "\tSalto en la forma 10^-x (5, 6, 7)\nSalida por pantalla si=0 no=1\n";
+		string texto = "./solverOMP metodo= orden= problema= hebras= tamvector= t0= tf= salto= modo=\n";
+		texto += "\tmetodo: 1=RK(operaciones) 2=RK(componentes) 3=AB(operaciones)\n";
+		texto += "\t\t4=AB(componentes) 5=ABM(operaciones) 6=ABM(componentes)\n";
+		texto += "\torden: 1 - 2 - 3 - 4 - 5(solo ABM)\n";
+		texto += "\tproblema: 1=simpleavdiff 2=advdiff1d 3=brusselator1d 4=brusselator2d\n";
+		texto += "\thebras: {1, 4, 16}\n\ttamvector: 100, 1000, 10000, 100000...\n";
+		texto += "\tt0: Tiempo de inicio {0.0}\n\ttf: Tiempo de fin {1.0}\n";
+		texto += "\tsalto: 10^-x {5,6,7}\n";
+		texto += "\tmodo: Salida por pantalla si=0 no=1\n\n";
 		cout << texto;
 		return 0;
 	}
@@ -74,16 +77,16 @@ int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvect
 	const int neqn = ptr_problema->get_neqn(); 			// Obtenemos el número de ODEs del problema
 	RungeKutta RungeKutta(neqn, orden_metodo); 			// Objeto para aplicar Runge-Kutta (paralelismo de operaciones) y sus operaciones asociadas
 	RungeKutta_i RungeKutta_i(neqn, orden_metodo); 		// Obejto para aplicar Runge-Kutta (paralelismo de elementos)
-	AdamsBashford AdamsBashford(neqn, orden_metodo, &RungeKutta); 		// Objeto para aplicar Adams-Bashford (paralelismo de operaciones) y sus operaciones asociadas
-	AdamsBashford_i AdamsBashford_i(neqn, orden_metodo, &RungeKutta_i); // Objeto para aplicar Adams-Bashford (paralelismo de elementos)
-	AdamsMoulton AdamsMoulton(neqn, orden_metodo, &RungeKutta); 		// Objeto para aplicar Adams-Bashford-Moulton (paralelismo de operaciones) y sus operaciones asociadas
-	AdamsMoulton_i AdamsMoulton_i(neqn, orden_metodo, &RungeKutta_i);	// Objeto para aplicar Adams-Bashford-Moulton (paralelismo de elementos)
+	AdamsBashforth AdamsBashforth(neqn, orden_metodo, &RungeKutta); 		// Objeto para aplicar Adams-Bashforth (paralelismo de operaciones) y sus operaciones asociadas
+	AdamsBashforth_i AdamsBashforth_i(neqn, orden_metodo, &RungeKutta_i); // Objeto para aplicar Adams-Bashforth (paralelismo de componentes)
+	AdamsMoulton AdamsMoulton(neqn, orden_metodo, &RungeKutta); 		// Objeto para aplicar Adams-Bashforth-Moulton (paralelismo de operaciones) y sus operaciones asociadas
+	AdamsMoulton_i AdamsMoulton_i(neqn, orden_metodo, &RungeKutta_i);	// Objeto para aplicar Adams-Bashforth-Moulton (paralelismo de componentes)
 	Metodo *ptr_metodo; 	// Puntero al método seleccionado
 	switch(num_metodo){
 		case 1: ptr_metodo=&RungeKutta; break;
 		case 2: ptr_metodo=&RungeKutta_i; break;
-		case 3: ptr_metodo=&AdamsBashford; break;
-		case 4: ptr_metodo=&AdamsBashford_i; break;
+		case 3: ptr_metodo=&AdamsBashforth; break;
+		case 4: ptr_metodo=&AdamsBashforth_i; break;
 		case 5: ptr_metodo=&AdamsMoulton; break;
 		case 6: ptr_metodo=&AdamsMoulton_i; break;
 		default: ptr_metodo=NULL; break;
@@ -119,7 +122,7 @@ int main(int argc, char *argv[]){ // solver metodo orden problema hebras tamvect
 				cout << "s";
 			cout << " y ";
 		}
-		cout << tiempo_s << " segundos\n" << endl;
+		cout << tiempo_s - (floor(tiempo_m) * 60.0) << " segundos\n" << endl;
 	}
 	
 	delete [] Y0, Y1;

@@ -1,8 +1,16 @@
+# Instrucciones de uso:
+# Para generar el ejecutable "solver", hacer: make create
+# Para poner a funcionar el solver, hacer: 
+# make run metodo= orden= problema= hebras= tamvector= t0= tf= salto= modo=
+# Introduciendo tras el = los valores deseados
+# Para transformar los datos en gráfica, hacer: make exporta
+# Para combinar las 3 órdenes, hacer: make completo metodo= orden= ...
+
 METOD := Metodo
 RUNGE := RungeKutta
 RUN_I := RungeKutta_i
-BASHF := AdamsBashford
-BAS_I := AdamsBashford_i
+BASHF := AdamsBashforth
+BAS_I := AdamsBashforth_i
 MOULT := AdamsMoulton
 MOU_I := AdamsMoulton_i
 

@@ -8,12 +8,12 @@
 
 using namespace std;
 
-// Aplicar Adams-Bashford-Moulton con paralelismo de elementos el numero necesario de veces
+// Aplicar Adams-Bashforth-Moulton con paralelismo de elementos el numero necesario de veces
 void AdamsMoulton_i::aplicar(const Problema* problema, const double &t0, const double &tf, const double &h, const double* __restrict Y0, double* __restrict Yf) const {
     const int neqn = get_neqn();
     double *Yn0 = new double[neqn], *Yn1 = new double[neqn], *Yn2 = new double[neqn], *Yn3 = new double[neqn], *Yn4 = new double[neqn], // Vectores intermedios
            *Fn0 = new double[neqn], *Fn1 = new double[neqn], *Fn2 = new double[neqn], *Fn3 = new double[neqn], *Fn4 = new double[neqn], // Vectores feval
-           *Y_AB = new double [neqn], *F_AB = new double [neqn],    // Vectores para aproximar Yn usando Adams-Bashford
+           *Y_AB = new double [neqn], *F_AB = new double [neqn],    // Vectores para aproximar Yn usando Adams-Bashforth
            *Y_AM = new double [neqn], *F_AM = new double [neqn];    // Vectores para aproximar Yn usando Adams-Moulton
     
     vectorCopia(Y0, Yn0);   // Definimos Yn0
@@ -74,7 +74,7 @@ void AdamsMoulton_i::aplicar(const Problema* problema, const double &t0, const d
         #pragma omp parallel default(none) shared(problema, t0, tf, h, neqn, Y_AB, F_AB, Y_AM, F_AM, Yn0, Fn0, Yn1, Fn1)
         {
             for (double tn=t0; tn<tf; tn+=h){
-                #pragma omp for schedule(static) // Aplicamos Adams-Bashford para obtener una 1ª aproximación de Yn1 -> Y_AB
+                #pragma omp for schedule(static) // Aplicamos Adams-Bashforth para obtener una 1ª aproximación de Yn1 -> Y_AB
                 for (int i = 0; i < neqn; ++i) // Y_AB = Yn0 + h * Fn0
                     Y_AB[i] = Yn0[i] + h * Fn0[i];            
                 
@@ -112,7 +112,7 @@ void AdamsMoulton_i::aplicar(const Problema* problema, const double &t0, const d
         #pragma omp parallel default(none) shared(problema, t0, tf, h, h2, neqn, Y_AB, F_AB, Y_AM, F_AM, Yn0, Fn0, Yn1, Fn1)
         {
             for (double tn=t0; tn<tf; tn+=h){
-                #pragma omp for schedule(static) // Aplicamos Adams-Bashford para obtener una 1ª aproximación de Yn1 -> Y_AB
+                #pragma omp for schedule(static) // Aplicamos Adams-Bashforth para obtener una 1ª aproximación de Yn1 -> Y_AB
                 for (int i = 0; i < neqn; ++i) // Y_AB = Yn0 + h * Fn0
                     Y_AB[i] = Yn0[i] + h * Fn0[i];            
                 
@@ -148,7 +148,7 @@ void AdamsMoulton_i::aplicar(const Problema* problema, const double &t0, const d
         #pragma omp parallel default(none) shared(problema, t0, tf, h, h_RK, h2, h12, neqn, Y_AB, F_AB, Y_AM, F_AM, Fn0, Yn1, Fn1, Yn2, Fn2)
         {
             for (double tn=t0+h_RK; tn<tf; tn+=h){
-                #pragma omp for schedule(static) // Aplicamos Adams-Bashford para obtener una 1ª aproximación de Yn2 -> Y_AB
+                #pragma omp for schedule(static) // Aplicamos Adams-Bashforth para obtener una 1ª aproximación de Yn2 -> Y_AB
                 for (int i = 0; i < neqn; ++i) // Y_AB = Yn1 + h/2 * (3*Fn1 - Fn0)
                     Y_AB[i] = Yn1[i] + h2 * (3.0*Fn1[i] - 1*Fn0[i]);            
                 
@@ -186,7 +186,7 @@ void AdamsMoulton_i::aplicar(const Problema* problema, const double &t0, const d
         #pragma omp parallel default(none) shared(problema, t0, tf, h, h_RK, h12, h24, neqn, Y_AB, F_AB, Y_AM, F_AM, Fn0, Fn1, Yn2, Fn2, Yn3, Fn3)
         {
             for (double tn=t0+h_RK*2.0; tn<tf; tn+=h){
-                #pragma omp for schedule(static) // Aplicamos Adams-Bashford para obtener una 1ª aproximación de Yn3 -> Y_AB
+                #pragma omp for schedule(static) // Aplicamos Adams-Bashforth para obtener una 1ª aproximación de Yn3 -> Y_AB
                 for (int i = 0; i < neqn; ++i) // Y_AB = Yn2 + h/12 * (23*Fn2 - 16*Fn1 + 5*Fn0)
                     Y_AB[i] = Yn2[i] + h12 * (23.0*Fn2[i] - 16.0*Fn1[i] + 5.0*Fn0[i]);            
                 
@@ -225,7 +225,7 @@ void AdamsMoulton_i::aplicar(const Problema* problema, const double &t0, const d
         #pragma omp parallel default(none) shared(problema, t0, tf, h, h_RK, h24, h720, neqn, Y_AB, F_AB, Y_AM, F_AM, Fn0, Fn1, Fn2, Yn3, Fn3, Yn4, Fn4)
         {
             for (double tn=t0+h_RK*3.0; tn<tf; tn+=h){
-                #pragma omp for schedule(static) // Aplicamos Adams-Bashford para obtener una 1ª aproximación de Yn4 -> Y_AB
+                #pragma omp for schedule(static) // Aplicamos Adams-Bashforth para obtener una 1ª aproximación de Yn4 -> Y_AB
                 for (int i = 0; i < neqn; ++i) // Yn4 = Yn3 + h/24 * (55Fn3 - 59Fn2 + 37Fn1 - 9Fn0)
                     Y_AB[i] = Yn3[i] + h24 * (55.0*Fn3[i] - 59.0*Fn2[i] + 37.0*Fn1[i] - 9.0*Fn0[i]);            
                 

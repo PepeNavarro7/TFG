@@ -1,5 +1,5 @@
-#ifndef ADAMS_BASHFORD_H
-#define ADAMS_BASHFORD_H
+#ifndef ADAMS_BASHFORTH_H
+#define ADAMS_BASHFORTH_H
 
 #include "Problema.h"
 #include "RungeKutta.h"
@@ -7,17 +7,17 @@
 
 using namespace std;
 
-class AdamsBashford: public Metodo{
+class AdamsBashforth: public Metodo{
 private:
     const RungeKutta* const ptr_runge; // Puntero constante a objeto constante
     
 public:   
     // Constructor de la clase
-    AdamsBashford (const int &neqn, const int &orden, const RungeKutta* runge):
-        Metodo(neqn, "Adams-Bashford (paralelismo de operaciones)", orden),
+    AdamsBashforth (const int &neqn, const int &orden, const RungeKutta* runge):
+        Metodo(neqn, "Adams-Bashforth (paralelismo de operaciones)", orden),
         ptr_runge(runge){};
 
-    // Aplicar Adams-Bashford el numero necesario de veces
+    // Aplicar Adams-Bashforth el numero necesario de veces
     void aplicar(const Problema* problema, const double &t0, const double &tf, const double &h, const double* __restrict Y0, double* __restrict Yf) const override;
 };
 

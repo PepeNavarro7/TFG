@@ -1,14 +1,14 @@
-#ifndef ADAMS_BASHFORD_CPP
-#define ADAMS_BASHFORD_CPP
+#ifndef ADAMS_BASHFORTH_CPP
+#define ADAMS_BASHFORTH_CPP
 
-#include "AdamsBashford.h"
+#include "AdamsBashforth.h"
 #include <iostream>
 #include <omp.h>
 
 using namespace std;
 
-// Aplicar Adams-Bashford con paralelismo de operaciones el numero necesaorio de veces
-void AdamsBashford::aplicar(const Problema* problema, const double &t0, const double &tf, const double &h, const double* __restrict Y0, double* __restrict Yf) const {
+// Aplicar Adams-Bashforth con paralelismo de operaciones el numero necesaorio de veces
+void AdamsBashforth::aplicar(const Problema* problema, const double &t0, const double &tf, const double &h, const double* __restrict Y0, double* __restrict Yf) const {
     const int neqn = get_neqn();
     double *Yn0 = new double[neqn], *Yn1 = new double[neqn], *Yn2 = new double[neqn], *Yn3 = new double[neqn], *Yn4 = new double[neqn], // Vectores intermedios
            *Fn0 = new double[neqn], *Fn1 = new double[neqn], *Fn2 = new double[neqn], *Fn3 = new double[neqn], *Fn4 = new double[neqn], // Vectores funcion
@@ -54,7 +54,7 @@ void AdamsBashford::aplicar(const Problema* problema, const double &t0, const do
         break;
     } // Fin del switch de arranque
 
-    // Ahora aplicamos Adams-Bashford del orden indicado
+    // Ahora aplicamos Adams-Bashforth del orden indicado
     const double h2=h/2.0, h12=h/12.0, h24=h/24.0;
     switch(get_orden()){ // Switch principal con el for que se trabaja
         case 1: 
