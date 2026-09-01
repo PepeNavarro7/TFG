@@ -1,9 +1,9 @@
-\creaCapitulo{Conceptos previos}
+\chapter{Conceptos previos}
 
-\creaSeccion{Métodos numéricos y EDOs}
+\section{Métodos Numéricos y Ecuaciones Diferenciales Ordinarias}
 
 Una ecuación diferencial es aquella que relaciona una función ( $f(x)$ ó $y$), sus variables ($x$) y sus derivadas ( $f’(x)$, $dy/dx$ ó $y’$ ). Para resolver una ecuación diferencial se debe encontrar una función que satisfaga dicha ecuación.
-Dentro de las ecuaciones diferenciales nos encontramos las ecuaciones diferenciales ordinarias, EDOs, que contienen derivadas respecto a una sola variable independiente. Más adelante nos centraremos en este tipo en particular. En oposición a éstas estarían las ecuaciones diferenciales parciales, en las que la función $f(x)$ depende de más variables independientes. \cite{Molero2007}
+Dentro de las ecuaciones diferenciales nos encontramos las ecuaciones diferenciales ordinarias, EDOs, que contienen derivadas respecto a una sola variable independiente. Más adelante nos centraremos en este tipo en particular. En oposición a éstas estarían las ecuaciones en derivadas parciales, en las que la función $f(x)$ depende de más variables independientes. \cite{Molero2007}
 
 El orden de una ecuación diferencial equivale al orden de la mayor derivada que aparece en la ecuación. Además, será lineal cuando la variable dependiente y todas sus derivadas son de primer grado (no puede haber $f(x)^2$ ), y los coeficientes de la variable dependiente y sus derivadas dependen de la variable independiente.
 
@@ -13,12 +13,14 @@ A modo de ejemplo simple podríamos considerar una ecuación diferencial ordinar
 	\frac{dy}{dt} = -2y \text{ , } y(0)=1
 \end{equation}
 
-Donde además de la EDO, se nos está dando su valor inicial. En este caso en particular, sabemos de forma analítica que su solución exacta es $y(t) = e^{-2t}$, y podríamos por tanto calcular cualquier $y_n$ que deseemos, pero si por cualquier razón no pudiéramos resolverla analíticamente deberíamos recurrir a los métodos numéricos. A través de ellos, y partiendo del valor $y_n$ que se nos proporciona, calcularíamos de forma iterativa $y_{n+1}$ hasta llegar al valor $n$ que busquemos. 
+Donde además de la EDO, se nos está dando su valor inicial. En este caso en particular, sabemos de forma analítica que su solución exacta es $y(t) = e^{-2t}$, y podríamos por tanto calcular cualquier $y(t_n)=y_n$ que deseemos. No obstante, si por cualquier razón no pudiéramos resolverla analíticamente deberíamos recurrir a los métodos numéricos. A través de ellos, y partiendo del valor $y_n$ que se nos proporciona, calcularíamos de forma iterativa $y(t_{n+h})$ hasta llegar al valor $t_n=t_f$ que busquemos como estado final. 
 
-Podríamos utilizar, por ejemplo, el método de Euler, del que hablaremos más adelante. Antes de ello podemos entrar en algo más de detalle respecto a algunos otros conceptos que iremos usando. 
+\textbf(DIBUJAR FIGURA AVANCE PASO A PASO)
+
+Podríamos utilizar para EDOs con valor inicial, por ejemplo, el método de Euler, del que hablaremos más adelante. Antes de ello podemos entrar en algo más de detalle respecto a algunos otros conceptos que iremos usando. 
 
 
-\creaSeccion{Tipos de métodos numéricos}
+\section{Tipos de métodos numéricos}
 
 Podemos dividir a los métodos en tres grupos, explícitos, implícitos y semiimplícitos. La división se hará en función de cómo se consigue el siguiente paso, es decir, de cómo obtenemos $y_{n+1}$ a partir de $y_n$; de si aparecen valores futuros o no en la fórmula que lo calcula. Tendremos como expresión general la siguiente: \cite{Molero2007}
 
@@ -29,7 +31,7 @@ Podemos dividir a los métodos en tres grupos, explícitos, implícitos y semiim
 
 En la cual será la función incremento $\Phi$ la que dirima a cuál de los grupos pertenece el método con el que estemos trabajando.
 
-Los métodos explícitos son aquellos en los que siguiente término se puede obtener directamente, sólo haciendo cálculos con datos de los que ya se dispone. Dicho de otra forma, son aquellos en los que $y_{n+1}$ no aparece en $\Phi$, sólo aparece en la parte izquierda de la ecuación. Entre ellos nos encontraremos el Euler explícito, Runge-Kutta, o Adams-Bashford, los tres los veremos posteriormente. Los métodos explícitos suelen ser más fáciles de implementar, ya que no requieren resolver ecuaciones, y suelen ser más rápidos. Por otro lado, tienden a ser menos estables, especialmente en problemas rígidos (\textit{stiff}).
+Los métodos explícitos son aquellos en los que siguiente término se puede obtener directamente, sólo haciendo cálculos con datos de los que ya se dispone. Dicho de otra forma, son aquellos en los que $y_{n+1}$ no aparece en $\Phi$, sólo aparece en la parte izquierda de la ecuación. Entre ellos nos encontraremos el Euler explícito, Runge-Kutta, o Adams-Bashforth, los tres los veremos posteriormente. Los métodos explícitos suelen ser más fáciles de implementar, ya que no requieren resolver ecuaciones, y suelen ser más rápidos. Por otro lado, tienden a ser menos estables, especialmente en problemas rígidos (\textit{stiff}).
 
 Al otro lado del espectro nos encontraríamos a los métodos implícitos, que son aquellos en los que $y_{n+1}$ sí aparece en la parte de la derecha de la igualdad, lo cuál nos obligaría a resolver una ecuación que podrá ser, o no, lineal. Estos métodos son muy estables, y son más adecuados para resolver problemas rígidos (\textit{stiff}). Como parte negativa tienen que requieren resolver ecuaciones en cada paso, y a veces de forma iterativa, lo que los acaba haciendo mucho más costosos computacionalmente. Entre ellos nos encontramos algunos métodos como el Euler implícito, Adams-Moulton, o los métodos BDF. 
 
@@ -41,7 +43,7 @@ Los métodos semiimplícitos representan un compromiso entre la estabilidad de l
 	y' = f(x,y) = f_E(x,y) + f_I(x,y)
 \end{equation}
 
-En este ejemplo $f_E$ es la parte explícita, suave (no \textit{stiff}), y $f_I$ es la parte que queremos tratar implícitamente. Algunos métodos semiimplícitos son los métodos IMEX (\textit{implicit-explicit})\cite{Ascher1995}, los métodos linealmente implícitos Runge-Kutta (\textit{LIRK})\cite{Calvo2001}, o el método Adams-Bashford-Moulton (AB-AM predictor-corrector). Es con este último con el que trabajaremos. 
+En este ejemplo $f_E$ es la parte explícita, suave (no \textit{stiff}), y $f_I$ es la parte que queremos tratar implícitamente. Algunos métodos semiimplícitos son los métodos IMEX (\textit{implicit-explicit})\cite{Ascher1995}, los métodos linealmente implícitos Runge-Kutta (\textit{LIRK})\cite{Calvo2001}, o el método Adams-Bashforth-Moulton (AB-AM predictor-corrector). Es con este último con el que trabajaremos. 
 
 Otra categorización con la que trabajaremos serán los métodos de un solo paso, y los métodos multipaso.
 En los métodos de un solo paso, para obtener el siguiente valor con el que se tratará, el siguiente paso, sólo se utiliza información relativa al paso anterior. Es decir, como podemos ver en \ref{eq:ExpresionGeneralMetodosUnPaso}, para obtener $y_{n+1}$ sólo se utilizaría $y_n$.
@@ -49,7 +51,7 @@ En los métodos de un solo paso, para obtener el siguiente valor con el que se t
 Sin embargo, los métodos multipaso usan varios valores anteriores de la solución para calcular el siguiente paso en el tiempo, en lugar de basarse solo en el valor actual. Es decir, que para obtener $y_{n+1}$ se podrían tomar pasos intermedios que posteriormente se desechen (como en Runge-Kutta), o utilizar pasos más antiguos como $y_{n-1}$ o $y_{n-2}$. Para problemas de gran tamaño, los métodos multipaso permiten alcanzar resultados con gran precisión y de una forma más eficiente que los métodos de un paso como el de Euler o el de Runge-Kutta.
 
 
-\creaSeccion{Método de Euler}
+\section{Método de Euler}
 
 Como hemos comentado, el método de Euler es uno de los métodos numéricos más simples de los que disponemos para la resolución de EDOs. Se trata de un método explícito de un solo paso que se construye a partir de una sencilla idea geométrica: aproximar el valor de la solución en cada nodo por el valor que proporciona la recta tangente a la solución trazada desde el punto correspondiente al nodo anterior.\cite{Gallardo2018} 
 
@@ -92,7 +94,7 @@ El primer paso sería por tanto, partiendo de los valores iniciales, calcular el
 
 Como podemos observar en la tabla \ref{tab:EjemploEuler} y en la figura \ref{fig:EjemploEuler}, los valores que obtenemos con el Euler explícito son próximos a los reales (eje Y izquierdo); el error absoluto se mantiene estable por debajo de 0.05, e incluso disminuye. Sin embargo, el error relativo (eje Y derecho) aumenta de forma lineal con cada iteración, y para la última alcanza un preocupante 20\%. Esto nos indica que para este problema, quizás el método numérico que hemos utilizado o el $\Delta t$ que hemos considerado no son los más indicados. 
 
-\creaSeccion{Paralelismo}
+\section{Paralelismo}
 Las dos tecnologías que vamos a utilizar para introducir el paralelismo en nuestro código y las mejoras que trae consigo son OpenMP y CUDA, es decir, paralelismo a  nivel de CPU, y a nivel de GPU, respectivamente.
 
 Por muy rápida que sea nuestra CPU, siempre llegaremos a un punto en que, bien por la complejidad de los problemas, bien por el tamaño que se maneje, una sola CPU con un código secuencial no va a ser suficiente. Es aquí donde entra el paralelismo, y es aquí donde nos centraremos.

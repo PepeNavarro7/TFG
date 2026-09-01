@@ -1,4 +1,4 @@
-\creaCapitulo{CUDA}
+\chapter{Implementación para GPU}
 
 CUDA, siglas de \textit{Compute Unified Device Architecture} es una plataforma de computación paralela y un conjunto de APIs desarrollado por NVIDIA para ejecutar código general en sus GPUs. Incluye, entre otros, un modelo de programación a partir de C y C++; un compilador (\textit{nvcc}) que genera código tanto para CPU como para GPU; un entorno de ejecución un una API para gestionar memoria, lanzamientos de kernels, streams; y librerías construidas sobre el propio modelo. \cite{Kirk2010} La idea principal es permitir que el programador trate a la GPU como un dispositivo de cómputo masivamente paralelo.
 
@@ -54,7 +54,7 @@ Por un lado, como podemos ver en la primera línea, se calcula un valor $i$ que 
 
 Por otro lado, se hace la comprobación de que el identificador del thread es menor que el tamaño de los vectores para evitar posibles accesos erróneos a memoria. Esto ha de hacerse ya que, si tenemos un tamaño de problema N, se generará un grid con tantos bloques de tamaño \textit{blockDim.x} como para que el total de hebras sea siempre mayor o igual a N. Dicho de otra forma, con un tamaño de bloque de 256, y un tamaño de problema de 1000, se generaría una grid con 4 bloques (y por tanto 1024 hebras), y las últimas 24 no trabajarían.
 
-\creaSeccion{Implementación}
+\section{Implementación}
 
 Comenzaremos implementando los problemas. La estructura que tendremos será similar a la de OpenMP (figura \ref{fig:OMP-Diagrama-Problemas}) con un par de cambios que nacen de la naturaleza de CUDA. En todas las clases, además de las variables relativas al tamaño del problema (\textit{neqn} y \textit{nx}), también deberemos controlar las variables \textit{grid} y \textit{block}, que serán necesarias para el kernel.
 
@@ -171,7 +171,7 @@ Cabe destacar que las funciones \textit{aplicar()} siempre incluyen los 4 órden
 
 Debido a la naturaleza de estos métodos numéricos, que utilizan los valores presentes para predecir los futuros, no podemos evitar el bucle for con el que se itera, y sólo podemos trabajar para paralelizar dentro de él, sabiendo que el vector con el que acaba una iteración será con el que empiece la siguiente.
 
-\creaSeccion{Mediciones}
+\section{Mediciones}
 
 Comenzaremos midiendo los tiempos de los 3 métodos de resolución frente al problema Brusselator2D con 125.000 ecuaciones, y comparando los resultados entre la ejecución secuencial, OpenMP con 16 hebras, y CUDA con un tamaño de bloque unidimensional de 256 threads. Además, obtendremos el speedup comparando con la medición secuencial.
 
@@ -191,8 +191,8 @@ Comenzaremos midiendo los tiempos de los 3 métodos de resolución frente al pro
 			& CUDA       & 77.1447 & 32.80860513 \\
 			\hline
 			
-			% ---------------- ADAMS BASHFORD ----------------
-			\multirow{3}{*}{Adams Bashford}
+			% ---------------- ADAMS-BASHFORTH ----------------
+			\multirow{3}{*}{Adams-Bashforth}
 			& Secuencial & 847.87  & 1 \\
 			\cline{2-4}
 			& OMP        & 82.704  & 10.25186206 \\
@@ -200,8 +200,8 @@ Comenzaremos midiendo los tiempos de los 3 métodos de resolución frente al pro
 			& CUDA       & 23.5544 & 35.99624699 \\
 			\hline
 			
-			% ---------------- ADAMS BASHFORD MOULTON ----------------
-			\multirow{3}{*}{Adams Bashford Moulton}
+			% ---------------- ADAMS BASHFORTH MOULTON ----------------
+			\multirow{3}{*}{Adams-Bashforth-Moulton}
 			& Secuencial & 2692.79 & 1 \\
 			\cline{2-4}
 			& OMP        & 264.402 & 10.18445398 \\
@@ -261,7 +261,7 @@ Aquí podemos apreciar dos dinámicas distintas interactuando entre ellas. Por u
 
 Por otro lado, si observamos la curva naranja, de tiempo por ecuación (en milisegundos), vemos el efecto contrario. Conforme aumenta el tamaño del problema y CUDA puede trabajar con más ecuaciones, este cociente se reduce conforme aumenta el tamaño. Sin embargo, a partir de cierto punto se estabiliza, que será cuando se alcanza la eficiencia máxima.
 
-\creaSeccion{Graphs}
+\section{Graphs}
 Tras ver el bucle de ejecución de la función miembro \textit{aplicar()}, salta a la vista que se llama a uno o varios kernel de forma repetitiva y con los mismos datos, con los mismos vectores, y sólo varía la variable del tiempo. A raíz de esto se decide implementar una nueva versión de las clases métodos, que utilice los \textit{Graph}. 
 
 Los CUDA Graphs son una representación estática de un conjunto de operaciones CUDA (kernels, copias, eventos) con sus dependencias. \cite{Barlas2023} Se capturan una vez y se ejecutan muchas veces con mínimo overhead. Está formado por nodos que representan las operaciones realizadas, y edges que representan dependencias de ejecución.
@@ -319,7 +319,7 @@ Sin embargo, como podemos ver en los resultados de nuestras mediciones, la intro
 
 Esto puede deberse a que el uso de CUDA Graphs sólo acelera la ejecución cuando el overhead de lanzamiento de kernels es significativo respecto al coste del kernel, como por ejemplo cuando los kernels son muy rápidos y el lanzamiento es costoso, pero como los nuestros son relativamente pesados (principalmente por sus múltiples accesos a memoria global), pues se da el caso de que el \textit{Graph} cuesta más de lo que ahorra.
 
-\creaSeccion{Shuffles y Grids multidimensionales}
+\section{Shuffles y Grids multidimensionales}
 
 Para intentar minimizar los accesos a memoria dentro de lo posible, se hace uso de otra herramienta que CUDA pone a nuestra disposición, los \textit{shuffle}. Los warp shuffle son instrucciones a nivel de warp que permiten que un hilo lea el valor de un registro de otro hilo del mismo warp.
 
