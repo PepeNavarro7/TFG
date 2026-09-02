@@ -105,7 +105,7 @@ El primer paso sería por tanto, partiendo de los valores iniciales, calcular el
 
 Como podemos observar en la tabla \ref{tab:Comparativa-Euler} y en la figura \ref{fig:Comparativa-Euler}, los valores que obtenemos con el Euler explícito son próximos a los reales (eje Y izquierdo); el error absoluto se mantiene estable por debajo de 0.05, e incluso disminuye. Sin embargo, el error relativo (eje Y derecho) aumenta de forma lineal con cada iteración, y para la última alcanza un preocupante 20\%. Esto nos indica que para este problema, quizás el método numérico que hemos utilizado o el $\Delta t$ que hemos considerado no son los más indicados. 
 
-\section{Paralelismo}
+\section{Paralelización}
 Las dos tecnologías que vamos a utilizar para introducir el paralelismo en nuestro código y las mejoras que trae consigo son OpenMP y CUDA, es decir, paralelismo a  nivel de CPU, y a nivel de GPU, respectivamente.
 
 Por muy rápida que sea nuestra CPU, siempre llegaremos a un punto en que, bien por la complejidad de los problemas, bien por el tamaño que se maneje, una sola CPU con un código secuencial no va a ser suficiente. Es aquí donde entra el paralelismo, y es aquí donde nos centraremos.

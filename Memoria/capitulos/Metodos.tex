@@ -2,7 +2,7 @@
 Para resolver los diferentes problemas hemos implementado tres métodos distintos, a saber: Runge-Kutta, que es explícito y utiliza pasos intermedios ($K1, K2$) para obtener los nuevos pasos; Adams-Bashforth, que también es explícito y multipaso, pero utiliza pasos antiguos (como $f_{n-1}$ o $f_{n-2}$); y Adams-Bashforth-Moulton, un predictor-corrector semiimplícito multipaso basado en Adams-Moulton (formalmente implícito) que utiliza Adams-Bashforth para predecir $y_{n+1}$ y sustituirlo en $f(t_{n+1}, y_{n+1})$.
 
 
-\section{Runge-Kutta}
+\section{Métodos de Runge-Kutta}
 
 Ahora que hemos tratado el método de Euler, podremos dar el siguiente paso hacia Runge-Kutta. Aunque técnicamente ya lo hemos estado viendo, ya que los métodos de Runge-Kutta son generalizaciones de la fórmula básica de Euler. \cite{Segarra-Escandon2020} Por esta razón, se dice que el método de Euler es un método de Runge-Kutta de primer orden.
 
@@ -87,7 +87,7 @@ Aplicado en un contexto de programación, tendremos una clase $RungeKutta$ con u
 
 Como podemos ver, la aplicación del algoritmo es relativamente fácil de entender, se trabaja con 4 vectores auxiliares en los que hacemos los cálculos intermedios, que luego se suman ponderadamente. Como cada evaluación K depende de la anterior, no podremos hacer una operación vectorial en la que se evalúen los cuatro K en paralelo, sino que será en las otras operaciones, las evaluaciones de cada miembro, las sumas, y las multiplicaciones de cada vector, en las que podremos entrar a trabajar el paralelismo para mejorar la eficiencia de nuestro código. 
 
-\section{Adams-Bashforth}
+\section{Métodos de Adams-Bashforth}
 
 A diferencia de Runge-Kutta, donde sólo considerábamos un valor $y_n$ para obtener $y_{n+1}$, en los métodos de Adams-Bashforth, al ser multipaso, sí tendremos en cuenta más puntos, como $y_{n-1}$ o $y_{n-3}$. En este proyecto nos hemos centrado en los métodos de paso fijo, es decir, que la diferencia entre $y_n$ y $y_{n-1}$ es constante (e igual a $\Delta t$). Si bien existen otros métodos de paso variable, no serán tratados.
 
@@ -155,7 +155,7 @@ La idea detrás del algoritmo es que, tras el arranque de los $k-1$ vectores $y_
 
 Una vez en el bucle, calculamos el nuevo valor de $y_k$, y con él, $f_k$. Posteriormente se hará un swap de vectores tal que $y_k$ pasa a ser $y_{k-1}$, y todos los vectores $f_n$ pasan a ser $f_{n-1}$. Así tendremos los datos preparados para la siguiente iteración.
 
-\section{Adams-Bashforth-Moulton}
+\section{Métodos de Adams-Bashforth-Moulton}
 Los métodos de Adams-Moulton tienen un funcionamiento similar a los de Adams-Bashforth, con la salvedad de que estos son implícitos. Esto quiere decir que para calcular $y_{n+1}$ se hace uso de $f(t_{n+1},y_{n+1})$. Para resolver este problema utilizaremos un sistema Predictor-Corrector dándonos un método semiimplícito.
 
 La expresión general de un método Adams-Moulton puro de k pasos es: \cite{Molero2007}

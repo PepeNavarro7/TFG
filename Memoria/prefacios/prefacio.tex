@@ -12,7 +12,7 @@
 \thispagestyle{empty}
 
 \begin{center}
-{ \large\bfseries \myTitle : \\ \mySubTitle } \\
+{ \large\bfseries Estudio e implementación paralela de métodos explícitos multipaso para la resolución de ecuaciones de Advección-Reacción-Difusión } \\
 \end{center}
 \begin{center}
 \myName \\
@@ -25,13 +25,13 @@
 \vspace{0.7cm}
 \noindent{\textbf{Resumen}}\\
 
-En este Trabajo de Fin de Grado se realiza una investigación en el mundo de las ecuaciones diferenciales ordinarias y los métodos numéricos que se utilizan para alcanzar soluciones aproximadas de las mismas a través de la computación.
+En este Trabajo de Fin de Grado se realiza una investigación en el mundo de las ecuaciones diferenciales ordinarias y los métodos numéricos que se utilizan para alcanzar soluciones aproximadas a las mismas a través de la computación.
 
-Para este fin, se estudian tres métodos de resolución distintos, Runge-Kutta, Adams-Bashforth, y Adams-Bashforth-Moulton, y se implementan. A partir de este punto, se plantean dos tecnologías diferentes que permiten paralelizar el código en busca de una ganancia en tiempo. 
+Para este fin, se estudian tres familias de métodos de resolución distintos, Runge-Kutta, Adams-Bashforth, y Adams-Bashforth-Moulton, y se implementan. A partir de este punto, se plantean dos tecnologías diferentes que permiten paralelizar el código en busca de una ganancia en tiempo. 
 
-La primera de éstas es OpenMP, que trabaja el paralelismo en CPUs multinúcleo, en el cual se implementan y se comparan dos estrategias de paralelismo opuestas. Y la segunda es CUDA, que aprovecha el cómputo masivo y paralelo de las tarjetas gráficas modernas. 
+La primera de éstas es OpenMP, que explota el paralelismo sobre CPUs multinúcleo, en el cual se implementan y se comparan dos estrategias de paralelización complementarias. Y la segunda es CUDA, que aprovecha el paralelismo masivo de las tarjetas gráficas modernas de NVIDIA. 
 
-Partiendo de una serie de problemas secuenciales, se implementan y paralelizan con ambas tecnologías, y se realizan mediciones en el tiempo.
+Partiendo de una serie de algoritmos secuenciales y modelos matemáticos, se implementan y paralelizan con ambas, se realizan mediciones, y se analizan los resultados de tiempo.
 \cleardoublepage
 
 
@@ -50,7 +50,7 @@ José Manuel Navarro Cuartero\\
 
 
 \vspace{0.7cm}
-\noindent{\textbf{Abstract}}\\
+\noindent{\textbf{Abstract{\huge RE-TRADUCIR}}}\\
 
 In this Bachelor's Thesis, an investigation is carried out into the field of ordinary differential equations and the numerical methods used to obtain approximate solutions to them through computation.
 
@@ -91,7 +91,7 @@ D. \textbf{\myProf}, Profesor del {\myDepartment} de la {\myUni}.
 
 \vspace{0.5cm}
 
-Que el presente trabajo, titulado \textbf{\myTitle, \mySubTitle}, ha sido realizado bajo su supervisión por \textbf{\myName}, y autorizo la defensa de dicho trabajo ante el tribunal que corresponda.
+Que el presente trabajo, titulado \textbf{\myTitle \ para la \mySubTitle}, ha sido realizado bajo su supervisión por \textbf{\myName}, y autorizo la defensa de dicho trabajo ante el tribunal que corresponda.
 
 \vspace{0.5cm}
 
