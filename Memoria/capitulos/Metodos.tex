@@ -232,7 +232,7 @@ Es intuitivamente obvio que llegados a este punto no podríamos resolver estos m
 
 El funcionamiento del algoritmo acaba siendo muy similar al esquema de Adams-Bashforth, en tanto que hacemos el arranque con Runge-Kutta y posteriormente iteramos sobre los vectores $Y_n$ y $F_n$. En este caso, añadimos además los vectores predictor y corrector, $Y_{pred}$ y $F_{corr}$, que nos permiten aplicar la idea central de este método, manteniendo una buena eficiencia pero con resultados más precisos.
 
-\section{Problemas}
+\section{Problemas de prueba}
 
 Para poner en funcionamiento la implementación de estos métodos y de la paralelización de la que hablaremos a continuación, hemos tomado cuatro problemas distintos que nos permitan probar extensivamente ambas tecnologías, tanto OpenMP como CUDA.
 Los problemas en cuestión son:
