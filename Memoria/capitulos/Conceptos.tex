@@ -57,7 +57,7 @@ Como hemos comentado, el método de Euler es uno de los métodos numéricos más
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/Ejemplo-Euler.png}
-	\caption{Aplicación del método de Euler}
+	\caption{Aplicación del método de Euler \cite{Calcs2023}}
 	\label{fig:Ejemplo-Euler}
 \end{figure}
 
@@ -114,7 +114,7 @@ La programación paralela es el conjunto de técnicas, modelos y arquitecturas q
 
 El paralelismo surge cuando un problema puede descomponerse en subtareas independientes que pueden ejecutarse al mismo tiempo. En términos formales, un programa es paralelizable si existe una partición de su espacio de trabajo en unidades que no presentan dependencias de datos que impidan su ejecución concurrente. Esto implica analizar dependencias de datos, localidad y acceso a memoria, granularidad de las tareas, y coste de sincronización.
 
-Si quisiéramos clasificar los distintos modelos de paralelismo nos podríamos encontrar, por un lado con el paralelismo de datos, que consiste en aplicar la misma operación a múltiples elementos de un conjunto, a travñes de la vectorización, de bucles paralelos, o de operaciones \textit{element-wise}. Dentro de esta categoría nos encontraríamos a OpenMP, CUDA, OpenCL, o AVX, entre otros.
+Podríamos clasificar los distintos modelos de paralelismo que nos encontraremos de la siguiente forma. Por un lado tendríamos el paralelismo de datos, que consiste en aplicar la misma operación a múltiples elementos de un conjunto, a través de la vectorización, de bucles paralelos, o de operaciones \textit{element-wise}. Dentro de esta categoría nos encontraríamos a OpenMP, CUDA, OpenCL, o AVX, entre otros.
 
 Por otro lado tendríamos el paralelismo de tareas, que consiste en ejecutar tareas heterogéneas en paralelo, como pipelines, árboles de tareas, o grafos de dependencias. Este modelo es usado por frameworks como TBB, Cilk, OpenMP tasks o runtimes de grafos. Por último el paralelismo híbrido combina ambos, buscando el paralelismo de tareas, con paralelismo de datos dentro de cada tarea.
 
