@@ -55,12 +55,23 @@ Sin embargo, los métodos multipaso usan varios valores anteriores de la soluci�
 
 Como hemos comentado, el método de Euler es uno de los métodos numéricos más simples de los que disponemos para la resolución de EDOs. Se trata de un método explícito de un solo paso que se construye a partir de una sencilla idea geométrica: aproximar el valor de la solución en cada nodo por el valor que proporciona la recta tangente a la solución trazada desde el punto correspondiente al nodo anterior.\cite{Gallardo2018} 
 
-Emplearíamos la siguiente fórmula:
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/Ejemplo-Euler.png}
+	\caption{Aplicación del método de Euler}
+	\label{fig:Ejemplo-Euler}
+\end{figure}
+
+Emplearíamos la siguiente fórmula, aunque puede aparecer escrita de distintas formas equivalentes, aquí mostramos dos:
+
 \begin{equation}
 	\label{eq:EulerExplicito}
-	y_{n+1} = y_n + \Delta t \cdot f(t_n,y_n)
+	\begin{split}
+		y_{n+1} &= y_n + \Delta t \cdot f(t_n,y_n) \\
+		y_{n+1} &= y_n + h \cdot f(x_n,y_n)
+	\end{split}
 \end{equation}
-Aplicando la misma al ejemplo de valor inicial que mencionamos antes, $\frac{dy}{dt} = -2y \text{ , } y(0)=1$, sabemos que $y_n$ corresponde a la aproximación numérica de $y(t_n)$, y $\Delta t$ representa la variación en el tiempo paso a paso que estemos considerando. Además, en nuestro caso, $f(t_n,y_n)$ sería $-2 \cdot y_n$, y se nos da el valor inicial $t_0 = 0.0$. Por tanto, tomando estos valores, con un $\Delta t = 0.1$, y $t_f = 1.0$, calcularemos los sucesivos valores para $t = 0.1, 0.2, ..., 1.0$.
+
+Aplicando la misma al ejemplo de valor inicial que mencionamos antes, $\frac{dy}{dt} = -2y \text{ , } y(0)=1$, sabemos que $y_n$ corresponde a la aproximación numérica de $y(t_n)$, y $\Delta t$ (o $h$) representa la variación en el tiempo paso a paso que estemos considerando. Además, en nuestro caso, $f(t_n,y_n)$ sería $-2 \cdot y_n$, y se nos da el valor inicial $t_0 = 0.0$. Por tanto, tomando estos valores, con un $\Delta t = 0.1$, y $t_f = 1.0$, calcularemos los sucesivos valores para $t = 0.1, 0.2, ..., 1.0$.
 
 El primer paso sería por tanto, partiendo de los valores iniciales, calcular el $t=0.1$, a saber, $y_1 = y_0 + \Delta t \cdot f(t_0,y_0) = 1 + 0.1 \cdot (-2 \cdot 1) = 0.8 $. Si esto lo repitiéramos de forma sucesiva obtendríamos los siguientes resultados, los cuales además compararemos con el valor real $y(t) = e^{-2t}$ para obtener el error absoluto $\varepsilon_a$ y el error relativo $\varepsilon_r$. Definiremos al error absoluto como la diferencia entre el valor real y nuestra aproximación, y al error relativo como el cociente entre el error absoluto y el valor real, en porcentaje.
 
@@ -82,17 +93,17 @@ El primer paso sería por tanto, partiendo de los valores iniciales, calcular el
 			10 & 1.0 & 0.10737 & 0.13534 & 0.02796 & 20.66 \\ \hline
 		\end{tabular}
 		\caption{Comparativa entre Euler y valor real}
-		\label{tab:EjemploEuler}
+		\label{tab:Comparativa-Euler}
 	\end{center}
 \end{table}
 
 \begin{figure}[H]
-	\includegraphics[width=\linewidth]{imagenes/ComparativaEuler.png}
+	\includegraphics[width=\linewidth]{imagenes/Comparativa-Euler.png}
 	\caption{Comparativa entre Euler y valor real}
-	\label{fig:EjemploEuler}
+	\label{fig:Comparativa-Euler}
 \end{figure}
 
-Como podemos observar en la tabla \ref{tab:EjemploEuler} y en la figura \ref{fig:EjemploEuler}, los valores que obtenemos con el Euler explícito son próximos a los reales (eje Y izquierdo); el error absoluto se mantiene estable por debajo de 0.05, e incluso disminuye. Sin embargo, el error relativo (eje Y derecho) aumenta de forma lineal con cada iteración, y para la última alcanza un preocupante 20\%. Esto nos indica que para este problema, quizás el método numérico que hemos utilizado o el $\Delta t$ que hemos considerado no son los más indicados. 
+Como podemos observar en la tabla \ref{tab:Comparativa-Euler} y en la figura \ref{fig:Comparativa-Euler}, los valores que obtenemos con el Euler explícito son próximos a los reales (eje Y izquierdo); el error absoluto se mantiene estable por debajo de 0.05, e incluso disminuye. Sin embargo, el error relativo (eje Y derecho) aumenta de forma lineal con cada iteración, y para la última alcanza un preocupante 20\%. Esto nos indica que para este problema, quizás el método numérico que hemos utilizado o el $\Delta t$ que hemos considerado no son los más indicados. 
 
 \section{Paralelismo}
 Las dos tecnologías que vamos a utilizar para introducir el paralelismo en nuestro código y las mejoras que trae consigo son OpenMP y CUDA, es decir, paralelismo a  nivel de CPU, y a nivel de GPU, respectivamente.
