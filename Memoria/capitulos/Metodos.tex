@@ -45,7 +45,15 @@ De forma análoga, obtendremos el tercer orden:
 	\end{split}
 \end{equation}
 
-En el método de Runge-Kutta de orden 4 resolveremos diversos pasos que nos servirán para estimar de forma muy aproximada el resultado. Será en éste en el que nos centraremos a la hora de las mediciones. Partiendo de un valor inicial $dy/dt = f(t,y)$, $y(t_0)=y_0$, y de un valor de salto $h>0$, calcularemos iterativamente los valores tal que:
+Por último, en el método de Runge-Kutta de orden 4 resolveremos diversos pasos que nos servirán para estimar de forma muy aproximada el resultado. 
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/Partes-RungeKutta.png}
+	\caption{Demostración gráfica de RK4\cite{Nyandieka2023}}
+	\label{fig:Partes-RungeKutta}
+\end{figure}
+
+Será en éste en el que nos centraremos a la hora de las mediciones. Partiendo de un valor inicial $dy/dt = f(t,y)$, $y(t_0)=y_0$, y de un valor de salto $h>0$, calcularemos iterativamente los valores tal que:
 \begin{equation}
 	\label{eq:RungeKutta4}
 	\begin{split}
