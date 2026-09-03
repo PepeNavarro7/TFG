@@ -4,7 +4,7 @@
 
 \section{Implementación}
 
-Comenzaremos implementando los problemas de prueba (\textbf{véase sección} ). La estructura que tendremos será similar a la implementación de OpenMP (véase figura \ref{fig:OMP-Diagrama-Problemas}) con un par de cambios que nacen de la naturaleza de las peculiaridades propias del procesamiento en GPUs. En todas las clases, además de las variables relativas al tamaño del problema (\textit{neqn} y \textit{nx}, \textbf{explicar cual es cada una}), también deberemos controlar las variables \textit{grid} y \textit{block}, que serán necesarias para el kernel, ya que indican las dimensiones tanto de la grid de bloques, como de los bloques de hebras usados.
+Comenzaremos implementando los problemas de prueba (véase sección \ref{sec:problemas}). La estructura que tendremos será similar a la implementación de OpenMP (véase figura \ref{fig:OMP-Diagrama-Problemas}) con un par de cambios que nacen de la naturaleza de las peculiaridades propias del \textbf{procesamiento en GPUs}. En todas las clases, además de las variables relativas al tamaño del problema (\texttt{neqn} y \texttt{nx}), también deberemos controlar las variables \texttt{grid} y \texttt{block}, que serán necesarias para el kernel, ya que indican las dimensiones tanto de la grid de bloques, como de los bloques de hebras usados.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Diagrama-Problemas.png}
@@ -12,7 +12,7 @@ Comenzaremos implementando los problemas de prueba (\textbf{véase sección} ). 
 	\label{fig:CUDA-Diagrama-Problemas}
 \end{figure}
 
-Además, la función \textit{feval()} sólo actuará como cono una envolvente desde la que se llama al kernel que valúa realmente la función derivada. Usamos este sistema porque, como mencionamos, los kernels no son funciones miembro y no pueden acceder a los atributos de las clases, así que la función \textit{feval()} actúa de intermediaria entre los métodos de clase y los kernels de los problemas. Además, se ha eliminado cualquier función auxiliar que se llame internamente desde \textit{feval()}, ya que los kernel no pueden llamar a funciones que sean parte del host, métodos virtuales, o funciones miembro que utilicen a la CPU.
+Además, la función \texttt{feval()} sólo actuará como una envolvente desde la que se llama al kernel que evalúa realmente la función derivada. Usamos este sistema porque, como mencionamos, los kernels no son funciones miembro y no pueden acceder a los atributos de las clases, así que la función \textit{feval()} actúa de intermediaria entre los métodos de clase y los kernels de los problemas. Además, se ha eliminado cualquier función auxiliar que se llame internamente desde \textit{feval()}, ya que los kernel no pueden llamar a funciones que sean parte del host, métodos virtuales, o funciones miembro que utilicen a la CPU.
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
@@ -22,21 +22,21 @@ Además, la función \textit{feval()} sólo actuará como cono una envolvente de
 	\label{alg:Feval-CUDA}
 \end{algorithm}
 
-A través de la herencia, las clases método podrán llamar a \textit{feval()}, y que sea el propio método \textit{feval()} de cada problema el que llame a su kernel con la configuración de grids y bloques correcta para su ejecución en la GPU.
+A través de la herencia, las clases método podrán llamar a la función miembro \texttt{feval()} de las clases problema, y que sea cada problema el que llame a su kernel correspondiente, con la configuración de grids y bloques correcta para su ejecución en la GPU.
 
-Hay otra función que no teníamos en las implementaciones de OpenMP y es \textit{updateConstants()}. El planteamiento es simple, tenemos el inconveniente de que los kernels no pueden acceder a métodos miembro de los objetos problema, como a los \textit{getters}, y por tanto \textit{feval()} debería pasar como argumento al kernel todas las variables del problema que necesite (como \textit{nx}). 
+Hay otra función que no teníamos en las implementaciones de OpenMP y es \texttt{updateConstants()}. El planteamiento es simple, tenemos el inconveniente de que los kernels no pueden acceder a métodos miembro de los objetos problema, como a los \textit{getters}, y por tanto \texttt{feval()} debería pasar como argumento al kernel todas las variables del problema que necesite (como \textit{nx}). 
 
-Esto no sería una solución ideal porque, además de hacer poco legible el kernel, aunque no afectaría al rendimiento de la ejecución, sí lo haría a la eficiencia del lanzamiento del kernel. Esto se daría porque cada vez que se lanza un kernel los argumentos del mismo han de ser empaquetados por el \textit{runtime} y copiados a un área de parámetros. En nuestro caso además los kernel \textit{feval()} se lanzan muchas veces, aumentando el impacto.
+Esto no sería una solución ideal porque, aunque no afectaría al rendimiento de la ejecución, sí lo haría a la eficiencia del lanzamiento del kernel. Esto se daría porque cada vez que se lanza un kernel los argumentos del mismo han de ser empaquetados por el \textit{runtime} y copiados a un área de parámetros. En nuestro caso además los kernel \texttt{feval()} se lanzan muchas veces, aumentando el impacto.
 
-La solución que proponemos a este contratiempo es utilizar la memoria para constantes \cite{Farber2011}. En cada header \textit{.h} de los problemas se implementa una estructura que contendrá los parámetros que utilizará el kernel asociado a ese problema. 
+La solución que proponemos a este contratiempo es utilizar la \textbf{memoria de constantes} \cite{Farber2011}. En cada header \texttt{.h} de los problemas se implementa una estructura que contendrá los parámetros que utilizará el kernel asociado a ese problema. 
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Diagrama-Structs.png}
-	\caption{Diagrama de Clases de los structs}
+	\caption{Diagrama de Clases de los structs constantes}
 	\label{fig:CUDA-Diagrama-Structs}
 \end{figure}
 
-Posteriormente en el archivo source \textit{.cu} se declara un objeto de esa estructura.
+Posteriormente en el archivo \textit{source} \texttt{.cu} se declara un objeto de esa estructura.
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
@@ -67,25 +67,25 @@ Ahora que tenemos todas las partes que nos faltaban, podemos pasar a los kernels
 \begin{algorithm}[H]
 	\begin{algorithmic}
 		\State $thread \gets blockDim.x \cdot blockIdx.x + threadIdx.x$
-		\State $ult \gets cte\_adv1.neqn - 1$
-		\If{$thread < cte\_avd1.neqn$} \Comment{Check de hebras}
+		\State $ult \gets neqn - 1$
+		\If{$thread < neqn$} \Comment{Check de hebras}
 			\State $i\_ant \gets (thread==0) \text{ ? } ult \text{ : } (thread-1)$ \Comment{Vecinos y frontera}
 			\State $i\_pst \gets (thread==ult) \text{ ? } 0 \text{ : } (thread+1)$
 			\State $val\_ant \gets Y[i\_ant]$ \Comment{Obtenemos valores}
 			\State $valor \gets Y[thread]$
 			\State $val\_pst \gets Y[i\_pst]$
-			\State $DY[thread] \gets \text{Cálculo usando val\_ant, valor, val\_pst, thread, t, cte\_avd1}$
+			\State $DY[thread] \gets \text{Cálculo usando val\_ant, valor, val\_pst, thread, t...}$
 		\EndIf
 	\end{algorithmic}
 	\caption{Kernel feval de AdvDiff1D}
 	\label{alg:KernelAdvDiff1d}
 \end{algorithm}
 
-En el ejemplo, podemos diferenciar varias partes. Primero declaramos algunos valores que se usarán más adelante, como el número de hilo único de cada thread(\texttt{thread}), o el identificador común del último hilo válido(\texttt{ult}), que obtenemos de la memoria de constantes. Posteriormente, tras la comprobación de que sólo ejecuten tantos hilos como elementos del vector, obtenemos los identificadores de los vecinos(\texttt{i\_ant} y \texttt{i\_pst}). Se usan operadores ternarios para corregir los casos frontera en los que el índice vecino se salga del rango. 
+En el ejemplo, podemos diferenciar varias partes. Primero declaramos algunos valores que se usarán más adelante, como el número de hilo único de cada thread(\texttt{thread}), o el identificador del último hilo válido(\texttt{ult}). Posteriormente, tras la comprobación de que sólo ejecuten tantos hilos como elementos del vector, obtenemos los identificadores de los vecinos(\texttt{i\_ant} y \texttt{i\_pst}). Se usan operadores ternarios para corregir los casos frontera en los que el índice vecino se salga del rango. 
 
-Finalmente, ahora que disponemos de los identificadores, obtenemos, del vector alojado en memoria global, el valor que corresponde tanto al hilo en cuestión, como a los vecinos. Y una vez que se tienen todos estos valores se procede al cálculo del nuevo valor, y asigna al vector salida, \texttt{DY[thread]}. Como hemos mencionado, todos los hilos del kernel lo ejecutarán concurrentemente.
+Finalmente, ahora que disponemos de los identificadores, obtenemos, del vector alojado en memoria global, el valor que corresponde tanto al hilo en cuestión como a los vecinos. Y una vez que se tienen todos estos valores se procede al cálculo del nuevo valor, y asigna al vector salida, \texttt{DY[thread]}. Como hemos mencionado, todos los hilos del kernel lo ejecutarán concurrentemente.
 
-De forma análoga a la implementación de los problemas, hay varios cambios que deben ser mencionados. Seguimos teniendo una clase abstracta padre \textit{Metodo} que sirve de template a las hijas. En esta implementación, las funciones auxiliares que tenía la clase son ahora kernels con la misma funcionalidad, como podemos ver en el algoritmo \ref{alg:KernelEscalarPorVector}.
+De forma análoga a la implementación de los problemas, hay varios cambios que deben ser mencionados. Seguimos teniendo una clase abstracta padre \texttt{Metodo} que sirve de template a las hijas. En esta implementación, las funciones auxiliares que tenía la clase son ahora kernels con la misma funcionalidad, como podemos ver en el algoritmo \ref{alg:Vector-Copia-CUDA}.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Diagrama-Metodos.png}
@@ -99,17 +99,15 @@ Pasamos ahora al método \texttt{aplicar()}, la implementación en los 3 método
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
-		\State \texttt{Reservamos memoria para los vectores}
-		\State \verb|updateConstants(neqn, h)| \Comment{Memoria constante}
-		\State \verb|problema->updateConstants(neqn, h)|
+		\State \verb|problema->updateConstants(neqn, h)| \Comment{Memoria constante}
 		\State $Y_n \gets Y_0$
-		\For{ $ t_n \text{=} t_0 \text{; }t_n < t_f\text{; }t_n \text{+=}h $ }
-			\State $K1 \gets feval(t_n\text{; }Y_n)$
-			\State $Y_{aux} \gets kernel\_escalarSumaMult(Yn, h2, K1)$
-			\State $K2 \gets feval(t_n+h/2\text{; }Y_{aux})$
-			\State $Y_n \gets kernel\_sumatoriaRK2(K1, K2)$ \Comment{Kernel principal RK2}
+		\For{ $ t_n \text{=} t_0 \text{; }t_n < t_f\text{; }t_n \text{+=}\Delta t $ }
+			\State $K1 \gets feval(t_n\text{; }y_n)$
+			\State $y_{aux} \gets kernel\_escalarSumaMult(yn, \Delta t, K1)$ \Comment{Kernel auxiliar}
+			\State $K2 \gets feval(t_n\text{; }y_{aux})$
+			\State $y_n \gets kernel\_sumatoriaRK2(K1, K2)$ \Comment{Kernel principal RK2}
 		\EndFor
-		\State $Y_f \gets Y_n$
+		\State $y_f \gets y_n$
 	\end{algorithmic}
 	\caption{\texttt{Aplicar} para el método Runge-Kutta de orden 2 en CUDA}
 	\label{alg:CUDA-RK2}
@@ -117,9 +115,32 @@ Pasamos ahora al método \texttt{aplicar()}, la implementación en los 3 método
 
 Cabe destacar que las funciones \texttt{aplicar()} siempre incluyen las 4 órdenes mencionadas, aunque por facilidad de comprensión del pseudocódigo sólo se ilustra aquí una de las órdenes. Además, los kernels nunca devuelven ningún dato, todo debe pasárseles como atributo.
 
-Debido a la naturaleza de estos métodos numéricos, que utilizan los valores presentes para predecir los futuros, no podemos evitar el bucle for con el que se itera, y sólo podemos trabajar la paralelización dentro de él, sabiendo que el vector con el que acaba una iteración será aquel con el que empiece la siguiente.
+Debido a la naturaleza de estos métodos numéricos, que utilizan los valores presentes para predecir los futuros, no podemos evitar el bucle \texttt{for} con el que se itera, y sólo podemos trabajar la paralelización dentro de él, sabiendo que el vector con el que acaba una iteración será aquel con el que empiece la siguiente.
 
-\section{Resultados Exprimentales}
+\section{Resultados Experimentales}
+
+Todas las mediciones aquí presentes se han realizado teniendo como factores comunes $t_0=0.0$, $t_f=1.0$, $\Delta t= 10^{-6}$, y tamaño de \textit{block} de 256 hebras. Y se han tomado en una plataforma de cómputo de la Universidad de Granada con las siguientes características:
+\begin{itemize}
+	\item CPU: Intel(R) Xeon(R) Silver 4214R CPU @ 2.40GHz
+	\item Familia CPU: 6
+	\item Modelo: 85
+	\item Hilos por core: 2
+	\item Cores por socket: 12
+	\item Sockets: 2
+	\item Caché:
+	\begin{itemize}
+		\item L1d: 768 KiB
+		\item L1i: 768 KiB
+		\item L2: 24 MiB
+		\item L3: 33 MiB
+	\end{itemize}
+	\item GPU: NVIDIA GeForce RTX 2080 Ti
+	\item RAM: 62 GiB de RAM física
+	\item Memoria de intercambio (Swap Memory): 2.0 GiB
+	\item Versión de OpenMP: 4.5
+	\item Versión de CUDA: 12.6
+	\item Versión de g++: 12.3.0
+\end{itemize}
 
 Comenzaremos midiendo los tiempos de los 3 métodos de resolución frente al problema Brusselator2D con 125.000 ecuaciones, y comparando los resultados entre la ejecución secuencial, OpenMP con 16 hebras, y CUDA con un tamaño de bloque unidimensional de 256 threads. Además, obtendremos el speedup comparando con la medición secuencial.
 
@@ -171,7 +192,32 @@ Si bien sí podemos calcular el speedup, no tiene sentido calcular la eficiencia
 	\label{fig:Comp-Br2D-125K}
 \end{figure}
 
-Si nos centramos ahora en el desempeño de las versiones CUDA a través de varios tamaños de problema, por ejemplo, el método Runge-Kutta de orden 4 aplicado al problema Brusselator1D:
+Si nos centramos ahora en el desempeño de las versiones CUDA a través de varios tamaños de problema, por ejemplo, el método Runge-Kutta de orden 4 aplicado a los problemas AdvDiff1D, y Brusselator1D:
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{| c | c | c || c | c | c || c | c | c |}
+		\hline
+		\textbf{neqn} & \textbf{T (s)} & \textbf{ms/eq} &
+		\textbf{neqn} & \textbf{T (s)} & \textbf{ms/eq} &
+		\textbf{neqn} & \textbf{T (s)} & \textbf{ms/eq} \\
+		\hline
+		
+		50   & 27.43 & 548.6    & 20K   & 51.70  & 2.585   & 200K & 270.13  & 1.350 \\
+		100  & 21.42 & 214.2    & 30K   & 53.40  & 1.780   & 250K & 340.20  & 1.360 \\
+		200  & 28.72 & 143.6    & 40K   & 73.87  & 1.846   & 300K & 411.62  & 1.372 \\
+		500  & 31.04 & 62.08   & 50K   & 73.45  & 1.469   & 350K & 484.81  & 1.385 \\
+		1K   & 30.87 & 30.87   & 75K   & 115.03 & 1.533   & 400K & 542.48  & 1.356 \\
+		2K   & 31.22 & 15.61   & 100K  & 134.52 & 1.345   & 450K & 615.77  & 1.368 \\
+		5K   & 31.21 & 6.243   & 125K  & 179.36 & 1.434   & 500K & 687.30  & 1.374 \\
+		10K  & 31.14 & 3.114   & 150K  & 202.54 & 1.350   & 750K & 1044.1 & 1.392 \\
+		15K  & 32.79 & 2.186   & 175K  & 247.07 & 1.411   & 1M   & 1375.4 & 1.375 \\
+		\hline
+	\end{tabular}
+	\caption{Mediciones de RK4 a través de diferentes tamaños de AdvDiff1D en CUDA}
+	\label{tab:CUDA-Adv1D-Tams}
+\end{table}
+
 
 \begin{table}[H]
 	\centering
@@ -193,30 +239,37 @@ Si nos centramos ahora en el desempeño de las versiones CUDA a través de vario
 		30K   & 23.58  & 0.786   & 350K   & 173.56  & 0.495   & 2M     & 927.77  & 0.463 \\
 		\hline
 	\end{tabular}
-	\caption{RK4 a través de tamaños de Brusselator1D en CUDA}
+	\caption{Mediciones RK4 a través de diferentes tamaños de Brusselator1D en CUDA}
 	\label{tab:CUDA-Br1D-Tams}
 \end{table}
 
-O de forma gráfica, con el tiempo total en azul y en el eje Y logarítmico, y el tiempo por ecuación en naranja y el eje Y derecho logarítmico:
+O de forma gráfica, con el tiempo total en azul y en el eje Y logarítmico, y el tiempo empleado por ecuación en naranja y el eje Y derecho logarítmico:
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/CUDA-Adv1D-Tams.png}
+	\caption{Mediciones de RK4 a través de diferentes tamaños de AdvDiff1D en CUDA}
+	\label{fig:CUDA-Adv1D-Tams}
+\end{figure}
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Br1D-Tams.png}
-	\caption{RK4 a través de tamaños de Brusselator1D en CUDA}
+	\caption{Mediciones RK4 a través de diferentes tamaños de Brusselator1D en CUDA}
 	\label{fig:CUDA-Br1D-Tams}
 \end{figure}
 
-Aquí podemos apreciar dos dinámicas distintas interactuando entre ellas. Por un lado, observando la línea del tiempo (azul) vemos como para tamaños pequeños, la parte secuencial del problema domina la ejecución, y el tiempo paralelo es casi cero, lo que implica que el total prácticamente no varía (o incluso disminuye) con respecto al aumento de tamaño hasta llegar a un tamaño en torno a 100K ecuaciones. A partir de esa cifra es cuando la GPU puede empezar a trabajar de forma eficiente, y el tiempo aumenta de forma lineal. Esto coincide con lo esperado.
+Aquí podemos apreciar dos dinámicas distintas interactuando entre ellas en ambas mediciones experimentales. Por un lado, observando la línea del tiempo (azul) vemos como para tamaños pequeños, la parte secuencial del problema \textbf{domina la ejecución}, y el tiempo paralelo es casi cero, lo que implica que el total prácticamente no varía (o incluso disminuye) con respecto al aumento de tamaño hasta llegar a un tamaño en torno a 50K ecuaciones. A partir de esa cifra es cuando la GPU puede empezar a trabajar de forma \textbf{eficiente}, y el tiempo aumenta de forma lineal. Esto coincide con lo esperado.
 
-Por otro lado, si observamos la curva naranja, de tiempo por ecuación (en milisegundos), vemos el efecto contrario. Conforme aumenta el tamaño del problema y la GPU puede trabajar con más ecuaciones, este cociente se reduce conforme aumenta el número de ecuaciones. Sin embargo, a partir de cierto punto se estabiliza, que será cuando se alcanza la eficiencia máxima.
+Por otro lado, si observamos la curva naranja, de tiempo por ecuación (en milisegundos), vemos el efecto contrario. Conforme aumenta el tamaño del problema y la GPU puede trabajar con más ecuaciones, este cociente se reduce conforme aumenta el número de ecuaciones. Sin embargo, a partir de cierto punto se \textbf{estabiliza}, que será cuando se alcanza la eficiencia máxima.
 
 \section{Uso de CUDA Graphs}
-Tras ver el bucle de ejecución de la función miembro \textit{aplicar()}, salta a la vista que se llama a uno o varios kernel de forma repetitiva y con los mismos datos, con los mismos vectores, y sólo varía la variable del tiempo. A raíz de esto se decide implementar una nueva versión de las clases métodos, que utilice los \textit{Graph}. 
 
-Los CUDA Graphs son una representación estática de un conjunto de operaciones CUDA (kernels, copias, eventos) con sus dependencias. \cite{Barlas2023} Se capturan una vez y se ejecutan muchas veces con mínimo overhead. Está formado por nodos que representan las operaciones realizadas, y edges que representan dependencias de ejecución.
+Tras ver el bucle de ejecución de la función miembro \texttt{aplicar()}, salta a la vista que se llama a uno o varios kernels de forma repetitiva y con los mismos datos, con los mismos vectores, y sólo varía la variable del tiempo. A raíz de esto se decide implementar una nueva versión de las clases métodos, que utilice los \textit{CUDA Graph}. 
 
-El funcionamiento es relativamente simple, se capturan una secuencia de operaciones (\textit{cudaStreamCapture}), se analizan las dependencias y se optimiza el grafo, se instancia(\textit{cudaGraphInstantiate}), y se ejecuta (\textit{cudaGraphLaunch}) tantas veces como se desee. \cite{NVIDIA2026}
+Los CUDA Graphs son una representación estática de un conjunto de operaciones CUDA (kernels, copias, eventos) con sus dependencias. \cite{Barlas2023} Se capturan una vez y se ejecutan muchas veces con \textbf{mínimo overhead}. Está formado por nodos que representan las operaciones realizadas, y edges que representan dependencias de ejecución.
 
-Los graph CUDA presentan ciertas ventajas, como la reducción en el overhead del lanzamiento de kernels, la optimización de las dependencias, o la fusión interna de nodos. Algunas de sus limitaciones es que la estructura del grafo debe ser estática, o que no se pueden cambiar punteros capturados, ni introducir ramas dinámicas.
+El funcionamiento es relativamente simple, se capturan una secuencia de operaciones (\texttt{cudaStreamCapture}), se analizan las dependencias y se optimiza el grafo, se instancia(\texttt{cudaGraphInstantiate}), y se ejecuta (\texttt{cudaGraphLaunch}) tantas veces como se desee \cite{NVIDIA2026}.
+
+Los graph CUDA presentan ciertas ventajas, como la reducción en el overhead del lanzamiento de kernels, la \textbf{optimización de las dependencias}, o la fusión interna de nodos. Algunas de sus limitaciones es que la estructura del grafo debe ser estática, o que no se pueden cambiar punteros capturados, ni introducir ramas dinámicas.
 
 Para poder implementar los graph tuvimos que ampliar nuestro diagrama de clases, a saber, resumidamente:
 
@@ -226,9 +279,9 @@ Para poder implementar los graph tuvimos que ampliar nuestro diagrama de clases,
 	\label{fig:CUDA-Diagrama-Graph}
 \end{figure}
 
-Se han creado nuevas clases "\textit{problema\_graph}" que heredan de las anteriores para reutilizar todos sus métodos salvo \textit{aplicar()}, que lo sobrescriben. Dentro de él, capturan el grafo y lo lanzan las veces necesarias, pero con un detalle. Ya mencionamos que los kernel del bucle for eran iguales en cada iteración salvo por el tiempo ($t_n$) que sí cambiaba con cada iteración. Para tener esto en cuenta, cada vez que se va a lanzar el grafo se ha de modificar el objeto $t_n$ a través de \textit{cudaMemcpyToSymbolAsync} y la nueva función $get\_t()$.
+Se han creado nuevas clases "\texttt{problema\_graph}" que heredan de las anteriores para reutilizar todos sus métodos salvo \textit{aplicar()}, que lo sobrescriben. Dentro de él, capturan el grafo y lo lanzan las veces necesarias, pero con un detalle. Ya mencionamos que los kernel del bucle \texttt{for} eran iguales en cada iteración salvo por el tiempo ($t_n$) que sí cambiaba con cada iteración. Para tener esto en cuenta, cada vez que se va a lanzar el grafo se ha de modificar el objeto $t_n$ a través de \texttt{cudaMemcpyToSymbolAsync} y la nueva función $get\_t()$.
 
-Por otro lado, también se modificaron los \textit{feval()} de los problemas para adecuarlos a los Graph. En este caso, simplemente se sobrecargó el método \textit{feval()}, para que en lugar del tiempo $t_n$ recibiera el $cudaStream$ en el que estuviera alojado el $Graph$. Estos métodos a su vez, en lugar de llamar al kernel ya conocido, llamarán a un nuevo kernel también adaptado para los graph.
+Por otro lado, también se modificaron los \texttt{feval()} de los problemas para adecuarlos a la implementación con CUDA Graph. En este caso, simplemente se sobrecargó el método \texttt{feval()}. Estos métodos a su vez, en lugar de llamar al kernel ya conocido, llamarán a un nuevo kernel también adaptado para los CUDA Graph.
 
 \begin{table}[H]
 	\centering
@@ -253,7 +306,7 @@ Por otro lado, también se modificaron los \textit{feval()} de los problemas par
 		980000 & 772.954 & 615.165 & 0.795862367 \\
 		\hline
 	\end{tabular}
-	\caption{Comparación de tiempos de graph con ABM en Brusselator2D}
+	\caption{Comparación de tiempos de CUDA Graph con ABM5 en Brusselator2D}
 	\label{tab:CUDA-Graph}
 \end{table}
 
@@ -261,7 +314,7 @@ Sin embargo, como podemos ver en los resultados de nuestras mediciones, la intro
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Graph.png}
-	\caption{Comparación de tiempos de graph con ABM en Brusselator2D}
+	\caption{Comparación de tiempos de CUDA Graph con ABM5 en Brusselator2D}
 	\label{fig:CUDA-Graph}
 \end{figure}
 
@@ -269,11 +322,11 @@ Esto puede deberse a que el uso de CUDA Graphs sólo acelera la ejecución cuand
 
 \section{Shuffles y Grids multidimensionales}
 
-Para intentar minimizar los accesos a memoria dentro de lo posible, se hace uso de otra herramienta que CUDA pone a nuestra disposición, los \textit{shuffle}. Los warp shuffle son instrucciones a nivel de warp que permiten que un hilo lea el valor de un registro de otro hilo del mismo warp.
+Para intentar minimizar los \textbf{accesos a memoria} dentro de lo posible, se hace uso de otra herramienta que CUDA pone a nuestra disposición, los \textit{shuffle}. Los \textbf{warp shuffle} son instrucciones a nivel de warp que permiten que un hilo lea el valor de un registro de otro hilo del mismo warp.
 
-Cada hilo llama a la misma función, pero puede recibir el valor de otro hilo del warp según el patrón especificado. A nivel de hardware, esto se implementa mediante una red de interconexión interna del warp (warp crossbar) que mueve datos entre registros sin tener que pasar por la memoria global, lo cual reduce los accesos, y por tanto el tiempo de ejecución del kernel.
+Cada hilo llama a la misma función, pero puede recibir el valor de otro hilo del warp según el patrón especificado. A nivel de hardware, esto se implementa mediante una red de interconexión interna del warp (\textit{warp crossbar}) que mueve datos entre registros sin tener que pasar por la memoria global, lo cual reduce los accesos, y por tanto el tiempo de ejecución del kernel.
 
-Aunque el programador define a través del \textit{blocksize} el tamaño de los bloques que forman el grid (por ejemplo, un tamaño habitual sería un bloque unidimensional de 256 hebras), a nivel de hardware CUDA se organiza en warps de 32 hilos consecutivos que se mueven al unísono, y es entre ellos donde ocurre la comunicación que permiten los \textit{shuffle}.
+Aunque el programador define a través del \texttt{blocksize} el tamaño de los bloques que forman el grid (por ejemplo, un tamaño habitual sería un bloque unidimensional de 256 hebras), a nivel de hardware CUDA se organiza en warps de 32 hilos consecutivos que se mueven al unísono, y es entre ellos donde ocurre la comunicación que permiten los \textit{shuffle}.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/ShuffleDown.png}
@@ -281,7 +334,7 @@ Aunque el programador define a través del \textit{blocksize} el tamaño de los 
 	\label{fig:Shuffle-Down}
 \end{figure}
 
-La imagen ilustra un ejemplo de shuffle. Los hilos crean una variable local ($i$), en este caso su propio identificador dentro del warp, y a través del shuffle podrán accederse entre ellos a esa variable. En este caso, cada hilo accede a esa variable $i$ de los vecinos situados dos hilos por encima, y copia el contenido de la variable del vecino en una nueva propia ($j$). 
+La imagen ilustra un ejemplo de shuffle. Los hilos crean una variable local $i$ (en este caso su propio identificador dentro del warp), y a través del shuffle podrán accederse entre ellos a esa variable. En este caso, cada hilo accede a esa variable $i$ de los vecinos situados dos hilos por encima, y copia el contenido de la variable del vecino en una nueva variable propia llamada $j$. 
 
 Esto resulta útil en implementaciones como el algoritmo \ref{alg:KernelAdvDiff1d}, en el que un mismo thread hace varios accesos a memoria global, y esto podríamos sustituirlo por un único acceso a memoria global, y varios shuffle entre hilos.
 
@@ -312,56 +365,55 @@ Esto resulta útil en implementaciones como el algoritmo \ref{alg:KernelAdvDiff1
 
 En este ejemplo, en lugar de que cada hilo acceda 3 veces a memoria, acceden una sola, y es en los casos frontera en los que se hacen accesos extra puntuales.
 
-Para lograr esta implementación se crean nuevas clases \textit{problema\_shuffle} que heredan de las clases estándar, sobrecargan la función miembro \textit{feval}, e implementan su propia versión del kernel.
+Para lograr esta implementación se crean nuevas clases \texttt{problema\_shuffle} que heredan de las clases estándar, sobrecargan la función miembro \texttt{feval}, e implementan su propia versión del kernel.
 
 También se ha realizado otra nueva implementación aplicando otra innovación distinta de CUDA, los grid multidimensionales. Como pudimos ver en el algoritmo \ref{alg:Feval-CUDA}, a la hora de llamar a un kernel se le ha de indicar tanto las dimensiones de la grid como de los bloques que ésta contiene. Si bien se pueden utilizar enteros básicos (que CUDA interpreta como valores unidimensionales), también podemos indicarle a CUDA que vamos a trabajar con grids multidimensionales.
 
-Para poner esto en práctica, se crea una clase hija llamada \textit{problema\_grid} que hereda de la clase estándar, y sobrecarga las función \textit(init()), ya que la organización de los hilos será distinta, y la función \textit{feval()}, que realizará otros accesos. En un problema como Brusselator1D, en el que cada elemento que lo compone tiene dos componentes, $u$ y $v$, estas componentes pueden reinterpretarse como una segunda dimensión. Así se vería:
+Para poner esto en práctica, se crea una clase hija llamada \texttt{problema\_grid} que hereda de la clase estándar, y sobrecarga las funciones \texttt(init()) y \textit{feval()}, ya que la organización de los hilos será distinta de la que se tenía. En un problema como Brusselator1D, en el que cada elemento que lo compone tiene dos componentes, $u$ y $v$, estas componentes pueden reinterpretarse como una segunda dimensión. Así se vería:
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
 		\State $id\_x \gets blockDim.x \cdot blockIdx.x + threadIdx.x$ \Comment{Coordenada X}
-		\State $id\_y \gets threadIdx.y$ \Comment{Coordenada Y}
-		\State $ult \gets cte.nx - 1$
+		\State $id\_z \gets threadIdx.z$ \Comment{Coordenada Z}
+		\State $ult \gets nx - 1$
 		\State $lane \gets threadIdx.x \& 31$ \Comment{Posicion en el warp}
-		\State $thread \gets id\_y \cdot cte.nx + id\_x$
+		\State $thread \gets id\_y \cdot nx + id\_x$
 		
-		\If{$id\_x < cte.nx \text{ \&\& } id\_y < 2 \text{ \&\& } thread < cte.neqn $}
+		\If{$id\_x < nx \text{ \&\& } id\_y < 2 \text{ \&\& } thread < neqn $}
 			\State $valor \gets Y[thread]$ 
 			\State $mask = 0xFFFFFFFF$
-			\State $C = (id\_y==0) \text{ ? } cte.A \text{ : } cte.B; $
 			
 			\State $val\_izq \gets$ \verb|__shfl_up_sync (mask, valor, 1)| \Comment{Valores vecinos}
 			\State $val\_der \gets$ \verb|__shfl_down_sync (mask, valor, 1)|
 			
-			\If{$lane==0 || id\_x==0$} \Comment{Correción de valores frontera}
+			\If{$lane==0 || id\_x==0$} \Comment{Corrección de valores frontera}
 				\State $val\_izq \gets (id\_x==0)\text{ ? } C \text{ : } Y[thread-1]$ 
 			\EndIf
 			\If{$lane==31 || id\_x==ult$}
 				\State $val\_der \gets (id\_x==ult)\text{ ? } C \text{ : } Y[thread+1]$ 
 			\EndIf
 			
-			\State $ val\_pareja \gets (id\_y==0) \text{ ? } Y[thread+cte.nx] \text{ : } Y[thread-cte.nx] $
+			\State $ val\_pareja \gets (id\_y==0) \text{ ? } Y[thread+nx] \text{ : } Y[thread-nx] $
 			
-			\State $DY[thread] \gets \text{Cálculo usando val\_izq, valor, val\_der, thread, t, cte}$
+			\State $DY[thread] \gets \text{Cálculo usando val\_izq, valor, val\_der, thread, t...}$
 		\EndIf
 	\end{algorithmic}
 	\caption{Kernel feval de Brusselator1D con grid multidimensional}
 	\label{alg:Grid-Brusselator1D}
 \end{algorithm}
 
-En la implementación original, los datos se almacenaban en bloques unidimensionales formando un Array of Structures.
+En la implementación original, los datos se almacenaban en bloques unidimensionales formando un \textbf{Array of Structures}.
 \begin{equation}
 	\label{eq:ArrayOfStructures}
 	[0_u, 0_v, 1_u, 1_v, ..., (n-2)_u, (n-2)_v, (n-1)_u, (n-1)_v]
 \end{equation}
-Mientras que en esta implementación cambiamos el paradigma a bloques bidimensionales que forman un Structure of Arrays.
+Mientras que en esta implementación cambiamos el paradigma a bloques bidimensionales que forman un \textbf{Structure of Arrays}.
 \begin{equation}
 	\label{eq:StructureOfArrays}
 	[0_u, 1_u, ..., (n-2)_u, (n-1)_u, 0_v, 1_v, ..., (n-2)_v, (n-1)_v]
 \end{equation}
 
-Sin embargo, yendo a las mediciones podemos ver que no ocurren cambios significativos con ninguna de las dos nuevas implementaciones frente a la anterior "estándar".
+Sin embargo, yendo a las mediciones podemos ver que no ocurren \textbf{cambios significativos} con ninguna de las dos nuevas implementaciones frente a la anterior "estándar".
 
 \begin{table}[H]
 	\centering

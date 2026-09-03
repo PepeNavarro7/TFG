@@ -58,7 +58,7 @@ De forma simplificada, veamos un ejemplo de la implementación de Adams-Bashfort
 	\label{alg:AB4ParalelismoOperaciones}
 \end{algorithm}
 
-Como podemos ver, para hacer el cálculo propio de Adams-Bashforth de orden 4 (ecuación \ref{eq:AdamsBashforth4}) la hemos divido en 3 partes utilizando las funciones auxiliares de la clase abstracta \textit{Metodo} de las que ya disponíamos. Dentro de cada una de ellas se creará el grupo de hilos, se repartirá el trabajo (cada hilo tendrá un "trozo" de vector sobre el que trabajar), y una vez finalicen se sincronizará para retornar a la función principal. 
+Cada implementación de algoritmos siguiendo este paradigma de paralelismo por operaciones intentará \textbf{dividir el trabajo} en varias funciones auxiliares (utilizando las que aporta la clase abtracta \texttt{Metodo}). Dentro de cada una de ellas se creará el grupo de hilos, se repartirá el trabajo (cada hilo tendrá un "trozo" de vector sobre el que trabajar), y una vez finalicen se sincronizará para retornar a la función principal. 
 
 Por ejemplo, \textit{vectorCopia()}:
 
@@ -74,38 +74,41 @@ Por ejemplo, \textit{vectorCopia()}:
 	\label{alg:VectorCopia-OMP}
 \end{algorithm}
 
-Esta estrategia trae consigo ventajas como la modularidad, ya que cada operación vectorial es independiente y autocontenida, lo cual facilita la depuración y la legibilidad del código.
+Esta estrategia trae consigo ventajas como la \textbf{modularidad}, ya que cada operación vectorial es independiente y autocontenida, lo cual facilita la depuración y la legibilidad del código.
 
-El principal punto negativo de esta estrategia es que trae consigo un \textit{overhead} alto, ya que cada función tiene una barrera implícita al acabar un \textit{parallel for}, en cada iteración del bucle hay varias llamadas a funciones, y el bucle itera un elevado número de veces. Esto equivale a más paradas de las que serían deseadas, además de que los hilos entran y salen de regiones paralelas constantemente.
+El principal punto negativo de esta estrategia es que trae consigo un \textit{overhead} alto, ya que cada función tiene una barrera implícita al acabar un \texttt{parallel for}, en cada iteración del bucle hay varias llamadas a funciones, y el bucle itera un elevado número de veces. Esto equivale a más paradas de las que serían deseadas, además de que los hilos entran y salen de regiones paralelas constantemente.
 
 \section{Paralelismo por Componentes}
 
-Frente al paralelismo de operaciones, tenemos el paralelismo por componentes (o por elementos), en el que sólo tenemos una gran región \textit{parallel} dentro de la cual ocurre todo el paralelismo, y cada hebra calcula su parte de los vectores.
+Frente al paralelismo de operaciones, tenemos el paralelismo por componentes (o por elementos), en el que sólo tenemos una gran región \textit{parallel} dentro de la cual ocurre todo el procesamiento paralelo, y cada hebra calcula su parte del procesamiento de los vectores.
 
-Esto quiere decir que se creará un único equipo de hilos al entrar en el \textit{parallel}, y todos los hilos permanecerán activos e iterarán en el bucle, paso a paso. Dentro del bucle iterativo, habrá diversos \textit{\#pragma omp for} que repartirán los índices entre los hilos. Esto además nos permitirá reducir las barreras de sincronización. Para poder comparar con la anterior implementación \ref{alg:AB4ParalelismoOperaciones}, describimos el mismo algoritmo (\ref{eq:AdamsBashforth4}) pero con esta estrategia:
+Esto quiere decir que se creará un \textbf{único equipo de hilos} al entrar en el \texttt{parallel}, y todos los hilos permanecerán activos e iterarán en el bucle, paso a paso. Dentro del bucle iterativo, habrá diversos \texttt{\#pragma omp for} que repartirán los índices entre los hilos. Esto además nos permitirá reducir las \textbf{barreras de sincronización}. Para poder comparar con la anterior implementación \ref{alg:AB4ParalelismoOperaciones}, describimos el mismo algoritmo (\ref{eq:AdamsBashforth4}) pero usando esta estrategia:
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
 		\State $ Y_{n0} \gets Y_0 $
-		\State $ Y_n \gets arranqueRK4(Y_{n-1})$ \Comment{$ n = \{1, 2, 3\} $}
-		\State \verb|#pragma omp parallel for schedule(static)|
-		\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
-			\State $ F_n[i] \gets feval\_i(t_n\text{, }Y_n\text{, }i)$ \Comment{$ n = \{0, 1, 2, 3\} $}
+		\For{ $ j \text{=} 1 \text{; }j < 3\text{; }\text{++}j $ }
+			\State $ y_j \gets arranqueRK4(y_{j-1})$ 
+		\EndFor
+		\For{ $ j \text{=} 0 \text{; }j < 3\text{; }\text{++}j $ }
+			\State $ f_j \gets feval(t_0+j\Delta t\text{, }y_j)$
 		\EndFor
 		
 		\State \verb|#pragma omp parallel|
-		\For{ $ t_n \text{=} t_0 \text{+} 3h \text{; }t_n < t_f\text{; }t_n \text{+=}h $ }
+		\For{ $ t_n \text{=} t_0 \text{+} 3\Delta t \text{; }t_n < t_f\text{; }t_n \text{+=}\Delta t $ }
 			\State \verb|#pragma omp for schedule(static)|
 			\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
-				\State $ Y_4[i] = Y_3[i] + h/24 * ( 55F_3[i] - 59F_2[i] + 37F_1[i] -9F_0[i]) $
+				\State $ y_4[i] = y_3[i] + \Delta t/24 * ( 55f_3[i] - 59f_2[i] + 37f_1[i] -9f_0[i]) $
 			\EndFor
 			\State \verb|#pragma omp for schedule(static)|
 			\For{ $ i \text{=} 0 \text{; }i < neqn\text{; }\text{++}i $ }
-				\State $ F_4[i] \gets feval\_i(t_n+h\text{, }Y_4\text{, }i)$
+				\State $ f_4[i] \gets feval\_i(t_n+\Delta t\text{, }y_4\text{, }i)$
 			\EndFor
 			\State \verb|#pragma omp single|
 			\State $ swap(Y_{n4}\text{, }Y_{n3}) $
-			\State $ swap(F_n\text{, }F_{n-1}) $ \Comment{$ n = \{1, 2, 3, 4\} $}
+			\For{ $ j \text{=} 1 \text{; }j \leq 4\text{; }\text{++}j $ }
+				\State $ swap(f_j\text{, }f_{j-1}) $
+			\EndFor
 		\EndFor
 		\State $Y_f \gets Y_{n3}$
 	\end{algorithmic}
@@ -113,86 +116,106 @@ Esto quiere decir que se creará un único equipo de hilos al entrar en el \text
 	\label{alg:AB4ParalelismoComponentes}
 \end{algorithm}
 
-La idea principal detrás de esta estrategia es reducir el \textit{overhead} provocado por tener demasiadas barreras de sincronización, y mejorar el uso de la caché. Para mejorar la implementación hacemos uso de directivas como \textit{schedule (static)}, con la que indicamos cómo deben repartirse las iteraciones entre los hilos. En este caso, se divide el rango de iteraciones en bloques contiguos y de tamaño fijo, y se asigna cada bloque a un hilo antes de empezar la ejecución del bucle. Esto es práctico cuando sabemos de antemano que todas las iteraciones van a costar lo mismo, y no va haber ramas pesadas o irregulares.
+La idea principal detrás de esta estrategia es \textbf{reducir el \textit{overhead}} provocado por tener demasiadas barreras de sincronización, y mejorar el uso de la caché. Para mejorar la implementación hacemos uso de directivas como \texttt{schedule (static)}, con la que indicamos cómo deben repartirse las iteraciones entre los hilos. En este caso, se divide el rango de iteraciones en bloques contiguos y de tamaño fijo, y se asigna cada bloque a un hilo antes de empezar la ejecución del bucle. Esto es práctico cuando sabemos de antemano que todas las iteraciones van a costar lo mismos.
 
-Algunas de las desventajas que tendremos es que el código es más complejo, pues no se puede reutilizar el \textit{feval()} secuencial (que sí lo aprovechábamos en el paralelismo por operaciones), sino que hay que hacer una versión específica para los componentes. De igual manera, no se pueden utilizar las funciones auxiliares, porque están diseñadas para tratar los vectores completos, no elementos individuales.
+Algunas de las desventajas que tendremos es que el código es más complejo, pues no se pueden reutilizar funciones como el \texttt{feval()} secuencial (que sí lo aprovechábamos en el paralelismo por operaciones), sino que hay que hacer una versión específica para los componentes. De igual manera, no se pueden utilizar las funciones auxiliares, porque están diseñadas para tratar los vectores completos, no \textbf{elementos individuales}.
 
 \section{Resultados experimentales}
 
-Ante la pregunta de qué estrategia es mejor, la respuesta sería, como casi siempre en informática, que depende.
+Todas las mediciones aquí presentes se han realizado teniendo como factores comunes $t_0=0.0$, $t_f=1.0$, y $\Delta t= 10^{-6}$. Y se han tomado en una plataforma de cómputo de la Universidad de Granada con las siguientes características:
+\begin{itemize}
+	\item CPU: Intel(R) Xeon(R) Silver 4214R CPU @ 2.40GHz
+	\item Familia CPU: 6
+	\item Modelo: 85
+	\item Hilos por core: 2
+	\item Cores por socket: 12
+	\item Sockets: 2
+	\item Caché:
+	\begin{itemize}
+		\item L1d: 768 KiB
+		\item L1i: 768 KiB
+		\item L2: 24 MiB
+		\item L3: 33 MiB
+	\end{itemize}
+	\item GPU: NVIDIA GeForce RTX 2080 Ti
+	\item RAM: 62 GiB de RAM física
+	\item Memoria de intercambio (Swap Memory): 2.0 GiB
+	\item Versión de OpenMP: 4.5
+	\item Versión de CUDA: 12.6
+	\item Versión de g++: 12.3.0
+\end{itemize}
+
+Ante la pregunta sobre qué estrategia de paralelización es mejor, la respuesta sería, como casi siempre en informática, que depende.
 
 En un primer planteamiento, parece que el paralelismo por componentes debería ser mejor. Reduce la creación y destrucción repetitiva de las hebras, y reduce las barreras de sincronización.
 
 Un matiz importante que debemos hacer es que, aunque hablemos de creación y destrucción de hilos iterativa, no siempre ha de ocurrir así. Es cierto que, de forma lógica, el modelo \textit{fork-join} de OpenMP describe de esa forma el comportamiento de los hilos; se crean, se usan, se destruyen. \cite{Jin2024} Sin embargo, esto no siempre ocurre así (ya que sería muy costoso).
 
-Existe un concepto llamado \textit{thread pooling}, que describe que el entorno de ejecución podrá devolver los hilos a la \textit{pool} en lugar de destruirlos, y así ahorrarse crearlos posteriormente. \cite{Barlas2023} Esto eliminaría la principal desventaja del paralelismo por operaciones. 
+Existe un concepto llamado \textit{thread pooling} \cite{Barlas2023}, que describe que el entorno de ejecución podrá \textbf{devolver los hilos} a la \textit{pool} en lugar de destruirlos, y así ahorrarse crearlos posteriormente. Esto eliminaría la principal desventaja del paralelismo por operaciones. 
 
-De forma análoga, el \textit{runtime} no siempre mantiene los hilos activos (como pudiera parecer), aunque no haya finalizado el bloque \textit{parallel}, ya que si el trabajo dentro de cada bloque \textit{omp for} es pequeño, el compilador puede decidir dormir los hilos para ahorrar energía. Esto puede provocar pérdida de tiempo al tener que despertar los hilos, y latencias de sincronización más altas.
+De forma análoga, el \textit{runtime system} \cite{Chapman2007} no siempre mantiene los \textbf{hilos activos} (como pudiera parecer), aunque no haya finalizado el bloque \texttt{parallel}, ya que si el trabajo dentro de cada bloque \texttt{omp for} es pequeño, el compilador puede decidir dormir los hilos para ahorrar energía. Esto puede provocar pérdida de tiempo al tener que despertar los hilos, y latencias de sincronización más altas.
 
-Otro dato a tener en cuenta, es que en el planteamiento de nuestros problemas, las llamadas a \textit{feval\_i()} son muy baratas, y el trabajo por iteración es pequeño, mientras que \textit{feval()} es más pesado, y en cierta forma se amortiza el \textit{overhead} al hacerse  una única llamada en lugar de \textit{neqn} llamadas.
+Otro dato a tener en cuenta, es que en el planteamiento de nuestros problemas, las llamadas a \texttt{feval\_i()} son muy baratas, y el trabajo por iteración es pequeño, mientras que \texttt{feval()} es más pesado, y en cierta forma se amortiza el \textit{overhead} al hacerse  una única llamada en lugar de \textit{neqn} llamadas.
 
-Podemos comenzar, por ejemplo, comparando los tiempos al resolver el problema \textit{Brusselator1D} con 100.000 ecuaciones.
+Podemos comenzar, por ejemplo, comparando los tiempos al resolver los problemas \texttt{SimpleAdvDiff} y \texttt{Brusselator1D} con 100.000 ecuaciones.
 \begin{table}[H]
 	\begin{center}
-		\begin{tabular}{| c | c | c | c |}
+		\begin{tabular}{| c | c | c | c | c |}
 			\hline
-			\textbf{Solver} & \textbf{Hebras} & \textbf{Estrategia} & \textbf{T (s)} \\
+			\textbf{Solver} & \textbf{Hebras} & \textbf{Estrategia} & \textbf{T(adv)} & \textbf{T(br)} \\
 			\hline
 			
 			% ---------------- RUNGE-KUTTA ----------------
 			\multirow{6}{*}{Runge-Kutta}
-			& \multirow{2}{*}{1}  & OMP Componentes   & 2501.84 \\
-			\cline{3-4}
-			&                     & OMP Operaciones & 1544.87 \\
-			\cline{2-4}
-			& \multirow{2}{*}{4}  & OMP Componentes   & 670.504 \\
-			\cline{3-4}
-			&                     & OMP Operaciones & 371.93 \\
-			\cline{2-4}
-			& \multirow{2}{*}{16} & OMP Componentes   & 197.065 \\
-			\cline{3-4}
-			&                     & OMP Operaciones & 180.327 \\
+			& \multirow{2}{*}{1}  & OMP Componentes   & 1568.93  & 2501.84 \\
+			\cline{3-5}
+			&                     & OMP Operaciones   & 345.558  & 1544.87 \\
+			\cline{2-5}
+			& \multirow{2}{*}{4}  & OMP Componentes   & 432.421  & 670.504 \\
+			\cline{3-5}
+			&                     & OMP Operaciones   & 98.1909  & 371.93 \\
+			\cline{2-5}
+			& \multirow{2}{*}{16} & OMP Componentes   & 134.355  & 197.065 \\
+			\cline{3-5}
+			&                     & OMP Operaciones   & 78.5254  & 180.327 \\
 			\hline
 			
 			% ---------------- ADAMS-BASHFORTH ----------------
 			\multirow{6}{*}{Adams-Bashforth}
-			& \multirow{2}{*}{1}  & OMP Componentes   & 707.634 \\
-			\cline{3-4}
-			&                     & OMP Operaciones & 556.051 \\
-			\cline{2-4}
-			& \multirow{2}{*}{4}  & OMP Componentes   & 179.559 \\
-			\cline{3-4}
-			&                     & OMP Operaciones & 130.993 \\
-			\cline{2-4}
-			& \multirow{2}{*}{16} & OMP Componentes   & 56.5174 \\
-			\cline{3-4}
-			&                     & OMP Operaciones & 66.1485 \\
-			\cline{3-4}
+			& \multirow{2}{*}{1}  & OMP Componentes   & 294.639  & 707.634 \\
+			\cline{3-5}
+			&                     & OMP Operaciones   & 175.832  & 556.051 \\
+			\cline{2-5}
+			& \multirow{2}{*}{4}  & OMP Componentes   & 72.22    & 179.559 \\
+			\cline{3-5}
+			&                     & OMP Operaciones   & 40.6982  & 130.993 \\
+			\cline{2-5}
+			& \multirow{2}{*}{16} & OMP Componentes   & 34.5692  & 56.5174 \\
+			\cline{3-5}
+			&                     & OMP Operaciones   & 39.7005  & 66.1485 \\
 			\hline
 			
 			% ---------------- ADAMS-BASHFORTH-MOULTON ----------------
 			\multirow{6}{*}{Adams-Bashforth-Moulton}
-			& \multirow{2}{*}{1}  & OMP Componentes   & 2914.04 \\
-			\cline{3-4}
-			&                     & OMP Operaciones & 1772.73 \\
-			
-			\cline{2-4}
-			& \multirow{2}{*}{4}  & OMP Componentes   & 785.555 \\
-			\cline{3-4}
-			&                     & OMP Operaciones & 438.018 \\
-			
-			\cline{2-4}
-			& \multirow{2}{*}{16} & OMP Componentes   & 237.236 \\
-			\cline{3-4}
-			&                     & OMP Operaciones & 219.918 \\
-			
+			& \multirow{2}{*}{1}  & OMP Componentes   & 1367.14  & 2914.04 \\
+			\cline{3-5}
+			&                     & OMP Operaciones   & 561.564  & 1772.73 \\
+			\cline{2-5}
+			& \multirow{2}{*}{4}  & OMP Componentes   & 359.767  & 785.555 \\
+			\cline{3-5}
+			&                     & OMP Operaciones   & 138.931  & 438.018 \\
+			\cline{2-5}
+			& \multirow{2}{*}{16} & OMP Componentes   & 150.579  & 237.236 \\
+			\cline{3-5}
+			&                     & OMP Operaciones   & 139.524  & 219.918 \\
 			\hline
 			
 		\end{tabular}
-		\caption{Tiempos de Brusselator1D con 100000 ecuaciones}
+		\caption{Mediciones experimentales de SimpleAdvDiff y Brusselator1D con 100000 ecuaciones}
 		\label{tab:Brusselator1D-100K}
 	\end{center}
 \end{table}
+
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/Brusselator1D-100K.png}
@@ -200,7 +223,15 @@ Podemos comenzar, por ejemplo, comparando los tiempos al resolver el problema \t
 	\label{fig:Brusselator1D-100K}
 \end{figure}
 
-Como podemos ver, hay una mejora sustancial del tiempo al pasar de 1 a 4 y a 16 hebras, con ambas estrategias de paralelismo, y con los 3 métodos numéricos. Además, se aprecia que la resolución con Adams-Bashforth es más rápida que Runge-Kutta, ya que es más directa y no requiere de los pasos intermedios (K1, K2, K3, K4), y también es mucho más veloz que el predictor-corrector Adams-Bashforth-Moulton, ya que éste último llama a Adams-Bashforth dentro de su bucle de ejecución. Además, podemos ver que para este tipo y tamaño de problema, el paralelismo por operaciones es más eficiente para 4 hebras, pero ambos se equiparan cuando se alcanzan las 16.
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/SimpleAdv-100K.png}
+	\caption{SimpleAdv 100.000 ecuaciones}
+	\label{fig:SimpleAdv-100K}
+\end{figure}
+
+Como podemos ver, hay una mejora sustancial del tiempo al pasar de 1 a 4 y a 16 hebras, con ambas estrategias de paralelismo, y con los 3 métodos numéricos. Además, se aprecia que la resolución con Adams-Bashforth es más rápida que Runge-Kutta, ya que es más directa y no requiere de los etapas intermedias (K1, K2, K3, K4), y también es mucho más veloz que el predictor-corrector Adams-Bashforth-Moulton, ya que éste último llama a Adams-Bashforth dentro de su bucle de ejecución. Cabe matizar que la comparación únicamente de sus velocidades no es justa, y que si se quisiera hacer una evaluación mas rigurosa de un método frente a otro, debería tenerse en cuenta también el error, y usar un paso variable.
+
+Además, podemos ver que para este tipo y tamaño de problema, el paralelismo por operaciones es más eficiente para 4 hebras, pero ambos se equiparan cuando se alcanzan las 16.
 
 Podemos probar por ejemplo, con el problema más complejo (\textit{Brusselator2D}), y el método que más tarda (\textit{ABM4}), y podemos comparar la evolución del tiempo conforme aumenta el tamaño del problema, a saber, con un número de ecuaciones igual a 45000, 80000 y 125000.
 
@@ -262,7 +293,7 @@ Podemos probar por ejemplo, con el problema más complejo (\textit{Brusselator2D
 	\end{center}
 \end{table}
 
-Para calcular el speedup y la eficiencia, hemos comparado los valores de mismo tamaño y estrategia, para que la comparación sea más justa. Más allá de lo obvio, que conforme aumenta el tamaño del problema, aumentan los tiempos, es cuanto menos destacable la variación en los speedups que se alcanzan en función del aumento de las hebras, en una estrategia y otra.
+Para calcular el speedup y la eficiencia, hemos comparado los valores de mismo tamaño de problema y estrategia, para que la comparación sea más justa. Más allá de lo obvio, que conforme aumenta el tamaño del problema, aumentan los tiempos, es cuanto menos destacable la variación en los speedups que se alcanzan en función del aumento de las hebras, en una estrategia y otra.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/Brusselator2D-ABM.png}
@@ -280,6 +311,6 @@ Partiendo de los mismos datos, pero tomando ahora solo el speedup y la eficienci
 
 Tenemos la barras del speedup en azul y alineadas con el eje Y izquierdo, y en naranja y con el eje Y derecho la eficiencia en valores porcentuales. Obviamente, para 1 hebra siempre tendremos un speedup de 1, y una eficiencia de 100\%.
 
-Más allá de eso, podemos ver varias ideas en juego a la vez. Si nos centramos en cualquiera de los 3 tamaños, podemos ver la Ley de Amdahl \cite{Amdahl1967} en funcionamiento; con un mismo tamaño de problema, conforme crece el número de hilos, aumenta el speedup pero disminuye la eficiencia, ya que siempre queda una parte secuencial que no se puede paralelizar.
+Más allá de eso, podemos ver varias ideas en juego a la vez. Si nos centramos en cualquiera de los 3 tamaños, podemos ver el efecto de la Ley de Amdahl \cite{Amdahl1967}; con un mismo tamaño de problema, conforme crece el número de hilos, aumenta el speedup pero disminuye la eficiencia, ya que siempre queda una parte secuencial que no se puede paralelizar.
 
-Análogo a esto, si nos fijamos ahora en las columnas de la eficiencia, podemos ver que, para un mismo número de hebras, conforme aumenta el tamaño de problema, la eficiencia lo hace con él, pasando de un 33\%, a un 53\%, y a un 63\%, cuando observamos los datos relativos a las 16 hebras por ejemplo. Esto coincide con la ley de Gustafson \cite{Gustafson1988}, ya que al aumentar el tamaño del problema, crece la parte del programa que es paralelizable, y por lo tanto la eficiencia aumenta también.
+Análogo a esto, si nos fijamos ahora en las columnas de la eficiencia, podemos ver que, para un mismo número de hebras, conforme aumenta el tamaño de problema, la eficiencia lo hace con él, pasando de un 33\%, a un 53\%, y a un 63\%, cuando observamos los datos relativos a las 16 hebras por ejemplo. Esto coincide con lo previsto según la ley de Gustafson \cite{Gustafson1988}, ya que al aumentar el tamaño del problema, crece la parte del programa que es paralelizable, y por lo tanto la eficiencia aumenta también.
