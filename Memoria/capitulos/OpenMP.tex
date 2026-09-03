@@ -1,6 +1,10 @@
 \chapter{Implementación Multihebra}
 
-\textbf{\Huge AQUI PEQUEÑO RESUMEN DEL CAPITULO}
+Este capítulo aborda el proceso de llevar los métodos numéricos de los que se ha hablado previamente (véase los algoritmos \ref{alg:RungeKutta4}, \ref{alg:AdamsBashforth}, o \ref{alg:AdamsBashforthMoulton}) a un entorno multihebra como es OpenMP. Comienza estableciendo una base secuencial, tanto para los problemas como para los métodos de resolución. A partir de esta maqueta funcional, se introduce la necesidad de paralelizar el cálculo, destacando que el bucle principal de integración no puede dividirse directamente debido a su dependencia secuencial, lo que obliga a buscar estrategias alternativas de descomposición del trabajo.
+
+A continuación, el capítulo presenta y desarrolla dos enfoques distintos de paralelización: el paralelismo por operaciones y el paralelismo por componentes. El primero distribuye el trabajo dentro de cada operación vectorial, y el segundo concentra todo el trabajo dentro de una única región paralela. 
+
+Finalmente, el capítulo analiza de forma detallada los resultados experimentales obtenidos con ambas estrategias, aplicadas a distintos métodos numéricos y problemas de diversa complejidad. Se estudian tiempos de ejecución, speedup y eficiencia, y se interpretan los resultados.
 
 \section{Implementación Secuencial}
 

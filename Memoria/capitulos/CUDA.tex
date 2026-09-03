@@ -1,6 +1,10 @@
 \chapter{Implementación para GPU}
 
-\textbf{\Huge AQUI PEQUEÑO RESUMEN DEL CAPITULO}
+Este capítulo se centra en trasladar la resolución numérica de los problemas a través de los métodos numéricos (véase los algoritmos \ref{alg:RungeKutta4}, \ref{alg:AdamsBashforth}, o \ref{alg:AdamsBashforthMoulton}) a una implementación para GPU mediante CUDA, adaptando la estructura previamente utilizada en OpenMP a las particularidades del procesamiento masivamente paralelo. Para ello se reorganizan las clases de los problemas y de los métodos, introduciendo elementos propios de CUDA, como el uso de memoria constante. Esta adaptación implica rediseñar ciertas funciones para que los kernels dispongan de todo lo necesario para poder lanzarse.
+
+A continuación, el capítulo describe la implementación de los kernels asociados a cada problema y método numérico. Se explica también cómo las funciones auxiliares de la versión CPU se transforman en kernels equivalentes, y cómo la estructura de clases se amplía para soportar nuevas variantes de ejecución, como las versiones basadas en CUDA Graphs. Éstas permiten capturar y reutilizar secuencias de operaciones.
+
+Finalmente, el capítulo explora dos optimizaciones adicionales: el uso de warp shuffle para reducir accesos a memoria global y la reorganización de los datos mediante grids multidimensionales. Ambas técnicas buscan mejorar la eficiencia del acceso a memoria y la comunicación entre hilos dentro de un warp. El capítulo concluye mostrando comparativas detalladas entre las distintas variantes, la implementación multihebra y la secuencial, y analizando los resultados y las ganacias obtenidas.
 
 \section{Implementación}
 
