@@ -2,7 +2,7 @@
 
 \section{Métodos Numéricos y Ecuaciones Diferenciales Ordinarias}
 
-Una ecuación diferencial es aquella que relaciona una función ( $f(x)$ ó $y$), sus variables ($x$) y sus derivadas ( $f’(x)$, $dy/dx$ ó $y’$ ). Para resolver una ecuación diferencial se debe encontrar una función que satisfaga dicha ecuación. Dentro de las ecuaciones diferenciales nos encontramos las ecuaciones diferenciales ordinarias (EDOs), que contienen derivadas respecto a \textbf{una sola variable independiente}. Más adelante nos centraremos en este tipo en particular. En oposición a éstas estarían las ecuaciones en derivadas parciales, en las que la función $f(x)$ depende de más variables independientes. \cite{Molero2007}
+Una ecuación diferencial es aquella que relaciona una función ( $f(x)$ ó $y$), sus variables ($x$) y sus derivadas ( $f’(x)$, $dy/dx$ ó $y’$ ). Para resolver una ecuación diferencial se debe encontrar una función que satisfaga dicha ecuación. Dentro de las ecuaciones diferenciales nos encontramos las ecuaciones diferenciales ordinarias (EDOs), que contienen derivadas respecto a \textbf{una sola variable independiente}. Más adelante nos centraremos en este tipo en particular. En oposición a éstas estarían las ecuaciones en derivadas parciales, en las que la función $f(x)$ depende de más variables independientes \cite{Molero2007}.
 
 El orden de una ecuación diferencial equivale al orden de la mayor derivada que aparece en la ecuación. Además, será lineal cuando la variable dependiente y todas sus derivadas son de primer grado (no puede haber $f(x)^2$ ), y los coeficientes de la variable dependiente y sus derivadas dependen de la variable independiente.
 
@@ -15,7 +15,7 @@ A modo de primer ejemplo podríamos considerar un problema de valor inicial para
 
 Donde además de la EDO, se nos está dando su valor inicial. En este caso en particular, sabemos de forma analítica que su solución exacta es $y(t) = e^{-2t}$, y podríamos por tanto calcular cualquier $y(t_n)=y_n$ que deseemos para cualquier $t_n$ en el dominio del problema. No obstante, si por cualquier razón no pudiéramos resolverla analíticamente deberíamos recurrir a los métodos numéricos. A través de ellos, y partiendo del valor $y(t_0)$ que se nos proporciona, calcularíamos $y(t_1)=y(t_0+\Delta t)$, después $y(t_2)=y(t_1+\Delta t)$, y continuaríamos de forma iterativa hasta llegar al valor $y(t_f)$ que busquemos como estado final. 
 
-En este proceso, discretizamos la variable $t$ en $N$ puntos igualmente espaciados. Cuando hablamos de \textbf{discretización en el tiempo}, estamos hablando de un concepto clave en el tratamiento numérico de EDOs. En el mundo real, el tiempo $t$ es una variable continua que puede tomar cualquier valor dentro del intervalo que se esté considerando, y las ecuaciones que describen la evolución de un sistema lo hacen mediante derivadas respecto a $t$. Para poder trabajar con estas ecuaciones, debemos convertir ese eje continuo en una sucesión de instantes discretos. La discretización en el tiempo consiste en sustituir el tiempo por una secuencia de puntos $t_0, t_1, ..., t_f$, separados por un tamaño de paso $\Delta t$, y en reemplazar las derivadas por aproximaciones que relacionan los valores de la solución en esos instantes. \cite{Kim2026}
+En este proceso, discretizamos la variable $t$ en $N$ puntos igualmente espaciados. Cuando hablamos de \textbf{discretización en el tiempo}, estamos hablando de un concepto clave en el tratamiento numérico de EDOs. En el mundo real, el tiempo $t$ es una variable continua que puede tomar cualquier valor dentro del intervalo que se esté considerando, y las ecuaciones que describen la evolución de un sistema lo hacen mediante derivadas respecto a $t$. Para poder trabajar con estas ecuaciones, debemos convertir ese eje continuo en una sucesión de instantes discretos. La discretización en el tiempo consiste en sustituir el tiempo por una secuencia de puntos $t_0, t_1, ..., t_f$, separados por un tamaño de paso $\Delta t$, y en reemplazar las derivadas por aproximaciones que relacionan los valores de la solución en esos instantes \cite{Kim2026}.
 
 Para aproximar la solución de EDOs con valor inicial podríamos utilizar, por ejemplo, el método de Euler, del que hablaremos más adelante. Antes de ello podemos entrar en algo más de detalle respecto a algunos otros conceptos que iremos usando. 
 
@@ -34,7 +34,7 @@ En la cual será la función incremento $\Phi$ la que dirima a cuál de los grup
 \begin{itemize}
 	\item \textbf{Métodos explícitos}: son aquellos en los que el siguiente término se puede obtener directamente, sólo haciendo cálculos con datos de los que ya se dispone. Dicho de otra forma, son aquellos en los que $y_{n+1}$ no aparece en $\Phi$, sólo aparece en la parte izquierda de la ecuación. Entre ellos nos encontraremos el método de Euler explícito, Runge-Kutta explícito, o Adams-Bashforth, veremos los tres posteriormente. Los métodos explícitos suelen ser más fáciles de implementar, ya que no requieren resolver ecuaciones no lineales, y suelen ser más rápidos. Por otro lado, tienden a ser menos estables, especialmente en problemas mal condicionados (\textit{stiff}).
 	
-	\item \textbf{Métodos Implícitos}: aquellos en los que $y_{n+1}$ sí aparece en la parte de la derecha de la igualdad, lo cuál nos obligaría a resolver una ecuación que podrá ser, o no, lineal. Estos métodos son muy estables, y son más adecuados para resolver problemas mal condicionados (\textit{stiff}). Como parte negativa tienen que requieren resolver ecuaciones en cada paso, y a veces de forma iterativa, lo que los acaba haciendo mucho más costosos computacionalmente aunque permiten usar tamaños de paso ($\Delta t$) altos en problemas \textit{stiff}. Entre ellos nos encontramos algunos métodos como el Euler implícito, Adams-Moulton, o la familia de los métodos \textit{Backward Differentiation Formula}. \cite{Ascher1998}
+	\item \textbf{Métodos Implícitos}: aquellos en los que $y_{n+1}$ sí aparece en la parte de la derecha de la igualdad, lo cuál nos obligaría a resolver una ecuación que podrá ser, o no, lineal. Estos métodos son muy estables, y son más adecuados para resolver problemas mal condicionados (\textit{stiff}). Como parte negativa tienen que requieren resolver ecuaciones en cada paso, y a veces de forma iterativa, lo que los acaba haciendo mucho más costosos computacionalmente aunque permiten usar tamaños de paso ($\Delta t$) altos en problemas \textit{stiff}. Entre ellos nos encontramos algunos métodos como el Euler implícito, Adams-Moulton, o la familia de los métodos \textit{Backward Differentiation Formula} \cite{Ascher1998}.
 \end{itemize}
 
 Otra categorización con la que trabajaremos serán los métodos de un solo paso, y los métodos multipaso.
@@ -46,7 +46,7 @@ Otra categorización con la que trabajaremos serán los métodos de un solo paso
 
 \section{Método de Euler}
 
-Como hemos comentado, el método de Euler es uno de los métodos numéricos más simples de los que disponemos para la resolución de EDOs. Se trata de un método explícito de un solo paso que se construye a partir de una sencilla idea geométrica: aproximar el valor de la solución en cada nodo por el valor que proporciona la \textbf{recta tangente a la solución} trazada desde el punto correspondiente al nodo anterior.\cite{Gallardo2018} 
+Como hemos comentado, el método de Euler es uno de los métodos numéricos más simples de los que disponemos para la resolución de EDOs. Se trata de un método explícito de un solo paso que se construye a partir de una sencilla idea geométrica: aproximar el valor de la solución en cada nodo por el valor que proporciona la \textbf{recta tangente a la solución} trazada desde el punto correspondiente al nodo anterior \cite{Gallardo2018}.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/Ejemplo-Euler.png}
@@ -112,9 +112,9 @@ Por muy rápida que sea nuestra CPU, siempre llegaremos a un punto en que, bien 
 
 La programación paralela es el conjunto de técnicas, modelos y arquitecturas que permiten ejecutar \textbf{múltiples operaciones de forma simultánea}, explotando el hardware moderno (CPU multicore, GPU masivamente paralelas, aceleradores, clústeres). Su objetivo es reducir el tiempo de ejecución, aumentar el rendimiento y permitir resolver problemas que, como hemos comentado, serían inviables usando un único procesador.
 
-El paralelismo surge cuando un problema puede descomponerse en subtareas independientes que pueden ejecutarse al mismo tiempo. En términos formales, un programa es paralelizable si existe una partición de su espacio de trabajo en unidades que no presentan dependencias de datos que impidan su ejecución concurrente.\cite{Wilkinson2005} Esto implica analizar dependencias de datos, localidad y acceso a memoria, granularidad de las tareas, y coste de sincronización.
+El paralelismo surge cuando un problema puede descomponerse en subtareas independientes que pueden ejecutarse al mismo tiempo. En términos formales, un programa es paralelizable si existe una partición de su espacio de trabajo en unidades que no presentan dependencias de datos que impidan su ejecución concurrente \cite{Wilkinson2005}. Esto implica analizar dependencias de datos, localidad y acceso a memoria, granularidad de las tareas, y coste de sincronización.
 
-Podríamos clasificar los distintos modelos de paralelismo que nos encontraremos en tres grandes grupos:\cite{Grama2003}
+Podríamos clasificar los distintos modelos de paralelismo que nos encontraremos en tres grandes grupos: \cite{Grama2003}
 
 \begin{itemize}
 	\item \textbf{Paralelismo de datos}, que consiste en aplicar la misma operación a múltiples elementos de un conjunto, a través de la vectorización, de bucles paralelos, o de operaciones \textit{element-wise}. Este paralelismo se puede aprovechar con tecnoloías como OpenMP, CUDA, OpenCL, o AVX, entre otros.
@@ -122,9 +122,9 @@ Podríamos clasificar los distintos modelos de paralelismo que nos encontraremos
 	\item \textbf{Paralelismo híbrido}, que combina ambos, buscando la explotación simultánea del paralelismo de tareas y el paralelismo de datos en una misma aplicación.
 \end{itemize}
 
-Algunos conceptos muy importantes que nos encontraremos son la concurrencia y el paralelismo. La \textbf{concurrencia} hace referencia a que varias tareas pueden ocurrir a la vez, o que ocurren simultáneamente de forma lógica. Una CPU \textit{single-core} puede cambiar rápidamente de una tarea a otra si no tienen dependencia entre ellas y son concurrentes. Mientras que el \textbf{paralelismo} se refiere a ejecutar físicamente varias tareas al mismo tiempo, por ejemplo a través de varios núcleos.
+Algunos conceptos muy importantes que nos encontraremos son la concurrencia y el paralelismo. La \textbf{concurrencia} hace referencia a que varias tareas pueden ocurrir a la vez, o que ocurren simultáneamente de forma lógica. Una CPU mononúcleo puede cambiar rápidamente de una tarea a otra si no tienen dependencia entre ellas y son concurrentes. Mientras que el \textbf{paralelismo} se refiere a ejecutar físicamente varias tareas al mismo tiempo, por ejemplo a través de varios núcleos.
 
-El \textbf{speedup} será la forma en la que mediremos las mejoras en la ejecución conforme aumenta el paralelismo. En nuestro caso, lo calcularemos a través del cociente sel tiempo de ejecución del programa secuencial, entre el tiempo de ejecución de la versión paralela.\cite{Schryen2024} Como todo código por bien optimizado que esté va a tener una parte secuencial que no pueda paralelizarse, buscaremos que el speedup aumente tanto como sea posible. Por ejemplo, pasando de un código secuencial a uno con 4 hebras OpenMP, el speedup ideal sería de 4, aunque entendemos que no será posible conseguirlo, pero sí acercarse lo suficiente dependiendo del problema y el algoritmo usado. 
+El \textbf{speedup} será la forma en la que mediremos las mejoras en la ejecución conforme aumenta el paralelismo. En nuestro caso, lo calcularemos a través del cociente sel tiempo de ejecución del programa secuencial, entre el tiempo de ejecución de la versión paralela \cite{Schryen2024}. Como todo código por bien optimizado que esté va a tener una parte secuencial que no pueda paralelizarse, buscaremos que el speedup aumente tanto como sea posible. Por ejemplo, pasando de un código secuencial a uno con 4 hebras OpenMP, el speedup ideal sería de 4, aunque entendemos que no será posible conseguirlo, pero sí acercarse lo suficiente dependiendo del problema y el algoritmo usado. 
 
 Otro concepto relacionado sería el de la \textbf{eficiencia}, que sería el cociente entre speedup y el número de cores empleado para obtener ese speedup. La eficiencia estará entre 0 y 1 (o entre 0\% y 100\%), y medirá cuánto se están aprovechando los recursos paralelos.
 
@@ -141,7 +141,7 @@ Trayendo esto a un contexto más realista, lo que se nos indica es que, aunque o
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/Ley-Amdahl.png}
-	\caption{Ley de Amdahl \cite{Shiang2016}}
+	\caption{Representación gráfica de la Ley de Amdahl \cite{Shiang2016}}
 	\label{fig:Ley-Amdahl}
 \end{figure}
 
@@ -167,7 +167,7 @@ La ley de Gustafson aporta un punto de vista más optimista al binomio procesado
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/Ley-Gustafson.png}
-	\caption{Ley de Gustafson \cite{Kostler2006}}
+	\caption{Representación gráfica de la Ley de Gustafson \cite{Kostler2006}}
 	\label{fig:Ley-Gustafson}
 \end{figure}
 
