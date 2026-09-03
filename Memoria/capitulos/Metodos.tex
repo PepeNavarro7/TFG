@@ -1,5 +1,4 @@
-% Línea en blanco para separar el párrafo
-Para resolver los diferentes problemas hemos implementado tres métodos distintos, a saber: Runge-Kutta, que es explícito y utiliza pasos intermedios ($K1, K2$) para obtener los nuevos pasos; Adams-Bashforth, que también es explícito y multipaso, pero utiliza pasos antiguos (como $f_{n-1}$ o $f_{n-2}$); y Adams-Bashforth-Moulton, un predictor-corrector semiimplícito multipaso basado en Adams-Moulton (formalmente implícito) que utiliza Adams-Bashforth para predecir $y_{n+1}$ y sustituirlo en $f(t_{n+1}, y_{n+1})$.
+Para resolver los diferentes problemas hemos implementado tres métodos distintos, a saber: Runge-Kutta, que es explícito y utiliza pasos intermedios ($K1, K2$) para obtener los nuevos pasos; Adams-Bashforth, que también es explícito y multipaso, pero utiliza pasos antiguos (como $f_{n-1}$ o $f_{n-2}$); y Adams-Bashforth-Moulton, un predictor-corrector multipaso basado en Adams-Moulton (formalmente implícito) que utiliza Adams-Bashforth para predecir $y_{n+1}$ y sustituirlo en $f(t_{n+1}, y_{n+1})$.
 
 
 \section{Métodos de Runge-Kutta}
@@ -242,3 +241,5 @@ SimpleAdvDiff y AdvDiff1D son problemas unidimensionales de advección - difusi�
 Brusselator1D, el modelo brusselator es un tipo de modelo de reacción-difusión que fue desarrollado por la Brussels School. Este sistema está diseñado para analizar el comportamiento de sistemas químicos que presentan oscilación no linear. \cite{Marabeh2024} Este problema tendrá 2 componentes, y por tanto el número de EDOs será el doble del tamaño que se elija.
 
 Brusselator2D, este modelo es similar a su versión unidimensional, pero incorpora una componente extra reactiva. \cite{Marabeh2024} Además, está discretizado uniformemente en una malla de NxN puntos, por lo tanto, su número de EDOs será el doble del cuadrado del tamaño de problema. 
+
+ % Salto de párrafo

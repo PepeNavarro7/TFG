@@ -1,70 +1,18 @@
 \chapter{Implementación para GPU}
 
-CUDA, siglas de \textit{Compute Unified Device Architecture} es una plataforma de computación paralela y un conjunto de APIs desarrollado por NVIDIA para ejecutar código general en sus GPUs. Incluye, entre otros, un modelo de programación a partir de C y C++; un compilador (\textit{nvcc}) que genera código tanto para CPU como para GPU; un entorno de ejecución un una API para gestionar memoria, lanzamientos de kernels, streams; y librerías construidas sobre el propio modelo. \cite{Kirk2010} La idea principal es permitir que el programador trate a la GPU como un dispositivo de cómputo masivamente paralelo.
-
-A modo de referencia, los primeros trabajos en los que se utiliza una GPU para cómputo general aparecen a principios de los 2000, en 2004 se crea internamente CUDA, y se lanza oficialmente en 2007. Desde entonces, la evolución de CUDA ha ido ligada a la evolución propia de las GPUs de NVIDIA, manteniendo el modelo \textit{SIMT} y añadiendo unidades especializadas como \textit{Tensor Cores}, \textit{RT Cores}, o el mecanismo del \textit{Transformer Engine}. \cite{NVIDIA2026}
-
-CUDA implementa un modelo SIMT (Single Instruction, Multiple Threads), en el cual el programador define un kernel (función \textit{\_\_global\_\_}) que se ejecuta en muchos hilos. Los hilos se agrupan en bloques, y los bloques en una grid, y cada bloque se ejecuta en un \textit{Streaming Multiprocessor}, dentro del cual los hilos se agrupan en warps de 32 hilos. \cite{Kirk2010} El warp es por tanto la unidad de ejecución con la que trabajamos.
-
-Cuando se trabaja con CUDA se ha de tener en mente que se puede acceder a varias memorias diferentes, cada una con su propia latencia y ancho de banda, y entre ellas nos encontramos a los registros, que son la memoria de los hilos individuales, y la más rápida de todas; pasando por la memoria compartida (\textit{\_\_shared\_\_}), que usan los bloques; la memoria constante(\textit{\_\_constant\_\_}), que es de solo lectura, y va cacheada; y la memoria global, que se aloja en la VRAM de la GPU. \cite{Farber2011}
-
-\begin{figure}[H]
-	\includegraphics[width=\linewidth]{imagenes/CUDA-Memory-Hierarchy.png}
-	\caption{Jerarquía de memorias en CUDA \cite{Beard2020} }
-	\label{fig:CUDA-Memory-Hierarchy}
-\end{figure}
-
-El rendimiento de la memoria dependerá del buen hacer del programador, que será el encargado de buscar la coalescencia en los accesos a memoria global, del uso del \textit{shared memory} para reutilizar datos, de que evite la divergencia de los warps, y de que se encargue de controlar los warps activos. 
-
-La coalescencia ocurre cuando los 32 hilos de un warp acceden a direcciones de memoria que caen dentro de un mismo segmento continuo. \cite{Kirk2010} Esto permite que la GPU atienda todos esos accesos con una sola transacción de memoria, lo cual implica una mayor eficiencia en el kernel. 
-
-Por otro lado, la divergencia de warps ocurre cuando los hilos de un mismo warp toman caminos distintos en una rama condicional. Como el warp ejecuta las instrucciones en modo SIMT, si los hilos divergen, el hardware debe serializar las rutas. \cite{Farber2011} Esto quiere decir que si los hilos se encuentran frente a un bloque if/else, lo que va a pasar es que el bloque if será ejecutado por los hilos que cumplan la condición, y el resto de hilos se quedarán en stand-by. A continuación, el resto de los hilos ejecutará el bloque else mientras los primeros se quedan esperando, y luego se combinarán los resultados.  
-
-Hay un matiz importante a tener en cuenta a la hora de hablar de implementaciones CUDA, y es que esto que veremos aquí serán kernels, y no métodos de clase como anteriormente. Una forma de verlo es que tendremos clases (como \textit{Metodo}), y éstas tendrán sus métodos que accederemos de forma normal con un objeto de la clase, y por otro lado tendremos los kernel, que podrán ser llamados o no desde los métodos de las clases, y será donde ocurra el paralelismo de CUDA.
-
-Aunque tengamos los kernel implementados en los archivos \textit{.cu} de las clases, formalmente no son parte de ellas, son métodos globales que pueden ser llamados desde cualquier parte del código. Volviendo ahora a la implementación del kernel auxiliar que tenemos, hay varios conceptos a tener en cuenta.
-
-Como antes mencionamos, los kernel CUDA funcionan con grids, bloques, y hebras, y estos elementos interaccionan entre sí. Cuando llamamos a un kernel se crea una grid, que no es más que un conjunto de bloques con un tamaño predeterminado. Esta grid podrá tener una, dos, o tres dimensiones, y en cualquiera de los casos contendrá un número determinado de bloques.
-
-Estos bloques a su vez también tendrán de una a tres dimensiones y contendrán a las hebras, que serán con las que nosotros trabajaremos, indicando a cada hebra qué hacer dentro de los kernel. Si bien es cierto que aquí se aplicarán principalmente por defecto grids y bloques unidimensionales, salvo cuando se indique lo contrario.
-
-Aquí podemos ver un ejemplo ilustrativo en el que un kernel particular es llamado y crea una grid bidimensional de bloques, y a su vez los bloques por dentro son tridimensionales.
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.65\linewidth]{imagenes/CUDA-blocks-grids.png}
-	\caption{Grids y bloques CUDA \cite{Casas2024}}
-	\label{fig:CUDA-blocks-grids}
-\end{figure}
-
-Como primer ejemplo para ilustrar el modelo, podemos tomar una función auxiliar de la clase \textit{Metodo} como la que ya vimos implementada en OpenMP (algoritmo \ref{alg:VectorCopia-OMP}). En este caso veremos el kernel \textit{escalarPorVector()}. 
-
-\begin{algorithm}[H]
-	\begin{algorithmic}
-		\State $ i \gets \text{blockDim.x} \cdot \text{blockIdx.x + threadIdx.x} $
-		\If{ $ i < N $ }
-			\State $ Y[i] \gets Y[i] + X[i] * esc $
-		\EndIf
-	\end{algorithmic}
-	\caption{Kernel de escalarPorVector}
-	\label{alg:KernelEscalarPorVector}
-\end{algorithm}
-
-Por un lado, como podemos ver en la primera línea, se calcula un valor $i$ que es igual a una multiplicación y una suma. Identificando a esos 3 elementos tenemos primero a \textit{blockDim.x}, que es un valor igual al tamaño de la dimensión X del bloque al que pertenezca cada thread particular. Luego, \textit{blockIdx.x} designa al bloque individual que contenga cada thread que ejecute el kernel, y de igual manera \textit{threadIdx.x} será el identificador individual de cada thread dentro de su bloque. Combinando los 3 generamos un identificador único para cada uno de los threads que genere el grid.
-
-Por otro lado, se hace la comprobación de que el identificador del thread es menor que el tamaño de los vectores para evitar posibles accesos erróneos a memoria. Esto ha de hacerse ya que, si tenemos un tamaño de problema N, se generará un grid con tantos bloques de tamaño \textit{blockDim.x} como para que el total de hebras sea siempre mayor o igual a N. Dicho de otra forma, con un tamaño de bloque de 256, y un tamaño de problema de 1000, se generaría una grid con 4 bloques (y por tanto 1024 hebras), y las últimas 24 no trabajarían.
+\textbf{\Huge AQUI PEQUEÑO RESUMEN DEL CAPITULO}
 
 \section{Implementación}
 
-Comenzaremos implementando los problemas. La estructura que tendremos será similar a la de OpenMP (figura \ref{fig:OMP-Diagrama-Problemas}) con un par de cambios que nacen de la naturaleza de CUDA. En todas las clases, además de las variables relativas al tamaño del problema (\textit{neqn} y \textit{nx}), también deberemos controlar las variables \textit{grid} y \textit{block}, que serán necesarias para el kernel.
+Comenzaremos implementando los problemas de prueba (\textbf{véase sección} ). La estructura que tendremos será similar a la implementación de OpenMP (véase figura \ref{fig:OMP-Diagrama-Problemas}) con un par de cambios que nacen de la naturaleza de las peculiaridades propias del procesamiento en GPUs. En todas las clases, además de las variables relativas al tamaño del problema (\textit{neqn} y \textit{nx}, \textbf{explicar cual es cada una}), también deberemos controlar las variables \textit{grid} y \textit{block}, que serán necesarias para el kernel, ya que indican las dimensiones tanto de la grid de bloques, como de los bloques de hebras usados.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Diagrama-Problemas.png}
-	\caption{Diagrama de Clases CUDA de los problemas}
+	\caption{Diagrama de Clases CUDA para los problemas}
 	\label{fig:CUDA-Diagrama-Problemas}
 \end{figure}
 
-Además, la función \textit{feval()} sólo actuará como llamada al kernel, no tendrá ninguna computación dentro. Usamos este sistema porque, como mencionamos, los kernel no son funciones miembro y no pueden acceder a los atributos de las clases, así que la función \textit{feval()} actúa de intermediaria entre los métodos y los kernel de los problemas. Además, se ha eliminado cualquier función auxiliar que se llamase internamente desde \textit{feval()} ya que los kernel no pueden llamar a funciones que sean parte del host, métodos virtuales, o funciones miembro que utilicen a la CPU.
+Además, la función \textit{feval()} sólo actuará como cono una envolvente desde la que se llama al kernel que valúa realmente la función derivada. Usamos este sistema porque, como mencionamos, los kernels no son funciones miembro y no pueden acceder a los atributos de las clases, así que la función \textit{feval()} actúa de intermediaria entre los métodos de clase y los kernels de los problemas. Además, se ha eliminado cualquier función auxiliar que se llame internamente desde \textit{feval()}, ya que los kernel no pueden llamar a funciones que sean parte del host, métodos virtuales, o funciones miembro que utilicen a la CPU.
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
@@ -74,13 +22,13 @@ Además, la función \textit{feval()} sólo actuará como llamada al kernel, no 
 	\label{alg:Feval-CUDA}
 \end{algorithm}
 
-A través de la herencia, las clases método podrán llamar a \textit{feval()}, y que sea el propio de cada problema el que llame a su kernel con la configuración de grids y bloques correcta para el funcionamiento las herramientas CUDA.
+A través de la herencia, las clases método podrán llamar a \textit{feval()}, y que sea el propio método \textit{feval()} de cada problema el que llame a su kernel con la configuración de grids y bloques correcta para su ejecución en la GPU.
 
-Hay otra función que no teníamos en las implementaciones de OpenMP y es \textit{updateConstants()}. El planteamiento es simple, tenemos el inconveniente de que los kernel no pueden acceder a métodos miembro de los objetos problema, como a los \textit{getters}, y por tanto \textit{feval()} debería pasar como argumento al kernel todas las variables del problema que necesite (como \textit{nx}, o \textit{B}). 
+Hay otra función que no teníamos en las implementaciones de OpenMP y es \textit{updateConstants()}. El planteamiento es simple, tenemos el inconveniente de que los kernels no pueden acceder a métodos miembro de los objetos problema, como a los \textit{getters}, y por tanto \textit{feval()} debería pasar como argumento al kernel todas las variables del problema que necesite (como \textit{nx}). 
 
-Esto no sería una solución ideal porque, además de hacer poco legible al kernel, aunque no afectaría al rendimiento de la ejecución, sí lo haría a la eficiencia del lanzamiento del kernel. Esto se daría porque cada vez que se lanza un kernel, que en nuestro caso además los kernel \textit{feval()} se lanzan muchas veces, los argumentos del mismo han de ser empaquetados por el \textit{runtime} y copiados a un área de parámetros.
+Esto no sería una solución ideal porque, además de hacer poco legible el kernel, aunque no afectaría al rendimiento de la ejecución, sí lo haría a la eficiencia del lanzamiento del kernel. Esto se daría porque cada vez que se lanza un kernel los argumentos del mismo han de ser empaquetados por el \textit{runtime} y copiados a un área de parámetros. En nuestro caso además los kernel \textit{feval()} se lanzan muchas veces, aumentando el impacto.
 
-La solución que proponemos a este contratiempo es utilizar la memoria constante. \cite{Farber2011} En cada header \textit{.h} de los problemas se implementa una estructura que contendrá los parámetros que utilizará el kernel asociado a ese problema. 
+La solución que proponemos a este contratiempo es utilizar la memoria para constantes \cite{Farber2011}. En cada header \textit{.h} de los problemas se implementa una estructura que contendrá los parámetros que utilizará el kernel asociado a ese problema. 
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Diagrama-Structs.png}
@@ -88,7 +36,7 @@ La solución que proponemos a este contratiempo es utilizar la memoria constante
 	\label{fig:CUDA-Diagrama-Structs}
 \end{figure}
 
-Posteriormente en el source \textit{.cu} se declara un objeto de esa estructura.
+Posteriormente en el archivo source \textit{.cu} se declara un objeto de esa estructura.
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
@@ -98,7 +46,7 @@ Posteriormente en el source \textit{.cu} se declara un objeto de esa estructura.
 	\label{alg:DeclaracionStructConstante}
 \end{algorithm}
 
-Más tarde, los métodos de resolución desde su \textit{aplicar()} podrán llamar a esta función miembro del problema, y ella se encargará de actualizar los valores y de transferirlos a memoria constante para que pueda ser utilizada por el kernel con una gran eficiencia.
+Más tarde, los métodos de resolución numérica desde su método \textit{aplicar()} podrán llamar a esta función miembro de la clase problema, y ella se encargará de actualizar los valores y de transferirlos a memoria constante para que pueda ser utilizada por el kernel con una gran eficiencia. El algoritmo \ref{alg:updateConstants} muestra como se haría para la clase Brusselator1D.
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
@@ -114,7 +62,7 @@ Más tarde, los métodos de resolución desde su \textit{aplicar()} podrán llam
 	\label{alg:updateConstants}
 \end{algorithm}
 
-Ahora que tenemos todas las partes que nos faltaban podemos pasar a los kernels. En el planteamiento que hemos hecho de las clases, cada clase problema tendrá un único kernel encargado de hacer las transformaciones necesarias (como hacía \textit{feval} en OpenMP). Veamos la versión resumida de uno:
+Ahora que tenemos todas las partes que nos faltaban, podemos pasar a los kernels. En el planteamiento que hemos hecho de las clases, cada clase \texttt{problema} tendrá un único kernel encargado de hacer las transformaciones necesarias (como hacía \texttt{feval} en OpenMP). Veamos la versión resumida del pseudocódigo de uno de estos kernels:
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
@@ -133,21 +81,21 @@ Ahora que tenemos todas las partes que nos faltaban podemos pasar a los kernels.
 	\label{alg:KernelAdvDiff1d}
 \end{algorithm}
 
-En el ejemplo podemos diferenciar varias partes. Primero declaramos algunos valores que se usarán adelante, como el número de hilo único de cada thread, o el identificador común del último, que obtenemos de la memoria constante. Posteriormente, tras la comprobación de que sólo ejecuten tantos hilos como elementos del vector, obtenemos los identificadores de los vecinos. Se usan operadores ternarios para corregir los casos frontera en los que el índice vecino se salga de lo acotado; en el thread primero y en el último. 
+En el ejemplo, podemos diferenciar varias partes. Primero declaramos algunos valores que se usarán más adelante, como el número de hilo único de cada thread(\texttt{thread}), o el identificador común del último hilo válido(\texttt{ult}), que obtenemos de la memoria de constantes. Posteriormente, tras la comprobación de que sólo ejecuten tantos hilos como elementos del vector, obtenemos los identificadores de los vecinos(\texttt{i\_ant} y \texttt{i\_pst}). Se usan operadores ternarios para corregir los casos frontera en los que el índice vecino se salga del rango. 
 
-Finalmente, ahora que disponemos de los identificadores, obtenemos del vector alojado en memoria global el valor que corresponde tanto al hilo en cuestión, como a los vecinos. Y una vez que se tienen todos estos valores se procede al cálculo del nuevo valor que tendrá \textit{DY[thread]} y se guarda en el vector salida. Como hemos mencionado, todos los hilos del kernel lo ejecutarán en paralelo.
+Finalmente, ahora que disponemos de los identificadores, obtenemos, del vector alojado en memoria global, el valor que corresponde tanto al hilo en cuestión, como a los vecinos. Y una vez que se tienen todos estos valores se procede al cálculo del nuevo valor, y asigna al vector salida, \texttt{DY[thread]}. Como hemos mencionado, todos los hilos del kernel lo ejecutarán concurrentemente.
 
-Teniendo cubierta la parte de los problemas, pasemos ahora a los métodos. De forma análoga a la implementación de los problemas, hay varios cambios que deben ser mencionados.  Seguimos teniendo una clase abstracta padre \textit{Metodo} que sirve de template a las hijas. En esta implementación, las funciones auxiliares que tenía la clase ahora son kernels con la misma funcionalidad, como podemos ver en el algoritmo \ref{alg:KernelEscalarPorVector}.
+De forma análoga a la implementación de los problemas, hay varios cambios que deben ser mencionados. Seguimos teniendo una clase abstracta padre \textit{Metodo} que sirve de template a las hijas. En esta implementación, las funciones auxiliares que tenía la clase son ahora kernels con la misma funcionalidad, como podemos ver en el algoritmo \ref{alg:KernelEscalarPorVector}.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Diagrama-Metodos.png}
-	\caption{Diagrama de Clases de los Métodos CUDA}
+	\caption{Diagrama de Clases de los Métodos en la versión CUDA}
 	\label{fig:CUDA-Diagrama-Metodos}
 \end{figure}
 
-De igual manera, tanto la clase padre como las tres hijas tienen un \textit{struct} asociado alojado en memoria constante, y un método propio \textit{updateConstants()} encargado de actualizar ese \textit{struct} constante antes de hacer uso de sus kernels.
+De igual manera, tanto la clase padre como las tres hijas tienen un \textit{struct} asociado, alojado en memoria de constantes, y un método propio \texttt{updateConstants()} encargado de actualizar ese \textit{struct} de constantes antes de hacer uso de sus kernels.
 
-Pasamos ahora al método \textit{aplicar()}, la implementación en los 3 métodos es similar, cambiando sólo los pasos que se siguen para pasar de $Y_n$ a $Y_{n+1}$. Veamos por ejemplo, Runge-Kutta de orden 2.
+Pasamos ahora al método \texttt{aplicar()}, la implementación en los 3 métodos es similar, cambiando sólo los pasos que se siguen para pasar de $Y_n$ a $Y_{n+1}$. Veamos por ejemplo, cómo sería el pseudocódigo de Runge-Kutta de orden 2.
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
@@ -163,15 +111,15 @@ Pasamos ahora al método \textit{aplicar()}, la implementación en los 3 método
 		\EndFor
 		\State $Y_f \gets Y_n$
 	\end{algorithmic}
-	\caption{Aplicar Runge-Kutta en CUDA}
+	\caption{\texttt{Aplicar} para el método Runge-Kutta de orden 2 en CUDA}
 	\label{alg:CUDA-RK2}
 \end{algorithm}
 
-Cabe destacar que las funciones \textit{aplicar()} siempre incluyen los 4 órdenes mencionados, aunque por facilidad de comprensión del pseudocódigo sólo se ilustra aquí uno de los órdenes. Además, los kernel nunca devuelven ningún dato, todo debe pasárseles como atributo.
+Cabe destacar que las funciones \texttt{aplicar()} siempre incluyen las 4 órdenes mencionadas, aunque por facilidad de comprensión del pseudocódigo sólo se ilustra aquí una de las órdenes. Además, los kernels nunca devuelven ningún dato, todo debe pasárseles como atributo.
 
-Debido a la naturaleza de estos métodos numéricos, que utilizan los valores presentes para predecir los futuros, no podemos evitar el bucle for con el que se itera, y sólo podemos trabajar para paralelizar dentro de él, sabiendo que el vector con el que acaba una iteración será con el que empiece la siguiente.
+Debido a la naturaleza de estos métodos numéricos, que utilizan los valores presentes para predecir los futuros, no podemos evitar el bucle for con el que se itera, y sólo podemos trabajar la paralelización dentro de él, sabiendo que el vector con el que acaba una iteración será aquel con el que empiece la siguiente.
 
-\section{Mediciones}
+\section{Resultados Exprimentales}
 
 Comenzaremos midiendo los tiempos de los 3 métodos de resolución frente al problema Brusselator2D con 125.000 ecuaciones, y comparando los resultados entre la ejecución secuencial, OpenMP con 16 hebras, y CUDA con un tamaño de bloque unidimensional de 256 threads. Además, obtendremos el speedup comparando con la medición secuencial.
 
@@ -215,7 +163,7 @@ Comenzaremos midiendo los tiempos de los 3 métodos de resolución frente al pro
 	\end{center}
 \end{table}
 
-Si bien sí podemos calcular el speedup, no tiene sentido calcular la eficiencia, ya que las hebras GPU y las hebras CPU no son comparables. En cualquier caso, podemos apreciar la similar ganancia en velocidad al pasar a CUDA con cualquiera de los métodos. 
+Si bien sí podemos calcular el speedup, no tiene sentido calcular la eficiencia, ya que las hebras GPU y las hebras CPU no son comparables. En cualquier caso, podemos apreciar una ganancia en velocidad similar al pasar a CUDA con cualquiera de los métodos. 
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/Brusselator2D-125K.png}
@@ -223,7 +171,7 @@ Si bien sí podemos calcular el speedup, no tiene sentido calcular la eficiencia
 	\label{fig:Comp-Br2D-125K}
 \end{figure}
 
-Si nos centramos ahora en el desempeño de las herramientas CUDA a través de varios tamaños de problema, por ejemplo, el método Runge-Kutta de orden 4 aplicado al problema Brusselator1D:
+Si nos centramos ahora en el desempeño de las versiones CUDA a través de varios tamaños de problema, por ejemplo, el método Runge-Kutta de orden 4 aplicado al problema Brusselator1D:
 
 \begin{table}[H]
 	\centering
@@ -257,11 +205,11 @@ O de forma gráfica, con el tiempo total en azul y en el eje Y logarítmico, y e
 	\label{fig:CUDA-Br1D-Tams}
 \end{figure}
 
-Aquí podemos apreciar dos dinámicas distintas interactuando entre ellas. Por un lado, observando la línea del tiempo (azul) vemos como para tamaños pequeños, la parte secuencial del problema domina la ejecución, y el tiempo paralelo es casi cero, lo que implica que el total prácticamente no varía (o incluso disminuye) con respecto al aumento de tamaño hasta llegar a un tamaño en torno a 100K ecuaciones. A partir de esa cifra es cuando CUDA puede empezar a trabajar realmente, y el tiempo aumenta de forma lineal. Esto coincide con lo esperado.
+Aquí podemos apreciar dos dinámicas distintas interactuando entre ellas. Por un lado, observando la línea del tiempo (azul) vemos como para tamaños pequeños, la parte secuencial del problema domina la ejecución, y el tiempo paralelo es casi cero, lo que implica que el total prácticamente no varía (o incluso disminuye) con respecto al aumento de tamaño hasta llegar a un tamaño en torno a 100K ecuaciones. A partir de esa cifra es cuando la GPU puede empezar a trabajar de forma eficiente, y el tiempo aumenta de forma lineal. Esto coincide con lo esperado.
 
-Por otro lado, si observamos la curva naranja, de tiempo por ecuación (en milisegundos), vemos el efecto contrario. Conforme aumenta el tamaño del problema y CUDA puede trabajar con más ecuaciones, este cociente se reduce conforme aumenta el tamaño. Sin embargo, a partir de cierto punto se estabiliza, que será cuando se alcanza la eficiencia máxima.
+Por otro lado, si observamos la curva naranja, de tiempo por ecuación (en milisegundos), vemos el efecto contrario. Conforme aumenta el tamaño del problema y la GPU puede trabajar con más ecuaciones, este cociente se reduce conforme aumenta el número de ecuaciones. Sin embargo, a partir de cierto punto se estabiliza, que será cuando se alcanza la eficiencia máxima.
 
-\section{Graphs}
+\section{Uso de CUDA Graphs}
 Tras ver el bucle de ejecución de la función miembro \textit{aplicar()}, salta a la vista que se llama a uno o varios kernel de forma repetitiva y con los mismos datos, con los mismos vectores, y sólo varía la variable del tiempo. A raíz de esto se decide implementar una nueva versión de las clases métodos, que utilice los \textit{Graph}. 
 
 Los CUDA Graphs son una representación estática de un conjunto de operaciones CUDA (kernels, copias, eventos) con sus dependencias. \cite{Barlas2023} Se capturan una vez y se ejecutan muchas veces con mínimo overhead. Está formado por nodos que representan las operaciones realizadas, y edges que representan dependencias de ejecución.
