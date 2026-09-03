@@ -4,47 +4,53 @@
 
 \section{Implementación Secuencial}
 
-Tomaremos como punto de partida la implementación secuencial de los problemas \cite{Mantas2024}, de la cual ya disponemos.
+Tomaremos como punto de partida la implementación secuencial de los PVIs \cite{Mantas2024}, de la cual ya disponemos.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/OMP-Diagrama-Problemas.png}
-	\caption{Diagrama de Clases de los problemas OMP}
+	\caption{Diagrama de Clases de los problemas en la implementación usando OpenMP}
 	\label{fig:OMP-Diagrama-Problemas}
 \end{figure}
 
-Como comentamos anteriormente, no nos centraremos en la resolución de los problemas \textit{per se}, puesto que ésta se nos da ya hecha y corregida, sino que nuestros esfuerzos irán en implementar los métodos de resolución en ambas formas de paralelismo, y buscar la máxima eficiencia. Para facilitar la implementación y la cohesión del código, definimos una clase abstracta \textit{Problema} de la cual heredarán los cuatro problemas.
+Como comentamos anteriormente, no nos centraremos en la resolución de los problemas \textit{per se}, puesto que ésta se nos da ya hecha y corregida, sino que nuestros esfuerzos se centrarán en implementar los métodos de resolución en ambas plataformas paralelas, y buscar la \textbf{máxima eficiencia}. Para facilitar la implementación y la cohesión del código, definimos una clase abstracta \texttt{Problema} de la cual heredarán los cuatro problemas.
 
 El siguiente paso, por tanto, será realizar una implementación secuencial de los métodos, partiendo de los algoritmos que previamente hemos comentado, Runge-Kutta, Adams-Bashforth, y Adamd-Bashforth-Moulton, a saber, algoritmos \ref{alg:RungeKutta4}, \ref{alg:AdamsBashforth}, y \ref{alg:AdamsBashforthMoulton}, respectivamente. El lenguaje elegido será C++, para luego poder añadir la parte de OpenMP o CUDA.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/OMP-Diagrama-Metodos.png}
-	\caption{Diagrama de Clases de los métodos OMP}
+	\caption{Diagrama de Clases de los métodos  de resolución en la implementación usando OpenMP}
 	\label{fig:OMP-Diagrama-Metodos}
 \end{figure}
 
-El planteamiento que se hace con los métodos es similar al de los problemas, una clase abstracta padre de la cual puedan heredar los métodos. Además, en la clase padre \textit{Metodo} hemos implementado diversas funciones auxiliares que nos van a facilitar el trabajar con vectores. Con este diseño, a través de la herencia y el polimorfismo, podríamos aumentar el alcance de nuestro proyecto añadiendo nuevos métodos o más problemas sin dificultad ninguna.
+El planteamiento que se hace con los métodos de resolución es similar al de los problemas, una clase abstracta padre de la cual puedan heredar los métodos. Además, en la clase padre \texttt{Metodo} hemos implementado diversas funciones auxiliares que nos van a facilitar el trabajo con vectores. Con este diseño, a través de la \textbf{herencia} y el \textbf{polimorfismo}, podríamos aumentar el alcance de nuestro proyecto añadiendo nuevos métodos o diferentes problemas sin dificultad ninguna.
 
-Ahora que tenemos una primera maqueta funcional (aunque poco eficiente), podremos comenzar con el trabajo en paralelo. De cara a nuestro proyecto, lo primero que debemos tener en cuenta es que no podemos simplemente paralelizar el bucle principal con el que trabajamos (e.g. el bucle while en el algoritmo \ref{alg:AdamsBashforth}) porque cada iteración necesita de la anterior para calcular el siguiente paso. Deberemos buscar por tanto otras formas de atacar el problema. En el caso de OpenMP hemos planteado dos formas, paralelismo por operaciones, y por componentes.
+Ahora que tenemos una primera maqueta funcional (aunque poco eficiente), podremos comenzar con el trabajo de paralelización. De cara a nuestro proyecto, lo primero que debemos tener en cuenta es que no podemos simplemente paralelizar el bucle principal con el que trabajamos (e.g. el bucle \texttt{while} en el algoritmo \ref{alg:AdamsBashforth}) porque cada iteración necesita de la anterior para calcular el siguiente paso. Deberemos buscar por tanto otras formas de descomponer el cálculo. En el caso de OpenMP, hemos planteado dos enfoques en particular, \textbf{paralelismo por operaciones, y por componentes}.
 
 \section{Paralelismo por Operaciones}
 
-En esta estrategia buscamos que cada función paralelice su propio trabajo. Eso quiere decir que cada operación vectorial, como el \textit{feval()}, o \textit{escalarPorVector}, tiene su propio \textit{\#pragma omp parallel}, crea un equipo de hilos, reparte el trabajo, y lo sincroniza.
+En esta estrategia buscamos que cada función paralelice su propio trabajo. Eso quiere decir que cada operación vectorial, como la evaluación de la derivada (\texttt{feval}), o el producto escalar-vector, tiene su propio \texttt{\#pragma omp parallel}. Por tanto, crea un equipo de hilos, reparte el trabajo, y lo sincroniza.
 
-De forma simplificada, veamos un ejemplo de Adams-Bashforth 4:
+De forma simplificada, veamos un ejemplo de la implementación de Adams-Bashforth 4 (AB4), ecuación \ref{eq:AdamsBashforth4}:
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
 		\State $ Y_{n0} \gets Y_0 $
-		\State $ Y_n \gets arranqueRK4(Y_{n-1})$ \Comment{$ n = \{1, 2, 3\} $}
-		\State $ F_n \gets feval(t_n\text{, }Y_n)$ \Comment{$ n = \{0, 1, 2, 3\} $}
-		\For{ $ t_n \text{=} t_0 \text{+} 3h \text{; }t_n < t_f\text{; }t_n \text{+=}h $ }
-			\State $ escalar2Mult(37.0\text{, }F_{n1}\text{, -}9.0\text{, }F_{n0}\text{, }Y_{aux}) $
-			\State $ escalarSuma2Mult( Y_{aux}\text{, }55.0\text{, }F_{n3}\text{, -}59.0\text{, }F_{n2}\text{, }Y_{aux} ) $
-			\State $ escalarSumaMult( Y_{n3}\text{, }h/24.0\text{, }Y_{aux}\text{, }Y_{n4} ) $
-			\State $ F_{n4} \gets feval(t_n+h\text{, }Y_{n4}) $
+		\For{ $ i \text{=} 1 \text{; }i < 4\text{; }\text{++}i $ }
+			\State $ Y_i \gets arranqueRK4(Y_{i-1})$
+		\EndFor
+		\For{ $ i \text{=} 0 \text{; }i < 4\text{; }\text{++}i $ }
+			\State $ f_i \gets feval(t_0+{i\Delta t}\text{, }y_i) $
+		\EndFor
+		
+		
+		\For{ $ t_n \text{=} t_0 \text{+} 3\Delta t \text{; }t_n < t_f\text{; }t_n \text{+=}\Delta t $ }
+			\State $ y_4 \gets funcionesAuxiliares(t_n\text{, }y_3\text{, }f_0\text{, }f_1\text{, }f_2\text{, }f_3) $
+			\State $ f_4 \gets feval(t_n+\Delta t\text{, }y_4) $
 			
-			\State $ swap(Y_{n4}\text{, }Y_{n3}) $
-			\State $ swap(F_n\text{, }F_{n-1}) $ \Comment{$ n = \{1, 2, 3, 4\} $}
+			\State $ swap(y_{n4}\text{, }y_{n3}) $
+			\For{ $ i \text{=} 1 \text{; }i \leq 4\text{; }\text{++}i $ }
+				\State $ swap(f_n\text{, }f_{n-1}) $
+			\EndFor
 		\EndFor
 		\State $Y_f \gets Y_{n3}$
 	\end{algorithmic}
@@ -52,7 +58,10 @@ De forma simplificada, veamos un ejemplo de Adams-Bashforth 4:
 	\label{alg:AB4ParalelismoOperaciones}
 \end{algorithm}
 
-Como podemos ver, para hacer el cálculo propio de Adams-Bashforth de orden 4 (ecuación \ref{eq:AdamsBashforth4}) la hemos divido en 3 partes utilizando las funciones auxiliares de la clase abstracta \textit{Metodo} de las que ya disponíamos. Dentro de cada una de ellas se creará el grupo de hilos, se repartirá el trabajo (cada hilo tendrá un "trozo" de vector sobre el que trabajar), y una vez finalicen se sincronizará para retornar a la función principal. Por ejemplo, \textit{vectorCopia()}:
+Como podemos ver, para hacer el cálculo propio de Adams-Bashforth de orden 4 (ecuación \ref{eq:AdamsBashforth4}) la hemos divido en 3 partes utilizando las funciones auxiliares de la clase abstracta \textit{Metodo} de las que ya disponíamos. Dentro de cada una de ellas se creará el grupo de hilos, se repartirá el trabajo (cada hilo tendrá un "trozo" de vector sobre el que trabajar), y una vez finalicen se sincronizará para retornar a la función principal. 
+
+Por ejemplo, \textit{vectorCopia()}:
+
 \begin{algorithm}[H]
 	\begin{algorithmic}
 		\State \verb|#pragma omp parallel for schedule(static)|
