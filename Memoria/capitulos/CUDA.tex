@@ -344,11 +344,11 @@ Esto resulta útil en implementaciones como el algoritmo \ref{alg:KernelAdvDiff1
 
 \begin{algorithm}[H]
 	\begin{algorithmic}
-		\State $thread \gets blockDim.x \cdot blockIdx.x + threadIdx.x$
-		\State $ult \gets cte\_adv1.neqn - 1$
+		\State $thread \gets blockDim.x \cdot blockIdx.x + threadIdx.x$  \Comment{Identificador}
 		\State $lane \gets threadIdx.x \& 31$ \Comment{Posicion en el warp}
-		\If{$thread < cte\_avd1.neqn$}
-			\State $mask = 0xFFFFFFFF$
+		\State $ult \gets neqn - 1$
+		\If{$thread \leq ult$}
+			\State $mask \gets 0xFFFFFFFF$
 			\State $valor \gets Y[thread]$ \Comment{Acceso a memoria}
 			\State $val\_ant \gets$ \verb|__shfl_up_sync (mask, valor, 1)| \Comment{Valores vecinos}
 			\State $val\_pst \gets$ \verb|__shfl_down_sync (mask, valor, 1)|
@@ -360,20 +360,20 @@ Esto resulta útil en implementaciones como el algoritmo \ref{alg:KernelAdvDiff1
 				\State $val\_pst \gets (thread==ult)\text{ ? } Y[0] \text{ : } Y[thread+1]$ 
 			\EndIf
 			
-			\State $DY[thread] \gets \text{Cálculo usando val\_ant, valor, val\_pst, thread, t, cte\_avd1}$
+			\State $ DY[thread] \gets \text{Cálculo usando val\_ant, valor, val\_pst, thread, t...} $
 		\EndIf
 	\end{algorithmic}
-	\caption{Kernel feval de AdvDiff1D con shuffle}
+	\caption{Kernel \texttt{feval} de AdvDiff1D con shuffle de hilos}
 	\label{alg:ShuffleAdvDiff1d}
 \end{algorithm}
 
-En este ejemplo, en lugar de que cada hilo acceda 3 veces a memoria, acceden una sola, y es en los casos frontera en los que se hacen accesos extra puntuales.
+En este ejemplo, en lugar de que cada hilo acceda 3 veces a memoria, acceden una sola vez, y es en los casos frontera en los que se hacen accesos extra puntuales.
 
 Para lograr esta implementación se crean nuevas clases \texttt{problema\_shuffle} que heredan de las clases estándar, sobrecargan la función miembro \texttt{feval}, e implementan su propia versión del kernel.
 
 También se ha realizado otra nueva implementación aplicando otra innovación distinta de CUDA, los grid multidimensionales. Como pudimos ver en el algoritmo \ref{alg:Feval-CUDA}, a la hora de llamar a un kernel se le ha de indicar tanto las dimensiones de la grid como de los bloques que ésta contiene. Si bien se pueden utilizar enteros básicos (que CUDA interpreta como valores unidimensionales), también podemos indicarle a CUDA que vamos a trabajar con grids multidimensionales.
 
-Para poner esto en práctica, se crea una clase hija llamada \texttt{problema\_grid} que hereda de la clase estándar, y sobrecarga las funciones \texttt(init()) y \textit{feval()}, ya que la organización de los hilos será distinta de la que se tenía. En un problema como Brusselator1D, en el que cada elemento que lo compone tiene dos componentes, $u$ y $v$, estas componentes pueden reinterpretarse como una segunda dimensión. Así se vería:
+Para poner esto en práctica, se crea una clase hija llamada \texttt{problema\_grid} que hereda de la clase estándar, y sobrecarga las funciones \texttt(init()) y \texttt{feval()}, ya que la organización de los hilos será distinta de la que se tenía. En un problema como Brusselator1D, en el que cada elemento que lo compone tiene dos componentes, $u$ y $v$, estas componentes pueden reinterpretarse como una segunda dimensión. Así se vería:
 
 \begin{algorithm}[H]
 	\begin{algorithmic}

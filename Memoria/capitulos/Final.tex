@@ -1,4 +1,26 @@
-\chapter{Planificación}
+\chapter{Conclusiones}
+
+El desarrollo de este Trabajo de Fin de Grado ha supuesto una experiencia enriquecedora tanto desde el punto de vista académico como desde el técnico. A lo largo del proyecto he adquirido una comprensión sólida de los métodos numéricos para la resolución de ecuaciones diferenciales ordinarias, así como de los modelos ADR que sirven como base para numerosos problemas físicos, químicos y biológicos. Este proceso me ha permitido afianzar conocimientos teóricos que ya había estudiado previamente y, sobre todo, aprender a trasladarlos a implementaciones paralelas eficientes.
+
+En este trabajo hemos desarrollado un conjunto completo de implementaciones de métodos numéricos que abarcan tres familias de métodos de resolución: Runge-Kutta explícito, Adams-Bashforth y Adams-Bashforth-Moulton. Partiendo de versiones secuenciales, se han construido versiones paralelas utilizando dos tecnologías complementarias: OpenMP, para explotar el paralelismo a nivel de CPU, y CUDA, para aprovechar el paralelismo masivo de las GPU modernas. En el caso de OpenMP, se han implementado y comparado dos estrategias distintas, a saber, paralelismo por operaciones y paralelismo por componentes, analizando sus ventajas, limitaciones y comportamiento en distintos escenarios. En CUDA, se han desarrollado kernels específicos para cada problema y método, se ha optimizado el uso de memoria constante, se han explorado técnicas avanzadas como CUDA Graphs, warp shuffle y grids multidimensionales, y se ha evaluado su impacto real en el rendimiento. El resultado es un conjunto de implementaciones eficientes, extensibles y capaces de resolver problemas de gran escala con tiempos de ejecución significativamente reducidos.
+
+Del análisis de los resultados experimentales se pueden extraer conclusiones claras sobre la eficiencia de los métodos y las tecnologías empleadas. En primer lugar, los métodos de la familia Adams-Bashforth muestran un rendimiento superior al de Runge-Kutta en términos de tiempo de ejecución, especialmente para problemas de gran tamaño, debido a su menor número de evaluaciones de la función derivada. El método predictor-corrector Adams–Bashforth-Moulton, aunque más preciso, presenta tiempos mayores por la necesidad de realizar pasos adicionales de corrección. 
+
+En cuanto a las tecnologías de paralelización, la implementación multihebra ofrece mejoras sustanciales cuando se compara a las implementaciones secuenciales, especialmente cuando se emplea paralelismo por operaciones en problemas con evaluaciones costosas. El aprovechamiento del \textit{thread pooling} elimina la gran desventaja de este paradigma y lo convierte en la alternativa correcta frente al paralelismo por componentes. Además de los positivos datos de \textit{speedup}, también comprobamos que cuando tratamos tamaños de problema más grandes, obtenemos mejoras interesantes en la eficiencia.
+
+Por otro lado, la implementación en GPU destaca de forma contundente: las implementaciones CUDA alcanzan \textit{speedups} muy superiores, llegando a multiplicar por más de treinta la velocidad de la versión secuencial en la mayoría de los casos, y permitiendo tratar con problemas de gran tamaño con relativa facilidad. Técnicas avanzadas como \textit{CUDA Graphs} o \textit{warp shuffles} no nos han proporcionado mejoras significativas para los modelos estudiados, lo cual confirma que el rendimiento en nuestro caso está limitado principalmente por el ancho de banda de memoria global y la naturaleza de los accesos a VRAM. Sin embargo, eso no quita valor a la implementación de estas técnicas que podrían ser útil con otro tipo de problemas distintos.
+
+En conjunto, este trabajo demuestra que la paralelización es una herramienta esencial para abordar problemas numéricos de gran escala y que la elección del método y la tecnología de paralelización influye de manera decisiva en el rendimiento final. La experiencia adquirida durante el desarrollo del proyecto me ha permitido comprender en profundidad cómo se comportan los algoritmos numéricos en arquitecturas paralelas, cómo optimizar su ejecución y cómo analizar de forma crítica los resultados obtenidos. Además, el trabajo realizado sienta una base sólida para futuras ampliaciones.
+
+\section*{Trabajo futuro}
+
+Como mencionamos en el capítulo 2, en este trabajo se han realizado mediciones experimentales de tiempo para poder comparar la eficiencia de unos métodos numéricos frente a otros, al utilizarlos con diferentes problemas, tamaños, y formas de paralelización. Sin embargo, para poder hacer una comparación más justa, habría que unir los hallazgos de este trabajo a un estudio que comparara las diferencias en el error entre unas implementaciones y otras.
+
+Por otro lado, otra ampliación que podría hacerse sería explorar la utilización de tamaños de paso variable que se seleccionan dinámicamente en ejecución. Este mejora permitiría un código que vaya midiendo su propio error, y modifique el $\Delta t$ en función de si el error está dentro de unos márgenes que consideramos adecuados, o no. 
+
+\chapter{Planificación y Costes}
+
+\section{Planificación temporal}
 
 A la hora de realizar un proyecto de esta magnitud, la planificación es de suma importancia, ya que a fin de cuentas es el pilar en el que se vertebra el proyecto, y que dicta qué se debe ir haciendo en cada momento. La planificación aquí expuesta ha permitido cumplir los objetivos inicialmente establecidos.
 \begin{itemize}
@@ -22,7 +44,7 @@ A la hora de realizar un proyecto de esta magnitud, la planificación es de suma
 	\item Julio: Implementación de CUDA
 	\begin{itemize}
 		\item Desarrollo de los kernels
-		\item Kernels Graph
+		\item Kernels CUDA Graph
 		\item Shuffles y grids
 		\item Pruebas y validación del código
 	\end{itemize}
@@ -44,6 +66,33 @@ A la hora de realizar un proyecto de esta magnitud, la planificación es de suma
 	\caption{Diagrama de Gantt}
 	\label{fig:Diagrama-Gantt}
 \end{figure}
+
+\section{Análisis de costes}
+
+Para estimar el coste total del proyecto, se han considerado los siguientes recursos:
+
+\begin{itemize}
+	\item \textbf{Recursos de Software}: Todos los programas utilizados en este proyecto son de código abierto y licencia gratuita. Coste: \textbf{0\euro}.
+	\item \textbf{Recursos de Hardware}: Se ha utilizado, por un lado, un ordenador portátil personal. Estimando un coste de adquisición de 400\euro y una vida útil de 4 años (48 meses), se amortiza el coste durante el periodo de dedicación efectiva al proyecto (5.5 meses).
+	\begin{itemize}
+		\item Amortización mensual: 400\euro / 48 meses $\approx$ 8.33\euro/mes.
+		\item Coste del hardware: 8.33\euro/mes x 5.5 meses $\approx$ \textbf{45.83\euro}.
+	\end{itemize}
+	Por otro lado, también se utilizaron una torre y un monitor personales. Estimando un coste de adquisición conjunta de 1800\euro, y una vida útil de 8 años (96 meses), se amortiza el coste durante el periodo de dedicación efectiva al proyecto (5.5 meses).
+	\begin{itemize}
+		\item Amortización mensual: 1800\euro / 96 meses = 18.75\euro/mes.
+		\item Coste del hardware: 18.75\euro/mes x 5.5 meses = \textbf{103.13\euro}.
+	\end{itemize}
+	\item \textbf{Recursos Humanos}: Corresponde al tiempo invertido por el desarrollador. El Trabajo de Fin de Grado tiene una asignación de 12 créditos ECTS, que equivalen a 300 horas de trabajo (25 horas/ECTS). Para calcular el coste de los recursos humanos, se toma como referencia el salario bruto anual para un programador "Junior" según el convenio colectivo de empresas de consultoría.
+	\begin{itemize}
+		\item Salario bruto anual (área 3, Programación/Sistemas - Nivel base E2): 17.819,00 \euro.
+		\item Coste por hora (jornada anual de 1.800 horas): 17.819,00 \euro / 1.800 horas $\approx$  9.90\euro/hora.
+		\item Coste de recursos humanos: 300 horas x 9.90\euro/hora = \textbf{2970\euro}.
+	\end{itemize}
+\end{itemize}
+
+El presupuesto total del proyecto se obtiene por tanto sumando todos los costes: \textbf{3118.96\euro}
+
 
 \chapter{Código fuente}
 
