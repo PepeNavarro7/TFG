@@ -8,7 +8,7 @@ Finalmente, el capítulo explora dos optimizaciones adicionales: el uso de warp 
 
 \section{Implementación}
 
-Comenzaremos implementando los problemas de prueba (véase sección \ref{sec:problemas}). La estructura que tendremos será similar a la implementación de OpenMP (véase figura \ref{fig:OMP-Diagrama-Problemas}) con un par de cambios que nacen de la naturaleza de las peculiaridades propias del \textbf{procesamiento en GPUs}. En todas las clases, además de las variables relativas al tamaño del problema (\texttt{neqn} y \texttt{nx}), también deberemos controlar las variables \texttt{grid} y \texttt{block}, que serán necesarias para el kernel, ya que indican las dimensiones tanto de la grid de bloques, como de los bloques de hebras usados.
+Comenzaremos implementando los problemas de prueba (véase sección \ref{sec:problemas}). La estructura que tendremos será similar a la implementación de Open\-MP (véase figura \ref{fig:OMP-Diagrama-Problemas}) con un par de cambios que nacen de la naturaleza de las peculiaridades propias del \textbf{procesamiento en GPUs}. En todas las clases, además de las variables relativas al tamaño del problema (\texttt{neqn} y \texttt{nx}), también deberemos controlar las variables \texttt{grid} y \texttt{block}, que serán necesarias para el kernel, ya que indican las dimensiones tanto de la grid de bloques, como de los bloques de hebras usados.
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Diagrama-Problemas.png}
@@ -271,7 +271,7 @@ Tras ver el bucle de ejecución de la función miembro \texttt{aplicar()}, salta
 
 Los CUDA Graphs son una representación estática de un conjunto de operaciones CUDA (kernels, copias, eventos) con sus dependencias. \cite{Barlas2023} Se capturan una vez y se ejecutan muchas veces con \textbf{mínimo overhead}. Está formado por nodos que representan las operaciones realizadas, y edges que representan dependencias de ejecución.
 
-El funcionamiento es relativamente simple, se capturan una secuencia de operaciones (\texttt{cudaStreamCapture}), se analizan las dependencias y se optimiza el grafo, se instancia(\texttt{cudaGraphInstantiate}), y se ejecuta (\texttt{cudaGraphLaunch}) tantas veces como se desee \cite{NVIDIA2026}.
+El funcionamiento es relativamente simple, se capturan una secuencia de operaciones (\texttt{cudaStreamCapture}), se analizan las dependencias y se optimiza el grafo, se instancia(\texttt{cudaGraphInstantiate}), y se ejecuta (\texttt{cudaGraph}-\texttt{Launch}) tantas veces como se desee \cite{NVIDIA2026}.
 
 Los graph CUDA presentan ciertas ventajas, como la reducción en el overhead del lanzamiento de kernels, la \textbf{optimización de las dependencias}, o la fusión interna de nodos. Algunas de sus limitaciones es que la estructura del grafo debe ser estática, o que no se pueden cambiar punteros capturados, ni introducir ramas dinámicas.
 
@@ -369,7 +369,7 @@ Esto resulta útil en implementaciones como el algoritmo \ref{alg:KernelAdvDiff1
 
 En este ejemplo, en lugar de que cada hilo acceda 3 veces a memoria, acceden una sola vez, y es en los casos frontera en los que se hacen accesos extra puntuales.
 
-Para lograr esta implementación se crean nuevas clases \texttt{problema\_shuffle} que heredan de las clases estándar, sobrecargan la función miembro \texttt{feval}, e implementan su propia versión del kernel.
+Para lograr esta implementación se crean nuevas clases \texttt{problema\_shu\-ffle} que heredan de las clases estándar, sobrecargan la función miembro \texttt{feval}, e implementan su propia versión del kernel.
 
 También se ha realizado otra nueva implementación aplicando otra innovación distinta de CUDA, los grid multidimensionales. Como pudimos ver en el algoritmo \ref{alg:Feval-CUDA}, a la hora de llamar a un kernel se le ha de indicar tanto las dimensiones de la grid como de los bloques que ésta contiene. Si bien se pueden utilizar enteros básicos (que CUDA interpreta como valores unidimensionales), también podemos indicarle a CUDA que vamos a trabajar con grids multidimensionales.
 

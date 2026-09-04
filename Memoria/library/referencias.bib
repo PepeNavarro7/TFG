@@ -362,3 +362,15 @@ For the prototype linear advection-diffusion equation, a stability analysis for 
    title = {Introduction to cuda programming model},
    year = {2021}
 }
+@article{Sanchez2013,
+   abstract = {The median filter is a non-linear filter used for removal of Salt & Pepper noise from images, where each pixel of the image is replaced by the median of its surrounding elements, which is calculated by sorting the data. The complexity of the sorting algorithms used for the median filters are O(n 2) or O(n), depending on the kernel size. These algorithms were formulated for scalar single processor computers, with few of them successfully adapted and implemented for computers with a parallel architecture. In this paper we greatly improve the results of our earlier work, in which by means of a novel sorting algorithm, based on the Complementary Cumulative Distribution function, with O(n) computational complexity and a highly parallelable structure, we presented a 2D median filter that achieved O(1) or O(n) computational complexity, depending memory constraints. The improvements are twofold: we propose a trade-off between O(1) complexity and O(n) complexity in order to improve the overall throughput; additionally we make use of the Salt & Pepper noise model to improve the image reconstruction quality with a small performance impact. The proposed algorithm have been implemented in three parallel programming models: SIMD Intel, Multicore Intel with SIMD, and SIMT (CUDA), achieving a peak throughput of 27.0, 100.1 and 91.6 megapixels per second respectively.},
+   author = {Ricardo M Sanchez and Paul A Rodriguez},
+   issue = {3},
+   journal = {Journal of Signal Processing Systems},
+   keywords = {Algorithms ·,Filters ·,Image,Nonlinear,Parallel,Processing},
+   note = {https://www.researchgate.net/publication/257672428},
+   pages = {221-235},
+   title = {Highly Parallelable Bidimensional Median Filter for Modern Parallel Programming Models},
+   volume = {71},
+   year = {2013}
+}

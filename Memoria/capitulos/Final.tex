@@ -8,16 +8,18 @@ Del análisis de los resultados experimentales se pueden extraer conclusiones cl
 
 En cuanto a las tecnologías de paralelización, la implementación multihebra ofrece mejoras sustanciales cuando se compara a las implementaciones secuenciales, especialmente cuando se emplea paralelismo por operaciones en problemas con evaluaciones costosas. El aprovechamiento del \textit{thread pooling} elimina la gran desventaja de este paradigma y lo convierte en la alternativa correcta frente al paralelismo por componentes. Además de los positivos datos de \textit{speedup}, también comprobamos que cuando tratamos tamaños de problema más grandes, obtenemos mejoras interesantes en la eficiencia.
 
-Por otro lado, la implementación en GPU destaca de forma contundente: las implementaciones CUDA alcanzan \textit{speedups} muy superiores, llegando a multiplicar por más de treinta la velocidad de la versión secuencial en la mayoría de los casos, y permitiendo tratar con problemas de gran tamaño con relativa facilidad. Técnicas avanzadas como \textit{CUDA Graphs} o \textit{warp shuffles} no nos han proporcionado mejoras significativas para los modelos estudiados, lo cual confirma que el rendimiento en nuestro caso está limitado principalmente por el ancho de banda de memoria global y la naturaleza de los accesos a VRAM. Sin embargo, eso no quita valor a la implementación de estas técnicas que podrían ser útil con otro tipo de problemas distintos.
+Por otro lado, la implementación en GPU destaca de forma contundente: las implementaciones CUDA alcanzan \textit{speedups} muy superiores, llegando a multiplicar por más de treinta la velocidad de la versión secuencial en la mayoría de los casos, y permitiendo tratar con problemas de gran tamaño con relativa facilidad. Técnicas avanzadas como \textit{CUDA Graphs} o \textit{warp shuffles} no nos han proporcionado mejoras significativas para los modelos estudiados, lo cual confirma que el rendimiento en nuestro caso está limitado principalmente por el ancho de banda de memoria global y la naturaleza de los accesos a VRAM. Sin embargo, eso no quita valor a la implementación de estas técnicas que podrían ser útiles con otro tipo de problemas distintos.
 
 En conjunto, este trabajo demuestra que la paralelización es una herramienta esencial para abordar problemas numéricos de gran escala y que la elección del método y la tecnología de paralelización influye de manera decisiva en el rendimiento final. La experiencia adquirida durante el desarrollo del proyecto me ha permitido comprender en profundidad cómo se comportan los algoritmos numéricos en arquitecturas paralelas, cómo optimizar su ejecución y cómo analizar de forma crítica los resultados obtenidos. Además, el trabajo realizado sienta una base sólida para futuras ampliaciones.
 
 \section{Trabajo futuro}
 
 \begin{itemize}
-	\item Como mencionamos en el capítulo 2, en este trabajo se han realizado mediciones experimentales de tiempo para poder comparar la eficiencia de unos métodos numéricos frente a otros, al utilizarlos con diferentes problemas, tamaños, y formas de paralelización. Sin embargo, para poder hacer una comparación más justa, habría que unir los hallazgos de este trabajo a un estudio que comparara las diferencias en el error entre unas implementaciones y otras.
+	\item Como mencionamos en el capítulo 2, en este trabajo se han realizado mediciones experimentales de tiempo para poder comparar la eficiencia de unos métodos numéricos frente a otros, al utilizarlos con diferentes problemas, tamaños, y formas de paralelización. Sin embargo, para poder hacer una comparación más justa, habría que unir los hallazgos de este trabajo a un estudio que comparara las diferencias en el error de las soluciones numéricas obtenidas con unas implementaciones frente a otras.
+	
 	\item Por otro lado, otra ampliación que podría hacerse sería explorar la utilización de tamaños de paso variable que se seleccionan dinámicamente en ejecución. Este mejora permitiría un código que vaya midiendo su propio error, y modifique el $\Delta t$ en función de si el error está dentro de unos márgenes que consideramos adecuados, o no. 
-	\item Otra posible implementación podría ser la visualización de la variación de los resultados a lo largo del tiempo.
+	
+	\item Otra posible mejora a nivel de implementación podría ser la visualización gráfica de la evolución de los resultados a lo largo del tiempo.
 \end{itemize}
 
 \chapter{Planificación y Costes}
@@ -36,14 +38,14 @@ A la hora de realizar un proyecto de esta magnitud, la planificación es de suma
 		\item Recopilación y revisión de libros y papers relevantes
 		\item Búsqueda de información sobre las dos tecnologías de paralelización
 	\end{itemize}
-	\item Junio: Implementación de OpenMP
+	\item Junio: Implementación OpenMP
 	\begin{itemize}
 		\item Secuencial
 		\item Paralelismo por operaciones
 		\item Paralelismo por componentes
 		\item Pruebas y validación del código
 	\end{itemize}
-	\item Julio: Implementación de CUDA
+	\item Julio: Implementación CUDA
 	\begin{itemize}
 		\item Desarrollo de los kernels
 		\item Kernels CUDA Graph

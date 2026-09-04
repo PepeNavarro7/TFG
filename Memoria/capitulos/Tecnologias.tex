@@ -26,17 +26,17 @@ CUDA implementa un modelo SIMT, en el cual el programador define una función de
 
 Cuda define un modelo de ejecución heterogéneo:
 \begin{itemize}
-	\item \textbf{Host}: la CPU, donde vive el programa principal, el runtime CUDA, y la lógica de control
-	\item \textbf{Device}: la GPU, donde viven los kernels, la memoria global, los SM, y los warps
+	\item \textbf{Host}: Computador donde se ubica la CPU, donde vive el programa principal, el runtime CUDA, y la lógica de control
+	\item \textbf{Device}: Dispositivo que contiene la GPU, y donde viven los kernels, la memoria global, los SM, y los warps
 \end{itemize}
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Host-Device.png}
-	\caption{Modelo host-device de CUDA}
+	\caption{Modelo host-device de CUDA\cite{Sanchez2013}}
 	\label{fig:CUDA-Host-Device}
 \end{figure}
 
-Cuando se programa con CUDA se ha de tener en mente que se puede acceder a varias \textbf{memorias diferentes}, cada una con su propia latencia y ancho de banda, y entre ellas nos encontramos a los \textbf{registros}, que son la memoria de los hilos individuales, y la más rápida de todas; pasando por la \textbf{memoria compartida} (\texttt{\_\_shared\_\_}), que usan los bloques; la \textbf{memoria de constantes} (\texttt{\_\_constant\_\_}), que es de solo lectura, y va cacheada; y la \textbf{memoria global}, que se aloja en la VRAM de la GPU, que es la que se utiliza para almacenar grandes estructuras de datos. \cite{Farber2011}
+Cuando se programa con CUDA se ha de tener en mente que se puede acceder a varias \textbf{memorias diferentes}, cada una con su propia latencia y ancho de banda, y entre ellas nos encontramos a los \textbf{registros}, que son la memoria de los hilos individuales, y la más rápida de todas; pasando por la \textbf{memoria compartida} (\texttt{\_\_shared\_\_}), que usan los bloques; la \textbf{memoria de constantes} (\texttt{\_\_constant\_\_}), que es de solo lectura, y va cacheada; y la \textbf{memoria global}, que se aloja en la VRAM del device, que es la que se utiliza para almacenar grandes estructuras de datos. \cite{Farber2011}
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/CUDA-Memory-Hierarchy.png}
@@ -52,9 +52,9 @@ Por otro lado, la \textbf{divergencia de warps} ocurre cuando los hilos de un mi
 
 Hay un matiz importante a tener en cuenta a la hora de describir la implementación CUDA, y es que lo que veremos a continuación serán funciones kernels, y no métodos de clase como vimos en el capítulo anterior. Una forma de verlo es que tendremos clases (como \texttt{Metodo}), y éstas tendrán sus funciones miembro que accederemos de forma normal con un objeto de la clase. Por otro lado tendremos las funciones kernel, que podrán ser llamados o no desde los métodos de las clases, y será donde ocurra el paralelismo de CUDA.
 
-Aunque tengamos los kernel implementados en los archivos \texttt{.cu} de las clases, formalmente no son parte de ellas, son métodos globales que pueden ser llamados desde cualquier parte del código.
+Aunque tengamos los kernels implementados en los archivos \texttt{.cu} de las clases, formalmente no son parte de ellas, son métodos globales que pueden ser llamados desde cualquier parte del código.
 
-Como antes mencionamos, los kernel CUDA funcionan con \textbf{grids, bloques, y hebras}, y estos elementos interaccionan entre sí. Cuando llamamos a un kernel se crea una grid, que no es más que un conjunto de bloques con un tamaño predeterminado. Esta grid podrá tener una, dos, o tres dimensiones, y en cualquiera de los casos contendrá un número determinado de bloques. Estos bloques a su vez también tendrán de una a tres dimensiones y contendrán a las hebras, que serán con las que nosotros trabajaremos, indicando a cada hebra qué hacer dentro del kernel.
+Como antes mencionamos, los kernels CUDA funcionan con \textbf{grids, bloques, y hebras}, y estos elementos interaccionan entre sí. Cuando llamamos a un kernel se crea una grid, que no es más que un conjunto de bloques con un tamaño predeterminado. Esta grid podrá tener una, dos, o tres dimensiones, y en cualquiera de los casos contendrá un número determinado de bloques. Estos bloques a su vez también tendrán de una a tres dimensiones y contendrán a las hebras, que serán con las que nosotros trabajaremos, indicando a cada hebra qué hacer dentro del kernel.
 
 Aquí podemos ver un ejemplo ilustrativo en el que un kernel particular es llamado y crea una grid bidimensional de bloques, y a su vez los bloques por dentro son tridimensionales.
 

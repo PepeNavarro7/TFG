@@ -49,7 +49,7 @@ Podemos dividir a los métodos para resolver PVIs-EDOs en dos grandes grupos, ex
 	\end{split}
 \end{equation}
 
-En la cual $d$ equivale al número de EDOs que contenga $y_n$, y la función incremento $\Phi$ será la que dirima a cuál de los grupos pertenece el método con el que estemos trabajando.
+En la cual $d$ es el al número de EDOs que contiene el sistema, $y_n$ tiene $d$ elementos, y la función incremento $\Phi$ será la que dirima a cuál de los grupos pertenece el método con el que estemos trabajando.
 
 \begin{itemize}
 	\item \textbf{Métodos explícitos}: son aquellos en los que el siguiente término se puede obtener directamente, sólo haciendo cálculos con datos de los que ya se dispone. Dicho de otra forma, son aquellos en los que $y_{n+1}$ no aparece en $\Phi$, sólo aparece en la parte izquierda de la ecuación. Entre ellos nos encontraremos el método de Euler explícito, Runge-Kutta explícito, o Adams-Bashforth, veremos los tres posteriormente. Los métodos explícitos suelen ser más fáciles de implementar, ya que no requieren resolver ecuaciones no lineales, y suelen ser más rápidos. Por otro lado, tienden a ser menos estables, especialmente en problemas mal condicionados (\textit{stiff}).
@@ -74,17 +74,14 @@ Como hemos comentado, el método de Euler es uno de los métodos numéricos más
 	\label{fig:Ejemplo-Euler}
 \end{figure}
 
-Emplearíamos la siguiente fórmula, aunque puede aparecer escrita de distintas formas equivalentes, aquí mostramos dos:
+Emplearíamos la siguiente fórmula:
 
 \begin{equation}
 	\label{eq:EulerExplicito}
-	\begin{split}
-		y_{n+1} &= y_n + \Delta t \cdot f(t_n,y_n) \\
-		y_{n+1} &= y_n + h \cdot f(x_n,y_n)
-	\end{split}
+		y_{n+1} = y_n + \Delta t \cdot f(t_n,y_n) 
 \end{equation}
 
-Aplicando la misma al ejemplo de valor inicial que mencionamos antes, la ecuación \ref{eq:EjemploPVI}, en la que se nos indicaba tanto $\frac{dy}{dt} = -2y$ como el valor inicial $y(0)=1$, sabemos que $y_n$ corresponde a la aproximación numérica de $y(t_n)$, y $\Delta t$ (o $h$) representa la variación en el tiempo de un paso que estemos considerando. Además, en nuestro caso, $f(t_n,y_n)$ sería $-2 \cdot y_n$, y se nos da el valor inicial en $t_0$. Por tanto, tomando estos valores, con un $\Delta t = 0.1$, y $t_f = 1.0$, calcularemos los sucesivos valores para $t = 0.1, 0.2, ..., 1.0$.
+Aplicando la misma al ejemplo de valor inicial que mencionamos antes, la ecuación \ref{eq:EjemploPVI}, en la que se nos indicaba tanto $\frac{dy}{dt} = -2y$ como el valor inicial $y(0)=1$, sabemos que $y_n$ corresponde a la aproximación numérica de $y(t_n)$, y $\Delta t$ representa la variación en el tiempo de un paso que estemos considerando. Además, en nuestro caso, $f(t_n,y_n)$ sería $-2 \cdot y_n$, y se nos da el valor inicial en $t_0$. Por tanto, tomando estos valores, con un $\Delta t = 0.1$, y $t_f = 1.0$, calcularemos los sucesivos valores para $t = 0.1, 0.2, ..., 1.0$.
 
 El primer paso sería por tanto, partiendo de los valores iniciales, calcular el valor de $y$ en $t=0.1$, a saber: 
 

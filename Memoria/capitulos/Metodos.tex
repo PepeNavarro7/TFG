@@ -1,7 +1,7 @@
 \clearpage
 
 \section{Métodos de resolución numérica}
-Para resolver los diferentes problemas hemos implementado tres métodos distintos, a saber: Runge-Kutta, que es explícito y utiliza pasos intermedios ($K1, K2$) para obtener los nuevos pasos; Adams-Bashforth, que también es explícito y multipaso, pero utiliza pasos antiguos (como $f_{n-1}$ o $f_{n-2}$); y Adams-Bashforth-Moulton, un predictor-corrector multipaso basado en Adams-Moulton (formalmente implícito) que utiliza Adams-Bashforth para predecir $y_{n+1}$ y sustituirlo en $f(t_{n+1}, y_{n+1})$.
+Para resolver los diferentes problemas hemos implementado tres métodos distintos, a saber: Runge-Kutta, que es explícito y utiliza etapas intermedias para obtener los nuevos pasos; Adams-Bashforth, que también es explícito y multipaso, pero utiliza pasos antiguos; y Adams-Bashforth-Moulton, un predictor-corrector multipaso basado en Adams-Moulton (formalmente implícito) que utiliza Adams-Bashforth para predecir $y_{n+1}$ y sustituirlo en $f(t_{n+1}, y_{n+1})$.
 
 
 \subsection{Métodos de Runge-Kutta}
@@ -75,7 +75,7 @@ Será en éste en el que nos centraremos en los experimentos numéricos. Partien
 	\end{split}
 \end{equation}
 
-Aplicado en un contexto de programación, tendremos una clase \texttt{RungeKutta} con una función principal que aplicará el cálculo y algunas auxiliares que se explicarán más adelante. Dicha función principal tendrá el siguiente diseño, en el que se harán diversas llamadas a la evaluación de la derivada de cada problema en cuestión (aquí lo llamaremos \texttt{feval}): 
+Aplicado en un contexto de programación, tendremos una clase \texttt{Runge}-\texttt{Kutta} con una función principal que aplicará el cálculo y algunas auxiliares que se explicarán más adelante. Dicha función principal tendrá el siguiente diseño, en el que se harán diversas llamadas a la evaluación de la derivada de cada problema en cuestión (aquí llamaremos \texttt{feval} a la evaluación de la derivada $f$): 
 
 \begin{algorithm}[H] %Le ponemos la H para que se coloque entre los dos párrafos, y no se mueva libremente
 	\begin{algorithmic}
@@ -152,7 +152,7 @@ Aplicando la anterior ecuación \ref{eq:ExpresionGeneralAdamsBashforth}, obtendr
 
 En el método Adams Bashforth de orden 2, (ecuación \ref{eq:AdamsBashforth2}) será el primer caso en el que vemos aplicada la teoría de los métodos multipaso, ya que, para obtener el paso $y_2$, por ejemplo, deberíamos tener de antemano $f_1$ y $f_0$, para los que a su vez necesitaríamos (a través del arranque con Runge-Kutta) $y_1$ y $y_0$. Una vez hecho el arranque inicial para obtener $y_2$, ya sí podríamos operar iterativamente sólo con Adams-Bashforth. Por otro lado, será con el método Adams-Bashforth de orden 4 (ecuación \ref{eq:AdamsBashforth4} con el que principalmente trabajaremos.
 
-Llevándonos este método a la programación, tendremos una clase \texttt{AdamsBashforth} con una función \texttt{aplicar()} que se encargará de, primero, realizar un arranque con Runge-Kutta de orden 4 (algoritmo \ref{alg:RungeKutta4}) y posteriormente poner en funcionamiento un bucle que evalúe la expresión (ecuaciones \ref{eq:EulerExplicito}, \ref{eq:AdamsBashforth2}, \ref{eq:AdamsBashforth3}, o \ref{eq:AdamsBashforth4}) tantas veces como esté establecido. En función del lenguaje utilizado y de la tecnología de paralelización, las operaciones vectoriales funcionarán de una forma u otra, pero el planteamiento será el mismo, con llamadas a la evaluación de cada problema en cuestión (\texttt{feval}).
+Llevándonos este método a la programación, tendremos una clase \texttt{Adams\-Bashforth} con una función \texttt{aplicar()} que se encargará de, primero, realizar un arranque con Runge-Kutta de orden 4 (algoritmo \ref{alg:RungeKutta4}) y posteriormente poner en funcionamiento un bucle que evalúe la expresión (ecuaciones \ref{eq:EulerExplicito}, \ref{eq:AdamsBashforth2}, \ref{eq:AdamsBashforth3}, o \ref{eq:AdamsBashforth4}) tantas veces como esté establecido. En función del lenguaje utilizado y de la tecnología de paralelización, las operaciones vectoriales funcionarán de una forma u otra, pero el planteamiento será el mismo, con llamadas a la evaluación de cada problema en cuestión (\texttt{feval}).
 
 A continuación tenemos el algoritmo para aplicar el método, en el cual $k$ corresponde con el orden del mismo, por tanto $y_k$ con el nuevo valor que se calcula en cada iteración, y los vectores $f_k, f_{k-1}, ..., f_{n-k}$ son los resultados de aplicar \texttt{feval()} que se arrastran de iteraciones anteriores.
 
@@ -242,7 +242,7 @@ Y por tanto, las ecuaciones correspondientes a los mismos son las siguientes:\ci
 
 Es intuitivamente obvio que llegados a este punto no podríamos resolver estos métodos con las herramientas de las que disponemos. ¿Cómo llegamos a $f_{n+1}$ sin disponer todavía de $y_{n+1}$? Para resolver este problema, emplearemos un sistema Predictor-Corrector mediante el cual utilizamos Adams-Bashforth para hacer una primera aproximación de $f_{n+1}$, y la evaluamos para posteriormente hacer una segunda aproximación usando Adams-Moulton. 
 
-El \textbf{esquema general} será el siguiente, donde $k$ es igual al orden, $y_k$ es igual al nuevo valor que se calcula en cada iteración, los vectores $f_k, f_{k-1}, ..., f_{n-k}$ son los resultados de aplicar \texttt{feval()} que se arrastran de iteraciones anteriores, y los vectores $y_{pred}$, $f_{pred}$, $y_{corr}$ y $f_{corr}$ son vectores auxiliares para el cálculo de las etapas intermedias:
+El \textbf{esquema general} será el siguiente, donde $k$ es igual al orden, $y_k$ es igual al nuevo valor que se calcula en cada iteración, los vectores $f_k,$ $f_{k-1},$ $...,$ $f_{n-k}$ son los resultados de aplicar \texttt{feval()} que se arrastran de iteraciones anteriores, y los vectores $y_{pred}$, $f_{pred}$, $y_{corr}$ y $f_{corr}$ son vectores auxiliares para el cálculo de las etapas intermedias:
 
 \begin{algorithm}[H] %Le ponemos la H para que se coloque entre los dos párrafos, y no se mueva libremente
 	\begin{algorithmic}
@@ -282,7 +282,7 @@ El funcionamiento del algoritmo acaba siendo muy similar al esquema de Adams-Bas
 Para poner en funcionamiento la implementación de estos métodos y de la paralelización de la que hablaremos a continuación, hemos tomado cuatro problemas distintos que nos permitan probar extensivamente ambas tecnologías, tanto la implementación multihebra, como la implementación para GPUs. Los problemas en cuestión son:
 
 \begin{itemize}
-	\item \textbf{SimpleAdvDiff}: Este problema representa un modelo de advección–difusión unidimensional que se utiliza para describir el transporte de una cantidad dentro de un sistema físico debido tanto a procesos de advección como de difusión.\cite{Marabeh2024} Aquí consideramos una ecuación de advección–difusión unidimensional con coeficientes constantes. La ecuación de advección–difusión para una cantidad $y$ se escribe como:
+	\item \textbf{SimpleAdvDiff}: Este problema representa un modelo de advección-difusión unidimensional que se utiliza para describir el transporte de una cantidad dentro de un sistema físico debido tanto a procesos de advección como de difusión\cite{Marabeh2024}. Aquí consideramos una ecuación de advección–difusión unidimensional con coeficientes constantes. La ecuación de advección–difusión para una cantidad $y$ se escribe como:
 	
 	\begin{equation}
 		\begin{split}
