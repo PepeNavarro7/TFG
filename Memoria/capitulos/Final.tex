@@ -12,11 +12,13 @@ Por otro lado, la implementación en GPU destaca de forma contundente: las imple
 
 En conjunto, este trabajo demuestra que la paralelización es una herramienta esencial para abordar problemas numéricos de gran escala y que la elección del método y la tecnología de paralelización influye de manera decisiva en el rendimiento final. La experiencia adquirida durante el desarrollo del proyecto me ha permitido comprender en profundidad cómo se comportan los algoritmos numéricos en arquitecturas paralelas, cómo optimizar su ejecución y cómo analizar de forma crítica los resultados obtenidos. Además, el trabajo realizado sienta una base sólida para futuras ampliaciones.
 
-\section*{Trabajo futuro}
+\section{Trabajo futuro}
 
-Como mencionamos en el capítulo 2, en este trabajo se han realizado mediciones experimentales de tiempo para poder comparar la eficiencia de unos métodos numéricos frente a otros, al utilizarlos con diferentes problemas, tamaños, y formas de paralelización. Sin embargo, para poder hacer una comparación más justa, habría que unir los hallazgos de este trabajo a un estudio que comparara las diferencias en el error entre unas implementaciones y otras.
-
-Por otro lado, otra ampliación que podría hacerse sería explorar la utilización de tamaños de paso variable que se seleccionan dinámicamente en ejecución. Este mejora permitiría un código que vaya midiendo su propio error, y modifique el $\Delta t$ en función de si el error está dentro de unos márgenes que consideramos adecuados, o no. 
+\begin{itemize}
+	\item Como mencionamos en el capítulo 2, en este trabajo se han realizado mediciones experimentales de tiempo para poder comparar la eficiencia de unos métodos numéricos frente a otros, al utilizarlos con diferentes problemas, tamaños, y formas de paralelización. Sin embargo, para poder hacer una comparación más justa, habría que unir los hallazgos de este trabajo a un estudio que comparara las diferencias en el error entre unas implementaciones y otras.
+	\item Por otro lado, otra ampliación que podría hacerse sería explorar la utilización de tamaños de paso variable que se seleccionan dinámicamente en ejecución. Este mejora permitiría un código que vaya midiendo su propio error, y modifique el $\Delta t$ en función de si el error está dentro de unos márgenes que consideramos adecuados, o no. 
+	\item Otra posible implementación podría ser la visualización de la variación de los resultados a lo largo del tiempo.
+\end{itemize}
 
 \chapter{Planificación y Costes}
 

@@ -1,4 +1,6 @@
-\section{Métodos de Resolución}
+\clearpage
+
+\section{Métodos de resolución numérica}
 Para resolver los diferentes problemas hemos implementado tres métodos distintos, a saber: Runge-Kutta, que es explícito y utiliza pasos intermedios ($K1, K2$) para obtener los nuevos pasos; Adams-Bashforth, que también es explícito y multipaso, pero utiliza pasos antiguos (como $f_{n-1}$ o $f_{n-2}$); y Adams-Bashforth-Moulton, un predictor-corrector multipaso basado en Adams-Moulton (formalmente implícito) que utiliza Adams-Bashforth para predecir $y_{n+1}$ y sustituirlo en $f(t_{n+1}, y_{n+1})$.
 
 
@@ -56,7 +58,7 @@ Por último, en el método de Runge-Kutta de orden 4, también conocido como \te
 
 \begin{figure}[H]
 	\includegraphics[width=\linewidth]{imagenes/Partes-RungeKutta.png}
-	\caption{Demostración gráfica de RK4\cite{Nyandieka2023}}
+	\caption{Ilustración gráfica de RK4\cite{Nyandieka2023}}
 	\label{fig:Partes-RungeKutta}
 \end{figure}
 
@@ -80,7 +82,7 @@ Aplicado en un contexto de programación, tendremos una clase \texttt{RungeKutta
 		\State $y_n \gets y_0$
 		\State $t_n \gets t_0$
 		\While{$t_n < t_f$}
-		\State $K1 \gets feval(t_n\text{, } y_n)$
+		\State $K1 \gets feval(t_n\text{, } y_n)$ \Comment{Evalúa $f(t_n,y_n)$}
 		\State $K2 \gets feval(t_n+\Delta t/2\text{, } y_n + K1\cdot \Delta t/2)$
 		\State $K3 \gets feval(t_n+\Delta t/2\text{, } y_n + K2\cdot \Delta t/2)$
 		\State $K4 \gets feval(t_n+\Delta t\text{, } y_n + K3\cdot \Delta t)$
@@ -93,11 +95,11 @@ Aplicado en un contexto de programación, tendremos una clase \texttt{RungeKutta
 	\label{alg:RungeKutta4}
 \end{algorithm}
 
-Como podemos ver, la aplicación del algoritmo es relativamente fácil de entender, se trabaja con 4 vectores auxiliares en los que hacemos los cálculos intermedios, que luego se suman ponderadamente. Como cada evaluación K depende de la anterior, no podremos hacer una operación vectorial en la que se evalúen los cuatro K en paralelo, sino que será en las otras operaciones, las evaluaciones de cada miembro, las sumas, y las multiplicaciones de cada vector, en las que podremos \textbf{explotar la concurrencia} para mejorar las prestaciones de nuestro código. 
+Como podemos ver, la aplicación del algoritmo es relativamente fácil de entender, se trabaja con 4 vectores auxiliares en los que hacemos los cálculos intermedios, que luego se suman ponderadamente. Como cada evaluación K depende de la anterior, no podremos hacer una operación vectorial en la que se evalúen los cuatro K en paralelo, sino que será en las otras operaciones, las evaluaciones de cada miembro, las sumas, y las multiplicaciones de cada vector, en las que podremos \textbf{explotar la concurrencia} para mejorar las prestaciones de nuestro código. Cabe también recordar que $y_n$ es un vector con tantos elementos como EDOs hay en el sistema.
 
 \subsection{Métodos de Adams-Bashforth}
 
-A diferencia de Runge-Kutta, donde sólo considerábamos un valor $y_n$ para obtener $y_{n+1}$, en la familia de métodos de \textbf{Adams-Bashforth}, al ser multipaso, sí tendremos en cuenta más puntos, como $y_{n-1}$ o $y_{n-3}$, además de $y_n$. En este proyecto nos hemos centrado en los métodos de paso fijo, es decir, que la diferencia entre $t_n$ y $t_{n+1}$ es constante (e igual a $\Delta t$ o $h$). Si bien existen otros métodos de paso variable, no serán tratados.
+A diferencia de Runge-Kutta, donde sólo considerábamos un valor $y_n$ para obtener $y_{n+1}$, en la familia de métodos de \textbf{Adams-Bashforth}, al ser multipaso, sí tendremos en cuenta más puntos, como $y_{n-1}$ o $y_{n-3}$, además de $y_n$. En este proyecto nos hemos centrado en los métodos de paso fijo, es decir, que la diferencia entre $t_n$ y $t_{n+1}$ es constante (e igual a $\Delta t = h$). Si bien existen otros métodos de paso variable, no serán tratados.
 
 De forma general, tenemos que un método lineal de $k$ pasos viene determinado por una expresión general tal que: \cite{Molero2007}
 
@@ -106,7 +108,7 @@ De forma general, tenemos que un método lineal de $k$ pasos viene determinado p
 	\sum_{j=0}^{k} \alpha_j \cdot y_{n+j} = \Delta t \cdot \sum_{j=0}^{k} \beta_j \cdot f(t_{n+j} , y_{n+j}) \text{ , }\quad n \geq 0
 \end{equation}
 
-Para poder aplicar esta fórmula necesitaremos un número determinado de \textbf{valores de arranque}, que serán iguales al valor de $k$. Como en los problemas de valor inicial sólo se proporciona el primero de ellos $y(y_n)=y_0$, los valores restantes deberemos conseguirlos aplicando otro método (que no sea multipaso), como por ejemplo, el método de Runge-Kutta clásico. 
+Para poder aplicar esta fórmula necesitaremos un número determinado de \textbf{valores de arranque}, que serán iguales al valor de $k$. Como en los problemas de valor inicial sólo se proporciona el primero de ellos $y(t_0)=y_0$, los valores restantes deberemos conseguirlos aplicando otro método (que no sea multipaso), como por ejemplo, el método de Runge-Kutta clásico. 
 
 La expresión general de un método de Adams-Bashforth de k pasos es:\cite{Molero2007}
 
@@ -115,7 +117,7 @@ La expresión general de un método de Adams-Bashforth de k pasos es:\cite{Moler
 	\begin{split}
 		y_{n+1} &= y_n + \Delta t \cdot ( \gamma_0 \cdot \nabla^0 + \gamma_1 \cdot \nabla^1 + \text{ ... } + \gamma_{k-1} \cdot \nabla^{k-1} )\cdot f(t_n, y_n) \\
 		\text{ donde } \\
-		\gamma_i &= \frac{1}{i!\cdot \Delta t^{i+1}} \int_{t_n}^{t_{n+1}} (t-t_n) \text{ ... } (t - t_{n-i+1}) \cdot dx
+		\gamma_i &= \frac{1}{i!\cdot \Delta t^{i+1}} \int_{t_n}^{t_{n+1}} (t-t_n) \text{ ... } (t - t_{n-i+1}) \cdot dt
 	\end{split}
 \end{equation}
 
@@ -129,7 +131,7 @@ Aplicando la anterior ecuación \ref{eq:ExpresionGeneralAdamsBashforth}, obtendr
 		\begin{split}
 			y_{n+1} &= y_n + h/2 \cdot (3f_n-f_{n-1}) \\
 			\text{ donde }\\
-			f_n&=f(t_n,y_n) \text{ y } f_{n-1}=f(t_{n-1},y_{n-1})
+			f_n&=f(t_n,y_n) \text{ y } n \in \mathbb{N}
 		\end{split}
 	\end{equation}
 	
@@ -148,9 +150,9 @@ Aplicando la anterior ecuación \ref{eq:ExpresionGeneralAdamsBashforth}, obtendr
 	\end{equation}
 \end{itemize}
 
-En el Adams Bashforth de orden 2, (ecuación \ref{eq:AdamsBashforth2}) será el primer caso en el que vemos aplicada la teoría de los métodos multipaso, ya que, para obtener el paso $y_2$, por ejemplo, deberíamos tener de antemano $f_1$ y $f_0$, para los que a su vez necesitaríamos (a través del arranque con Runge-Kutta) $y_1$ y $y_0$. Una vez hecho el arranque inicial para obtener $y_2$, ya sí podríamos operar iterativamente sólo con Adams-Bashforth. Por otro lado, será con el método Adams-Bashforth de orden 4 (ecuación \ref{eq:AdamsBashforth4} con el que principalmente trabajaremos.
+En el método Adams Bashforth de orden 2, (ecuación \ref{eq:AdamsBashforth2}) será el primer caso en el que vemos aplicada la teoría de los métodos multipaso, ya que, para obtener el paso $y_2$, por ejemplo, deberíamos tener de antemano $f_1$ y $f_0$, para los que a su vez necesitaríamos (a través del arranque con Runge-Kutta) $y_1$ y $y_0$. Una vez hecho el arranque inicial para obtener $y_2$, ya sí podríamos operar iterativamente sólo con Adams-Bashforth. Por otro lado, será con el método Adams-Bashforth de orden 4 (ecuación \ref{eq:AdamsBashforth4} con el que principalmente trabajaremos.
 
-Llevándonos este método a la programación, tendremos una clase \texttt{AdamsBashforth} con una función \texttt{aplicar()} que se encargará de, primero, realizar un arranque con Runge-Kutta de orden 4(algoritmo \ref{alg:RungeKutta4}) y posteriormente poner en funcionamiento un bucle que evalúe la expresión (ecuaciones \ref{eq:EulerExplicito}, \ref{eq:AdamsBashforth2}, \ref{eq:AdamsBashforth3}, o \ref{eq:AdamsBashforth4}) tantas veces como esté establecido. En función del lenguaje utilizado y de la tecnología de paralelización, las operaciones vectoriales funcionarán de una forma u otra, pero el planteamiento será el mismo, con llamadas a la evaluación de cada problema en cuestión (\texttt{feval}).
+Llevándonos este método a la programación, tendremos una clase \texttt{AdamsBashforth} con una función \texttt{aplicar()} que se encargará de, primero, realizar un arranque con Runge-Kutta de orden 4 (algoritmo \ref{alg:RungeKutta4}) y posteriormente poner en funcionamiento un bucle que evalúe la expresión (ecuaciones \ref{eq:EulerExplicito}, \ref{eq:AdamsBashforth2}, \ref{eq:AdamsBashforth3}, o \ref{eq:AdamsBashforth4}) tantas veces como esté establecido. En función del lenguaje utilizado y de la tecnología de paralelización, las operaciones vectoriales funcionarán de una forma u otra, pero el planteamiento será el mismo, con llamadas a la evaluación de cada problema en cuestión (\texttt{feval}).
 
 A continuación tenemos el algoritmo para aplicar el método, en el cual $k$ corresponde con el orden del mismo, por tanto $y_k$ con el nuevo valor que se calcula en cada iteración, y los vectores $f_k, f_{k-1}, ..., f_{n-k}$ son los resultados de aplicar \texttt{feval()} que se arrastran de iteraciones anteriores.
 
@@ -191,7 +193,7 @@ Un sistema predictor–corrector es una estrategia de integración numérica par
 
 En lugar de calcular directamente $y(t_{n+1})=y_{n+1}$, el método predictor produce una estimación $(y_{n+1})^p$ basada únicamente en valores ya conocidos. Esa estimación se utiliza para evaluar la función $f(t_{n+1}, (y_{n+1})^p)$, que es la información que un método implícito necesitaría pero que normalmente obligaría a resolver una ecuación. Con esa evaluación, el corrector aplica una fórmula más precisa y obtiene un valor corregido.
 
-Adams–Bashforth actúa como \textbf{predictor} porque es explícito y utiliza únicamente valores pasados de la derivada. Adams–Moulton actúa como \textbf{corrector} porque su fórmula implícita incorpora la derivada en el punto futuro, lo que mejora la precisión y la estabilidad. Al sustituir la derivada futura por la derivada evaluada en la predicción, el método no requiere resolver ecuaciones no lineales. El resultado es un método de orden alto, eficiente y con buena estabilidad, muy adecuado para problemas donde los métodos explícitos puros serían inestables o demasiado restrictivos en el tamaño del paso.
+Adams–Bashforth actúa como \textbf{predictor} porque es explícito y utiliza únicamente valores pasados de la derivada. Adams–Moulton actúa como \textbf{corrector} porque su fórmula implícita incorpora la derivada en el punto futuro, lo que mejora la precisión y la estabilidad. Al sustituir la derivada futura por la derivada evaluada en la predicción, el método no requiere resolver ecuaciones no lineales. El resultado es un método de orden alto, eficiente y con mejor estabilidad, muy adecuado para problemas donde los métodos explícitos puros serían inestables o demasiado restrictivos en el tamaño del paso.
 
 La expresión general de un método Adams-Moulton puro de k pasos es: \cite{Molero2007}
 \begin{equation}
@@ -290,7 +292,7 @@ Para poner en funcionamiento la implementación de estos métodos y de la parale
 		\end{split}
 	\end{equation}
 	
-	donde $x \in [0,1]$ y $t \in [0,1]$. Los valores $a \in R$ y $d \in R$ son escalares constantes que representan, respectivamente, la intensidad de la advección y de la difusión. El dominio espacial se divide uniformemente en $N$ subintervalos con un mallado de paso uniforme $\Delta x = 1/N$.
+	donde $x \in [0,1]$ y $t \in [0,1]$. Los valores $a \in R$ y $d \in R$ son escalares constantes que representan, respectivamente, la intensidad de la advección y de la difusión. El dominio espacial se divide uniformemente en $N$ subintervalos con un mallado de paso uniforme $\Delta x = 1/N$, generando un sistema de $N$ EDOs.
 	
 	\item \textbf{AdvDiff1D}: Representa un modelo de advección-difusión-reacción\cite{Marabeh2023}, tal que
 	
@@ -302,7 +304,7 @@ Para poner en funcionamiento la implementación de estos métodos y de la parale
 		\end{split}
 	\end{equation}	
 	
-	Los coeficientes escalares $a$ y $d$ representan la intensidad de los términos de advección y difusión, respectivamente. Estudiamos este modelo con los valores $a = 10$ y $d = 1$, con $t \in [0,1]$ y $x \in [0,1]$. El dominio espacial se discretiza uniformemente en $N$ puntos con un espaciado $\Delta x = 1/N$. 
+	Los coeficientes escalares $a$ y $d$ representan la intensidad de los términos de advección y difusión, respectivamente. Estudiamos este modelo con los valores $a = 10$ y $d = 1$, con $t \in [0,1]$ y $x \in [0,1]$. El dominio espacial se discretiza uniformemente en $N$ puntos con un espaciado $\Delta x = 1/N$, generando un sistema de $N$ EDOs. 
 	
 	\item \textbf{Brusselator1D}: El sistema Brusselator, un tipo de ecuación de reacción–difusión, fue desarrollado por la \textit{Brussels School} \cite{Lefever1971}. Este sistema está específicamente diseñado para analizar el comportamiento de sistemas químicos que presentan oscilaciones no lineales. Este modelo se caracteriza por dos ecuaciones acopladas de difusión–reacción, que combinan difusión lineal con dinámicas de reacción no lineales\cite{Marabeh2025}. Se escriben como:
 	
@@ -313,15 +315,17 @@ Para poner en funcionamiento la implementación de estos métodos y de la parale
 		\end{split}
 	\end{equation}
 	
-	donde $A$ y $B$ son parámetros que controlan los términos de reacción y $\alpha$ representa la difusividad. Además, se aplican diferencias finitas centradas de segundo orden sobre una malla uniforme con $N$ puntos interiores, y se toman $A = 1$, $B = 3$ y $\alpha \in \{1/50,\, 1/500\}$.
+	donde $A$ y $B$ son parámetros que controlan los términos de reacción y $\alpha$ representa la difusividad. Además, se aplican diferencias finitas centradas de segundo orden sobre una malla uniforme con $N$ puntos interiores, y se toman $A = 1$, $B = 3$ y $\alpha \in \{1/50,\, 1/500\}$, generando un sistema de $2N$ EDOs.
 	
 	\item \textbf{Brusselator2D}: La forma bidimensional del modelo Brusselator se asemeja estrechamente a su versión unidimensional, pero incluye un término adicional de forzamiento (reacción), denotado por $f$, que influye en $u$ \cite{Marabeh2024}. En el contexto del modelo 2D, los parámetros se eligen como sigue: $A = 1$, $B = 3.4$, con $\alpha \in \{1/50,\, 1/500\}$, y tanto $x$ como $y$ en el intervalo $[0,1]$. 
 	
-	El modelo se discretiza uniformemente en una malla de $N \cdot N$ puntos, empleando diferencias centradas de segundo orden. Esto da lugar a un sistema de EDOs de tamaño $2N^2$. Las condiciones iniciales en la malla discretizada se escriben como:
+	El modelo se discretiza uniformemente en una malla de $N \cdot N$ puntos, empleando diferencias centradas de segundo orden. Las condiciones iniciales en la malla discretizada se escriben como:
 	
 	\begin{equation}
 		u_{i,j}(0) = 22\,y_j(1-y_j)^{3/2}, \quad v_{i,j}(0) = 27\,x_i(1-x_i)^{3/2}
 	\end{equation}
+	
+	Tras la discretización, se tienen 2 EDOs para cada punto $i,j \in [0, N-1]$. Esto da lugar a un sistema de EDOs de tamaño $2N^2$.
 	
 \end{itemize}
 

@@ -6,6 +6,8 @@ A continuación, el capítulo presenta y desarrolla dos enfoques distintos de pa
 
 Finalmente, el capítulo analiza de forma detallada los resultados experimentales obtenidos con ambas estrategias, aplicadas a distintos métodos numéricos y problemas de diversa complejidad. Se estudian tiempos de ejecución, speedup y eficiencia, y se interpretan los resultados.
 
+\clearpage
+
 \section{Implementación Secuencial}
 
 Tomaremos como punto de partida la implementación secuencial de los PVIs \cite{Mantas2024}, de la cual ya disponemos.
@@ -88,9 +90,12 @@ Frente al paralelismo de operaciones, tenemos el paralelismo por componentes (o 
 
 Esto quiere decir que se creará un \textbf{único equipo de hilos} al entrar en el \texttt{parallel}, y todos los hilos permanecerán activos e iterarán en el bucle, paso a paso. Dentro del bucle iterativo, habrá diversos \texttt{\#pragma omp for} que repartirán los índices entre los hilos. Esto además nos permitirá reducir las \textbf{barreras de sincronización}. Para poder comparar con la anterior implementación \ref{alg:AB4ParalelismoOperaciones}, describimos el mismo algoritmo (\ref{eq:AdamsBashforth4}) pero usando esta estrategia:
 
+La idea principal detrás de esta estrategia es \textbf{reducir el \textit{overhead}} provocado por tener demasiadas barreras de sincronización, y mejorar el uso de la caché. Para mejorar la implementación hacemos uso de directivas como \texttt{schedule (static)}, con la que indicamos cómo deben repartirse las iteraciones entre los hilos. En este caso, se divide el rango de iteraciones en bloques contiguos y de tamaño fijo, y se asigna cada bloque a un hilo antes de empezar la ejecución del bucle. Esto es práctico cuando sabemos de antemano que todas las iteraciones van a costar lo mismos.
+
+Algunas de las desventajas que tendremos es que el código es más complejo, pues no se pueden reutilizar funciones como el \texttt{feval()} secuencial (que sí lo aprovechábamos en el paralelismo por operaciones), sino que hay que hacer una versión específica para los componentes. De igual manera, no se pueden utilizar las funciones auxiliares, porque están diseñadas para tratar los vectores completos, no \textbf{elementos individuales}.
+
 \begin{algorithm}[H]
 	\begin{algorithmic}
-		\State $ Y_{n0} \gets Y_0 $
 		\For{ $ j \text{=} 1 \text{; }j < 3\text{; }\text{++}j $ }
 			\State $ y_j \gets arranqueRK4(y_{j-1})$ 
 		\EndFor
@@ -119,10 +124,6 @@ Esto quiere decir que se creará un \textbf{único equipo de hilos} al entrar en
 	\caption{Implementación de AB4 con Paralelismo por Componentes}
 	\label{alg:AB4ParalelismoComponentes}
 \end{algorithm}
-
-La idea principal detrás de esta estrategia es \textbf{reducir el \textit{overhead}} provocado por tener demasiadas barreras de sincronización, y mejorar el uso de la caché. Para mejorar la implementación hacemos uso de directivas como \texttt{schedule (static)}, con la que indicamos cómo deben repartirse las iteraciones entre los hilos. En este caso, se divide el rango de iteraciones en bloques contiguos y de tamaño fijo, y se asigna cada bloque a un hilo antes de empezar la ejecución del bucle. Esto es práctico cuando sabemos de antemano que todas las iteraciones van a costar lo mismos.
-
-Algunas de las desventajas que tendremos es que el código es más complejo, pues no se pueden reutilizar funciones como el \texttt{feval()} secuencial (que sí lo aprovechábamos en el paralelismo por operaciones), sino que hay que hacer una versión específica para los componentes. De igual manera, no se pueden utilizar las funciones auxiliares, porque están diseñadas para tratar los vectores completos, no \textbf{elementos individuales}.
 
 \section{Resultados Experimentales}
 

@@ -22,9 +22,19 @@ Como hemos comentado, OpenMP opera sobre un modelo de memoria compartida en la q
 
 A modo de referencia, los primeros trabajos en los que se utiliza una GPU para cómputo general aparecen a principios de los 2000, en 2004 se crea internamente CUDA, y se lanza oficialmente en 2007. Desde entonces, la evolución de CUDA ha ido ligada a la evolución propia de las GPUs de NVIDIA, manteniendo el modelo de ejecución \textbf{SIMT}\textit{(Single Instruction, Multiple Threads)} y añadiendo unidades especializadas como \textit{Tensor Cores}, \textit{Ray Trancing Cores}, o el mecanismo del \textit{Transformer Engine} \cite{NVIDIA2026}.
 
-CUDA implementa un modelo SIMT, en el cual el programador define una función denominada kernel que describe el código de un hilo, que se lanza desde la GPU y se ejecuta de forma concurrente en la GPU usando múltiples hilos. Los hilos se agrupan en bloques, que son arrays tridimensionales de hilos; y los bloques a su vez se agrupan como una grid, array tridimensional de bloques. Cada bloque se ejecuta en un \textit{Streaming Multiprocessor}, dentro del cual los hilos se agrupan en \textbf{warps de 32 hilos} que se ejecutan físicamente en paralelo utilizando cores del multiprocesador. \cite{Kirk2010} El warp de hilos es, por tanto, la unidad de ejecución con la que trabajamos.
+CUDA implementa un modelo SIMT, en el cual el programador define una función denominada kernel que describe el código de un hilo, que se lanza desde la GPU y se ejecuta de forma concurrente en la GPU usando múltiples hilos. Los hilos se agrupan en bloques, que son arrays tridimensionales de hilos; y los bloques a su vez se agrupan como una grid, array tridimensional de bloques. Cada bloque se ejecuta en un \textit{Streaming Multiprocessor}(SM), dentro del cual los hilos se agrupan en \textbf{warps de 32 hilos} que se ejecutan físicamente en paralelo utilizando cores del multiprocesador. \cite{Kirk2010} El warp de hilos es, por tanto, la unidad de ejecución con la que trabajamos.
 
-\textbf{\Huge AÑADIR FIGURA DIAPOSITIVAS PROFESOR}
+Cuda define un modelo de ejecución heterogéneo:
+\begin{itemize}
+	\item \textbf{Host}: la CPU, donde vive el programa principal, el runtime CUDA, y la lógica de control
+	\item \textbf{Device}: la GPU, donde viven los kernels, la memoria global, los SM, y los warps
+\end{itemize}
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth]{imagenes/CUDA-Host-Device.png}
+	\caption{Modelo host-device de CUDA}
+	\label{fig:CUDA-Host-Device}
+\end{figure}
 
 Cuando se programa con CUDA se ha de tener en mente que se puede acceder a varias \textbf{memorias diferentes}, cada una con su propia latencia y ancho de banda, y entre ellas nos encontramos a los \textbf{registros}, que son la memoria de los hilos individuales, y la más rápida de todas; pasando por la \textbf{memoria compartida} (\texttt{\_\_shared\_\_}), que usan los bloques; la \textbf{memoria de constantes} (\texttt{\_\_constant\_\_}), que es de solo lectura, y va cacheada; y la \textbf{memoria global}, que se aloja en la VRAM de la GPU, que es la que se utiliza para almacenar grandes estructuras de datos. \cite{Farber2011}
 

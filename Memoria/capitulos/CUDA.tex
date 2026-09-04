@@ -338,7 +338,7 @@ Aunque el programador define a través del \texttt{blocksize} el tamaño de los 
 	\label{fig:Shuffle-Down}
 \end{figure}
 
-La imagen ilustra un ejemplo de shuffle. Los hilos crean una variable local $i$ (en este caso su propio identificador dentro del warp), y a través del shuffle podrán accederse entre ellos a esa variable. En este caso, cada hilo accede a esa variable $i$ de los vecinos situados dos hilos por encima, y copia el contenido de la variable del vecino en una nueva variable propia llamada $j$. 
+La imagen ilustra un ejemplo de shuffle. Los hilos crean una variable local $i$ (en este caso su propio identificador dentro del warp), y a través del shuffle podrán acceder al valor de esa variable en sus vecinos. En este caso, cada hilo accede a esa variable $i$ de los vecinos situados dos hilos por encima, y copia el contenido de la variable del vecino en una nueva variable propia llamada $j$. 
 
 Esto resulta útil en implementaciones como el algoritmo \ref{alg:KernelAdvDiff1d}, en el que un mismo thread hace varios accesos a memoria global, y esto podríamos sustituirlo por un único acceso a memoria global, y varios shuffle entre hilos.
 
@@ -417,7 +417,7 @@ Mientras que en esta implementación cambiamos el paradigma a bloques bidimensio
 	[0_u, 1_u, ..., (n-2)_u, (n-1)_u, 0_v, 1_v, ..., (n-2)_v, (n-1)_v]
 \end{equation}
 
-Sin embargo, yendo a las mediciones podemos ver que no ocurren \textbf{cambios significativos} con ninguna de las dos nuevas implementaciones frente a la anterior "estándar".
+Sin embargo, yendo a las mediciones podemos ver que no se obtienen \textbf{cambios significativos} con ninguna de las dos nuevas implementaciones frente a la anterior estándar.
 
 \begin{table}[H]
 	\centering
