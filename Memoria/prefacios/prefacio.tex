@@ -50,15 +50,16 @@ José Manuel Navarro Cuartero\\
 
 
 \vspace{0.7cm}
-\noindent{\textbf{Abstract{\huge RE-TRADUCIR}}}\\
+\noindent{\textbf{Abstract}}\\
 
-In this Bachelor's Thesis, an investigation is carried out into the field of ordinary differential equations and the numerical methods used to obtain approximate solutions to them through computation.
+In this Bachelor's Thesis, an investigation is carried out in the field of ordinary differential equations and the numerical methods used to obtain approximate solutions to them through computation.
 
-To this end, three different solution methods are studied and implemented; Runge–Kutta, Adams-Bashforth, and Adams-Bashforth-Moulton. From this point, two different technologies are introduced to parallelize the code in pursuit of performance gains.
+To this end, three families of numerical methods are studied and implemented: Runge-Kutta, Adams-Bashforth, and Adams-Bashforth-Moulton. From this point on, two different technologies are introduced that allow the code to be parallelized in search of execution-time improvements.
 
-The first of these is OpenMP, which enables parallelism on multicore CPUs and in which two opposing parallelization strategies are implemented and compared. The second is CUDA, which leverages the massive parallel computing capabilities of modern GPUs.
+The first of these is OpenMP, which exploits parallelism on multicore CPUs, where two complementary parallelization strategies are implemented and compared. The second is CUDA, which leverages the massive parallelism of modern NVIDIA graphics cards.
 
-Starting from a series of sequential problems, the methods are implemented and parallelized using both technologies, and execution time measurements are performed.
+Starting from a set of sequential algorithms and mathematical models, they are implemented and parallelized using both technologies, measurements are carried out, and the execution-time results are analyzed.
+
 
 \chapter*{}
 \thispagestyle{empty}
