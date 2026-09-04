@@ -276,15 +276,52 @@ El funcionamiento del algoritmo acaba siendo muy similar al esquema de Adams-Bas
 \section{Problemas de prueba}
 \label{sec:problemas}
 
-\textbf{\huge MIRAR PAPER PROFE}
+Para poner en funcionamiento la implementación de estos métodos y de la paralelización de la que hablaremos a continuación, hemos tomado cuatro problemas distintos que nos permitan probar extensivamente ambas tecnologías, tanto la implementación multihebra, como la implementación para GPUs. Los problemas en cuestión son:
 
-Para poner en funcionamiento la implementación de estos métodos y de la paralelización de la que hablaremos a continuación, hemos tomado cuatro problemas distintos que nos permitan probar extensivamente ambas tecnologías, tanto OpenMP como CUDA.
-Los problemas en cuestión son:
-
-SimpleAdvDiff y AdvDiff1D son problemas unidimensionales de advección - difusión en los que se trabajará con vectores que tendrán un número de EDOs igual al tamaño del vector y estarán formados por dos partes, una rígida (\textit{stiff}) y una no rígida. Si bien servirán para establecer las bases del proyecto, nos centraremos más en los otros dos problemas.
-
-Brusselator1D, el modelo brusselator es un tipo de modelo de reacción-difusión que fue desarrollado por la Brussels School. Este sistema está diseñado para analizar el comportamiento de sistemas químicos que presentan oscilación no linear. \cite{Marabeh2024} Este problema tendrá 2 componentes, y por tanto el número de EDOs será el doble del tamaño que se elija.
-
-Brusselator2D, este modelo es similar a su versión unidimensional, pero incorpora una componente extra reactiva. \cite{Marabeh2024} Además, está discretizado uniformemente en una malla de NxN puntos, por lo tanto, su número de EDOs será el doble del cuadrado del tamaño de problema. 
+\begin{itemize}
+	\item \textbf{SimpleAdvDiff}: Este problema representa un modelo de advección–difusión unidimensional que se utiliza para describir el transporte de una cantidad dentro de un sistema físico debido tanto a procesos de advección como de difusión.\cite{Marabeh2024} Aquí consideramos una ecuación de advección–difusión unidimensional con coeficientes constantes. La ecuación de advección–difusión para una cantidad $y$ se escribe como:
+	
+	\begin{equation}
+		\begin{split}
+			\frac{\partial y}{\partial t} + a\,\frac{\partial y}{\partial x} &= d\,\frac{\partial^2 y}{\partial x^2}\\
+			y(0, x) &= \sin(2\pi x)\\
+			y(t, 0) &= y(t, 1)
+		\end{split}
+	\end{equation}
+	
+	donde $x \in [0,1]$ y $t \in [0,1]$. Los valores $a \in R$ y $d \in R$ son escalares constantes que representan, respectivamente, la intensidad de la advección y de la difusión. El dominio espacial se divide uniformemente en $N$ subintervalos con un mallado de paso uniforme $\Delta x = 1/N$.
+	
+	\item \textbf{AdvDiff1D}: Representa un modelo de advección-difusión-reacción\cite{Marabeh2023}, tal que
+	
+	\begin{equation}
+		\begin{split}
+			u_t + a\,u\,u_x &= d\,u_{xx} + u + f(x,t)\\
+			u(x,0) &= \sin(2\pi x)\\
+			u(0,t) &= u(1,t)
+		\end{split}
+	\end{equation}	
+	
+	Los coeficientes escalares $a$ y $d$ representan la intensidad de los términos de advección y difusión, respectivamente. Estudiamos este modelo con los valores $a = 10$ y $d = 1$, con $t \in [0,1]$ y $x \in [0,1]$. El dominio espacial se discretiza uniformemente en $N$ puntos con un espaciado $\Delta x = 1/N$. 
+	
+	\item \textbf{Brusselator1D}: El sistema Brusselator, un tipo de ecuación de reacción–difusión, fue desarrollado por la \textit{Brussels School} \cite{Lefever1971}. Este sistema está específicamente diseñado para analizar el comportamiento de sistemas químicos que presentan oscilaciones no lineales. Este modelo se caracteriza por dos ecuaciones acopladas de difusión–reacción, que combinan difusión lineal con dinámicas de reacción no lineales\cite{Marabeh2025}. Se escriben como:
+	
+	\begin{equation}
+		\begin{split}
+			\frac{\partial u}{\partial t} &= \alpha \nabla^2 u + A + u^2 v - (B + 1)u\\
+			\frac{\partial v}{\partial t} &= \alpha \nabla^2 v + Bu - u^2 v
+		\end{split}
+	\end{equation}
+	
+	donde $A$ y $B$ son parámetros que controlan los términos de reacción y $\alpha$ representa la difusividad. Además, se aplican diferencias finitas centradas de segundo orden sobre una malla uniforme con $N$ puntos interiores, y se toman $A = 1$, $B = 3$ y $\alpha \in \{1/50,\, 1/500\}$.
+	
+	\item \textbf{Brusselator2D}: La forma bidimensional del modelo Brusselator se asemeja estrechamente a su versión unidimensional, pero incluye un término adicional de forzamiento (reacción), denotado por $f$, que influye en $u$ \cite{Marabeh2024}. En el contexto del modelo 2D, los parámetros se eligen como sigue: $A = 1$, $B = 3.4$, con $\alpha \in \{1/50,\, 1/500\}$, y tanto $x$ como $y$ en el intervalo $[0,1]$. 
+	
+	El modelo se discretiza uniformemente en una malla de $N \cdot N$ puntos, empleando diferencias centradas de segundo orden. Esto da lugar a un sistema de EDOs de tamaño $2N^2$. Las condiciones iniciales en la malla discretizada se escriben como:
+	
+	\begin{equation}
+		u_{i,j}(0) = 22\,y_j(1-y_j)^{3/2}, \quad v_{i,j}(0) = 27\,x_i(1-x_i)^{3/2}
+	\end{equation}
+	
+\end{itemize}
 
  % Salto de párrafo
