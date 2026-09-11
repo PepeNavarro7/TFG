@@ -134,12 +134,12 @@ El paralelismo surge cuando un problema puede descomponerse en subtareas indepen
 Podríamos clasificar los distintos modelos de paralelismo que nos encontraremos en tres grandes grupos: \cite{Grama2003}
 
 \begin{itemize}
-	\item \textbf{Paralelismo de datos}, que consiste en aplicar la misma operación a múltiples elementos de un conjunto, a través de la vectorización, de bucles paralelos, o de operaciones \textit{element-wise}. Este paralelismo se puede aprovechar con tecnoloías como OpenMP, CUDA, OpenCL, o AVX, entre otros.
+	\item \textbf{Paralelismo de datos}, que consiste en aplicar la misma operación a múltiples elementos de un conjunto, a través de la vectorización, de bucles paralelos, o de operaciones \textit{element-wise}. Este paralelismo se puede aprovechar con tecnologías como OpenMP, CUDA, OpenCL, o AVX, entre otros.
 	\item \textbf{Paralelismo de tareas}, que consiste en ejecutar tareas heterogéneas en paralelo, como pipelines, árboles de tareas, o grafos de dependencias. Este modelo es usado por frameworks como TBB, Cilk, OpenMP tasks o CUDA graphs.
 	\item \textbf{Paralelismo híbrido}, que combina ambos, buscando la explotación simultánea del paralelismo de tareas y el paralelismo de datos en una misma aplicación.
 \end{itemize}
 
-Algunos conceptos muy importantes que nos encontraremos son la concurrencia y el paralelismo. La \textbf{concurrencia} hace referencia a que varias tareas pueden ocurrir a la vez, o que ocurren simultáneamente de a nivel lógico. Una CPU mononúcleo puede cambiar rápidamente de una tarea a otra si no tienen dependencias entre ellas y son concurrentes. Mientras que el \textbf{paralelismo} se refiere a ejecutar físicamente varias tareas al mismo tiempo, por ejemplo a través de varios núcleos.
+Algunos conceptos muy importantes que nos encontraremos son la concurrencia y el paralelismo. La \textbf{concurrencia} hace referencia a que varias tareas pueden ocurrir a la vez, o que ocurren simultáneamente a nivel lógico. Una CPU mononúcleo puede cambiar rápidamente de una tarea a otra si no tienen dependencias entre ellas y son concurrentes. Mientras que el \textbf{paralelismo} se refiere a ejecutar físicamente varias tareas al mismo tiempo, por ejemplo a través de varios núcleos.
 
 El \textbf{speedup} será la forma en la que mediremos las mejoras en la ejecución conforme aumenta el paralelismo. En nuestro caso, lo calcularemos a través del cociente del tiempo de ejecución del programa secuencial, y el tiempo de ejecución de la versión paralela \cite{Schryen2024}. Como todo código por bien optimizado que esté va a tener una parte secuencial que no pueda paralelizarse, buscaremos que el speedup aumente tanto como sea posible. Por ejemplo, pasando de un código secuencial a uno con 4 hebras OpenMP, el speedup ideal sería de 4, aunque entendemos que no será posible conseguirlo, pero sí acercarse lo suficiente dependiendo del problema, el algoritmo usado, y la plataforma de cómputo. 
 
